@@ -1,3 +1,4 @@
-./vscode/
+.vscode/
+piInfo.H
 wiringPi/test
 readCpuInfo
