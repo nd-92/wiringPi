@@ -3,41 +3,83 @@
 
 #include "wiringPiIncludes.H"
 #include "wiringPiDefines.H"
-#include "../version.H"
 #include "wiringPi.H"
 
 // This class replicates wiringPiNodeStruct
-// Device setups are from array of classes
 
 namespace WiringPi
 {
-    template <int pinBaseVal, int numPinsVal>
+    // template <size_t pinBaseVal, size_t numPinsVal>
     class wiringPiNode
     {
     public:
-        wiringPiNode(){};
+        constexpr wiringPiNode(){};
 
         ~wiringPiNode(){};
 
-        constexpr int pinBase() const
+        // Sets the mode of a pin to be input, output or PWM output
+        virtual inline void pinMode() const
         {
-            return pinBase_;
         }
 
-        constexpr int numPins() const
+        // Control the internal pull - up / down resistors on a GPIO pin
+        virtual inline void pullUpDnControl() const
         {
-            return numPins_;
         }
 
-        constexpr int pinMax() const
+        // Read the value of a given Pin, returning HIGH or LOW
+        virtual inline int digitalRead() const
         {
-            return pinMax_;
+            return 0;
+        }
+
+        // Set an output bit
+        virtual inline void digitalWrite() const
+        {
+        }
+
+        // Read the analog value of a given Pin
+        virtual inline int analogRead() const
+        {
+            return 0;
+        }
+
+        // Write the analog value to the given Pin.
+        virtual inline void analogWrite() const
+        {
+        }
+
+        // Set an output PWM value
+        virtual inline void pwmWrite() const
+        {
+        }
+
+        // Return the device name
+        virtual inline std::string deviceName() const
+        // virtual inline std::string deviceName() const
+        {
+            return "wiringPiNode";
+        }
+
+        virtual inline constexpr size_t pinBase() const
+        {
+            return 0;
+        }
+
+        virtual inline constexpr size_t numPins() const
+        {
+            return 0;
+        }
+
+        virtual inline constexpr size_t pinMax() const
+        {
+            return 0;
         }
 
     private:
-        static constexpr int pinBase_ = pinBaseVal;
-        static constexpr int numPins_ = numPinsVal;
-        static constexpr int pinMax_ = pinBaseVal + numPinsVal - 1;
+        const size_t pinBase_ = 0;
+        const size_t numPins_ = 0;
+        const size_t pinMax_ = 0;
     };
 }
 

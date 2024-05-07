@@ -118,6 +118,7 @@
         "ranges": "cpp",
         "readCpuInfo.C": "cpp",
         "fstream": "cpp",
-        "referenceFile.C": "cpp"
+        "referenceFile.C": "cpp",
+        "GPIO.C": "cpp"
     }
 }

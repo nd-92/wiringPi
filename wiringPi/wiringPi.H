@@ -4,6 +4,9 @@
 #include "wiringPiIncludes.H"
 #include "wiringPiDefines.H"
 #include "wiringPiTemplateMacros.H"
+#include "wiringPiNode.H"
+// #include "dummyDevice.H"
+#include "GPIO.H"
 
 void printMode(const int mode)
 {
@@ -78,69 +81,45 @@ namespace WiringPi
             //     std::cout << "Now: " << micros() << " microseconds" << std::endl;
             //     printMode(wiringPiMode_);
             // }
+
+            // Add GPIO to the device registry on pins 0 to 39
+            for (size_t i = 0; i < 40; i++)
+            {
+                const WiringPi::GPIO device(i);
+
+                // Add the device name to the name database
+                pinRegistry_.push_back(1);
+                devNames_.push_back(device.deviceName());
+
+                // Add device to pointer registry
+                devicePtrs_.push_back(std::make_unique<GPIO>(device));
+
+                pinStart_.push_back(i);
+                pinEnd_.push_back(i);
+            }
+
+            for (size_t i = 40; i < 64; i++)
+            {
+                pinRegistry_.push_back(1);
+                devNames_.push_back("empty");
+                pinStart_.push_back(i);
+                pinEnd_.push_back(i);
+            }
+
+            pinRegistry_.resize(64);
+            devNames_.resize(64);
+            devicePtrs_.resize(64);
+            pinStart_.resize(64);
+            pinEnd_.resize(64);
         }
 
         ~wiringPi(){};
 
-        inline int digitalRead(int pin) const
+        // Read an input bit
+        inline int digitalRead(const size_t deviceNo) const
         {
-            // struct wiringPiNodeStruct *node = wiringPiNodes;
-
-            if ((pin & PI_GPIO_MASK<int>()) == 0) // On-Board Pin
-            {
-                if (wiringPiMode_ == WPI_MODE_GPIO_SYS<int>())
-                {
-                    return LOW<int>();
-                }
-                else if (wiringPiMode_ == WPI_MODE_PINS<int>())
-                {
-                    pin = pinToGpio_[static_cast<size_t>(pin)];
-                }
-                else if (wiringPiMode_ == WPI_MODE_PHYS<int>())
-                {
-                    pin = physToGpio_[static_cast<size_t>(pin)];
-                }
-                else if (wiringPiMode_ != WPI_MODE_GPIO<int>())
-                {
-                    return LOW<int>();
-                }
-
-                // if (PI_MODEL_5 == RaspberryPiModel)
-                // {
-                //     switch (gpio[2 * pin] & RP1_STATUS_LEVEL_MASK)
-                //     {
-                //     default: // 11 or 00 not allowed, give LOW!
-                //     case RP1_STATUS_LEVEL_LOW:
-                //     {
-                //         return LOW;
-                //     }
-                //     case RP1_STATUS_LEVEL_HIGH:
-                //     {
-                //         return HIGH;
-                //     }
-                //     }
-                // }
-                // else
-                // {
-                if ((*(gpio + gpioToGPLEV_[static_cast<size_t>(pin)]) & (1 << (pin & 31))) != 0)
-                {
-                    return HIGH<int>();
-                }
-                else
-                {
-                    return LOW<int>();
-                }
-                // }
-            }
-            else
-            {
-                // if ((node = wiringPiFindNode(pin)) == NULL)
-                // {
-                //     return LOW;
-                // }
-                // return node->digitalRead(node, pin);
-                return LOW<int>();
-            }
+            std::cout << "Called wiringPi digitalRead" << std::endl;
+            return devicePtrs_[deviceNo]->digitalRead();
         }
 
         inline const std::vector<int> &pinToGpio() const
@@ -235,25 +214,40 @@ namespace WiringPi
             return gpio;
         }
 
-        void addDevice(const size_t pinBase, const size_t numPins)
+        template <class deviceType>
+        void addDevice(deviceType device)
         {
-            // Firstly resize to accomodate the total pin count
-            deviceRegistry_.resize(pinBase + numPins);
-            for (size_t i = pinBase; i < pinBase + numPins; i++)
+            // Resize to accomodate the total pin count
+            // Set pins by default to unused
+            pinRegistry_.resize(std::max(device.pinBase() + device.numPins() + 64, pinRegistry_.size()), 0);
+
+            // Add the used pins to the pin count
+            for (size_t i = device.pinBase(); i < device.pinBase() + device.numPins(); i++)
             {
-                deviceRegistry_[i] = deviceRegistry_[i] + 1;
+                pinRegistry_[i + 64] = pinRegistry_[i + 64] + 1;
             }
+
+            // Add the start and end pins
+            pinStart_.push_back(device.pinBase() + 64);
+            // pinEnd_.push_back(device.pinBase() + device.numPins());
+            pinEnd_.push_back(device.pinMax() + 64);
+
+            // Add the device name to the name database
+            devNames_.push_back(device.deviceName());
+
+            // Add device to pointer registry
+            devicePtrs_.push_back(std::make_unique<deviceType>(device));
         }
 
-        void printDeviceRegistry() const
+        void printPinRegistry() const
         {
             std::cout << "========================" << std::endl;
             std::cout << "WiringPi device registry" << std::endl;
             std::cout << "========================" << std::endl;
-            std::cout << "Total registered pins: " << deviceRegistry_.size() << std::endl;
+            std::cout << "Total registered pins: " << pinRegistry_.size() << std::endl;
 
-            // Validate the device registry
-            if (validateDeviceRegistry())
+            // Validate the pin registry
+            if (validatePinRegistry())
             {
                 std::cout << "Device registry valid" << std::endl;
             }
@@ -264,22 +258,45 @@ namespace WiringPi
 
             // Print the device registry pins:
             std::cout << "Device pin layout:" << std::endl;
-            for (size_t i = 0; i < deviceRegistry_.size(); i++)
+            std::cout << "{ ";
+            for (size_t i = 0; i < pinRegistry_.size(); i++)
             {
-                std::cout << deviceRegistry_[i] << " ";
+                if (((i % 8) == 0) && (i > 0))
+                {
+                    std::cout << "} " << i - 8 << " -> " << i - 1 << std::endl;
+                    // std::cout << i - 8 << " -> " << i << std::endl;
+                    std::cout << "{ ";
+                }
+                std::cout << pinRegistry_[i] << " ";
             }
-            std::cout << std::endl;
+            std::cout << "}" << std::endl;
+
+            // Print the device names and their assigned pins
+            for (size_t i = 0; i < devNames_.size(); i++)
+            {
+                if (pinStart_[i] == pinEnd_[i])
+                {
+                    std::cout << devNames_[i] << " registered on pin " << pinStart_[i] << std::endl;
+                }
+                else
+                {
+                    std::cout << devNames_[i] << " registered on pins " << pinStart_[i] << " -> " << pinEnd_[i] << std::endl;
+                }
+            }
         }
 
-        inline bool validateDeviceRegistry() const
+        inline bool validatePinRegistry() const
         {
-            for (size_t i = 0; i < deviceRegistry_.size(); i++)
+            // Check for pin overlap
+            for (size_t i = 0; i < pinRegistry_.size(); i++)
             {
-                if (deviceRegistry_[i] > 1)
+                if (pinRegistry_[i] > 1)
                 {
+                    // Return false if overlap
                     return false;
                 }
             }
+            // Return true if no overlap
             return true;
         }
 
@@ -293,7 +310,12 @@ namespace WiringPi
         static constexpr int piWarranty_ = PI_WARRANTY<int>();
 
         // Registry of devices
-        std::vector<int> deviceRegistry_;
+        // std::vector<int> pinRegistry_ = std::vector<int>(64, 0);
+        std::vector<int> pinRegistry_;
+        std::vector<std::string> devNames_;
+        std::vector<size_t> pinStart_;
+        std::vector<size_t> pinEnd_;
+        std::vector<std::unique_ptr<WiringPi::wiringPiNode>> devicePtrs_;
 
         // Setup info
         static constexpr int wiringPiSetuped_ = static_cast<int>(true);
@@ -491,13 +513,13 @@ namespace WiringPi
             {
                 char fName[128];
                 std::vector<int> vec = std::vector<int>{
-                    -1, -1, -1, -1, -1, -1, -1, -1,   //
-                    -1, -1, -1, -1, -1, -1, -1, -1,   //
-                    -1, -1, -1, -1, -1, -1, -1, -1,   //
-                    -1, -1, -1, -1, -1, -1, -1, -1,   //
-                    -1, -1, -1, -1, -100, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1,   //
-                    -1, -1, -1, -1, -1, -1, -1, -1,   //
+                    -1, -1, -1, -1, -1, -1, -1, -1, //
+                    -1, -1, -1, -1, -1, -1, -1, -1, //
+                    -1, -1, -1, -1, -1, -1, -1, -1, //
+                    -1, -1, -1, -1, -1, -1, -1, -1, //
+                    -1, -1, -1, -1, -1, -1, -1, -1, //
+                    -1, -1, -1, -1, -1, -1, -1, -1, //
+                    -1, -1, -1, -1, -1, -1, -1, -1, //
                     -1, -1, -1, -1, -1, -1, -1, -1};
                 for (size_t pin = 0; pin < 64; ++pin)
                 {

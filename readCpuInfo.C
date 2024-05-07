@@ -140,7 +140,6 @@ int piGpioLayout(void)
     // if (wiringPiDebug)
     {
         // printf("piGpioLayout: Hardware: %s\n", line);
-        printf("piGpioLayout: Hardware: %s\n", line);
     }
 
     // See if it's BCM2708 or BCM2709 or the new BCM2835.
@@ -198,7 +197,7 @@ int piGpioLayout(void)
 
     // if (wiringPiDebug)
     {
-        printf("piGpioLayout: Revision string: %s\n", line);
+        // printf("piGpioLayout: Revision string: %s\n", line);
     }
 
     // Scan to the first character of the revision number
@@ -242,7 +241,7 @@ int piGpioLayout(void)
 
     // if (wiringPiDebug)
     {
-        printf("piGpioLayout: last4Chars are: \"%s\"\n", c);
+        // printf("piGpioLayout: last4Chars are: \"%s\"\n", c);
     }
 
     if ((strcmp(c, "0002") == 0) || (strcmp(c, "0003") == 0))
@@ -256,19 +255,20 @@ int piGpioLayout(void)
 
     // if (wiringPiDebug)
     {
-        printf("piGpioLayoutOops: Returning revision: %d\n", gpioLayout);
+        // printf("piGpioLayoutOops: Returning revision: %d\n", gpioLayout);
     }
 
     return gpioLayout;
 }
 
-int main(void)
+int main()
 {
     FILE *cpuFd;
     char line[120];
     char *c;
     unsigned int revision;
-    int bRev, bType, bProc, bMfg, bMem, bWarranty;
+    // int bRev, bType, bProc, bMfg, bMem, bWarranty;
+    int bRev, bType, bMfg, bMem, bWarranty;
 
     const int layout = piGpioLayout();
 
@@ -306,7 +306,7 @@ int main(void)
 
     // if (wiringPiDebug)
     {
-        printf("piBoardId: Revision string: %s\n", line);
+        // printf("piBoardId: Revision string: %s\n", line);
     }
 
     // Need to work out if it's using the new or old encoding scheme:
@@ -349,12 +349,12 @@ int main(void)
     {
         // if (wiringPiDebug)
         {
-            printf("piBoardId: New Way: revision is: %08X\n", revision);
+            // printf("piBoardId: New Way: revision is: %08X\n", revision);
         }
 
         bRev = (revision & (0x0F << 0)) >> 0;
         bType = (revision & (0xFF << 4)) >> 4;
-        bProc = (revision & (0x0F << 12)) >> 12; // Not used for now.
+        // bProc = (revision & (0x0F << 12)) >> 12; // Not used for now.
         bMfg = (revision & (0x0F << 16)) >> 16;
         bMem = (revision & (0x07 << 20)) >> 20;
         bWarranty = (revision & (0x03 << 24)) != 0;
@@ -367,9 +367,9 @@ int main(void)
 
         // if (wiringPiDebug)
         {
-            printf(
-                "piBoardId: rev: %d, type: %d, proc: %d, mfg: %d, mem: %d, warranty: %d\n",
-                bRev, bType, bProc, bMfg, bMem, bWarranty);
+            // printf(
+            //     "piBoardId: rev: %d, type: %d, proc: %d, mfg: %d, mem: %d, warranty: %d\n",
+            //     bRev, bType, bProc, bMfg, bMem, bWarranty);
         }
     }
     else // Old way

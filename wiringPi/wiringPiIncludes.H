@@ -22,5 +22,8 @@
 #include <sys/wait.h>
 #include <sys/ioctl.h>
 #include <asm/ioctl.h>
+#include <string>
+#include <memory>
+#include <utility>
 
 #endif
