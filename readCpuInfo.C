@@ -577,48 +577,53 @@ int main()
     MyFile << "#define __PI_INFO_H" << std::endl;
     MyFile << std::endl;
 
+    MyFile << "namespace WiringPi" << std::endl;
+    MyFile << "{" << std::endl;
+
     // Write to the file
-    MyFile << "template <typename T>" << std::endl;
-    MyFile << "consteval T GPIO_LAYOUT()" << std::endl;
-    MyFile << "{" << std::endl;
-    MyFile << "    return static_cast<T>(" << layout << ");" << std::endl;
-    MyFile << "}" << std::endl;
+    MyFile << "    template <typename T>" << std::endl;
+    MyFile << "    consteval T GPIO_LAYOUT()" << std::endl;
+    MyFile << "    {" << std::endl;
+    MyFile << "        return " << layout << ";" << std::endl;
+    MyFile << "    }" << std::endl;
     MyFile << std::endl;
 
-    MyFile << "template <typename T>" << std::endl;
-    MyFile << "consteval T PI_MODEL()" << std::endl;
-    MyFile << "{" << std::endl;
-    MyFile << "    return static_cast<T>(" << model << ");" << std::endl;
-    MyFile << "}" << std::endl;
+    MyFile << "    template <typename T>" << std::endl;
+    MyFile << "    consteval T PI_MODEL()" << std::endl;
+    MyFile << "    {" << std::endl;
+    MyFile << "        return " << model << ";" << std::endl;
+    MyFile << "    }" << std::endl;
     MyFile << std::endl;
 
-    MyFile << "template <typename T>" << std::endl;
-    MyFile << "consteval T PI_REV()" << std::endl;
-    MyFile << "{" << std::endl;
-    MyFile << "    return static_cast<T>(" << rev << ");" << std::endl;
-    MyFile << "}" << std::endl;
+    MyFile << "    template <typename T>" << std::endl;
+    MyFile << "    consteval T PI_REV()" << std::endl;
+    MyFile << "    {" << std::endl;
+    MyFile << "        return " << rev << ";" << std::endl;
+    MyFile << "    }" << std::endl;
     MyFile << std::endl;
 
-    MyFile << "template <typename T>" << std::endl;
-    MyFile << "consteval T PI_MEM()" << std::endl;
-    MyFile << "{" << std::endl;
-    MyFile << "    return static_cast<T>(" << mem << ");" << std::endl;
-    MyFile << "}" << std::endl;
+    MyFile << "    template <typename T>" << std::endl;
+    MyFile << "    consteval T PI_MEM()" << std::endl;
+    MyFile << "    {" << std::endl;
+    MyFile << "        return " << mem << ";" << std::endl;
+    MyFile << "    }" << std::endl;
     MyFile << std::endl;
 
-    MyFile << "template <typename T>" << std::endl;
-    MyFile << "consteval T PI_MAKER()" << std::endl;
-    MyFile << "{" << std::endl;
-    MyFile << "    return static_cast<T>(" << maker << ");" << std::endl;
-    MyFile << "}" << std::endl;
+    MyFile << "    template <typename T>" << std::endl;
+    MyFile << "    consteval T PI_MAKER()" << std::endl;
+    MyFile << "    {" << std::endl;
+    MyFile << "        return " << maker << ";" << std::endl;
+    MyFile << "    }" << std::endl;
     MyFile << std::endl;
 
-    MyFile << "template <typename T>" << std::endl;
-    MyFile << "consteval T PI_WARRANTY()" << std::endl;
-    MyFile << "{" << std::endl;
-    MyFile << "    return static_cast<T>(" << warranty << ");" << std::endl;
-    MyFile << "}" << std::endl;
+    MyFile << "    template <typename T>" << std::endl;
+    MyFile << "    consteval T PI_WARRANTY()" << std::endl;
+    MyFile << "    {" << std::endl;
+    MyFile << "        return " << warranty << ";" << std::endl;
+    MyFile << "    }" << std::endl;
     MyFile << std::endl;
+
+    MyFile << "}" << std::endl;
 
     MyFile << "#endif" << std::endl;
 

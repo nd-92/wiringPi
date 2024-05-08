@@ -7,8 +7,6 @@
 
 namespace WiringPi
 {
-    // template <size_t pinBaseVal>
-    // class dummyDevice : public wiringPiNode<pinBaseVal, 8>
     class dummyDevice : public wiringPiNode
     {
     public:
@@ -18,13 +16,8 @@ namespace WiringPi
 
         inline int digitalRead() const
         {
-            std::cout << "Dummy device digitalRead returning 99" << std::endl;
-            return 99;
-        }
-
-        inline void digitalWrite() const
-        {
-            std::cout << "Dummy device digitalWrite writing 99" << std::endl;
+            // std::cout << deviceName() << " digitalRead returning LOW" << std::endl;
+            return LOW<int>();
         }
 
         inline std::string deviceName() const

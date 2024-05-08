@@ -28,14 +28,27 @@ namespace WiringPi
         }
 
         // Read the value of a given Pin, returning HIGH or LOW
+        // Overloaded to accept ptrs to onboard gpio pins
         virtual inline int digitalRead() const
         {
             return 0;
         }
+        virtual inline int digitalRead(const int *gpioPtr, const pin_t gpioToGPLEV) const
+        {
+            // Return 0
+            return 0 * (*(gpioPtr + gpioToGPLEV) & (1 << (static_cast<pin_t>(pinBase_) & 31)));
+        }
 
         // Set an output bit
-        virtual inline void digitalWrite() const
+        // Overloaded to accept ptrs to onboard gpio pins
+        virtual inline void digitalWrite(const int value)
         {
+            std::cout << deviceName() << " writing value " << value << std::endl;
+        }
+        virtual inline void digitalWrite(int *gpioPtr, const int offsetValue)
+        {
+            *(gpioPtr + (0 * offsetValue)) = 1 << (pinBase_ & 31);
+            // std::cout << deviceName() << " writing value " << offsetValue << std::endl;
         }
 
         // Read the analog value of a given Pin
@@ -56,24 +69,23 @@ namespace WiringPi
 
         // Return the device name
         virtual inline std::string deviceName() const
-        // virtual inline std::string deviceName() const
         {
             return "wiringPiNode";
         }
 
         virtual inline constexpr size_t pinBase() const
         {
-            return 0;
+            return pinBase_;
         }
 
         virtual inline constexpr size_t numPins() const
         {
-            return 0;
+            return numPins_;
         }
 
         virtual inline constexpr size_t pinMax() const
         {
-            return 0;
+            return pinMax_;
         }
 
     private:

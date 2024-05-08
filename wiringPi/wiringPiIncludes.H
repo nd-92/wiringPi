@@ -25,5 +25,6 @@
 #include <string>
 #include <memory>
 #include <utility>
+#include <algorithm>
 
 #endif

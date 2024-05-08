@@ -4,37 +4,40 @@
 #include "wiringPiIncludes.H"
 #include "wiringPiDefines.H"
 #include "wiringPiTemplateMacros.H"
+#include "wiringPiPinTables.H"
 #include "wiringPiNode.H"
 // #include "dummyDevice.H"
 #include "GPIO.H"
+#include "nullDevice.H"
 
-void printMode(const int mode)
-{
-    switch (mode)
-    {
-    case 0:
-        std::cout << "Mode = WPI_MODE_PINS" << std::endl;
-        break;
-    case 1:
-        std::cout << "Mode = WPI_MODE_GPIO" << std::endl;
-        break;
-    case 2:
-        std::cout << "Mode = WPI_MODE_GPIO_SYS" << std::endl;
-        break;
-    case 3:
-        std::cout << "Mode = WPI_MODE_PHYS" << std::endl;
-        break;
-    case 4:
-        std::cout << "Mode = WPI_MODE_PIFACE" << std::endl;
-        break;
-    default:
-        std::cout << "Mode = WPI_MODE_UNINITIALISED" << std::endl;
-        break;
-    }
-}
+// void printMode(const int mode)
+// {
+//     switch (mode)
+//     {
+//     case 0:
+//         std::cout << "Mode = WPI_MODE_PINS" << std::endl;
+//         break;
+//     case 1:
+//         std::cout << "Mode = WPI_MODE_GPIO" << std::endl;
+//         break;
+//     case 2:
+//         std::cout << "Mode = WPI_MODE_GPIO_SYS" << std::endl;
+//         break;
+//     case 3:
+//         std::cout << "Mode = WPI_MODE_PHYS" << std::endl;
+//         break;
+//     case 4:
+//         std::cout << "Mode = WPI_MODE_PIFACE" << std::endl;
+//         break;
+//     default:
+//         std::cout << "Mode = WPI_MODE_UNINITIALISED" << std::endl;
+//         break;
+//     }
+// }
 
 namespace WiringPi
 {
+    // Templated, but at present only works correctly in GPIO mode
     template <int wpiMode>
     class wiringPi
     {
@@ -42,9 +45,6 @@ namespace WiringPi
         wiringPi()
             : wiringPiDebug_(isDebug()),
               wiringPiReturnCodes_(isReturnCodes()),
-              pinToGpio_(pinToGpioI(gpioLayout_)),
-              physToGpio_(physToGpioI(gpioLayout_)),
-              sysFds_(sysFdsI(wiringPiMode_)),
               piGpioBase_(piGpioBase(piModel_)),
               usingGpioMem_(usingGpioMem()),
               GPIO_PADS(piGpioBase_ + 0x00100000),
@@ -52,39 +52,20 @@ namespace WiringPi
               GPIO_BASE(piGpioBase_ + 0x00200000),
               GPIO_TIMER(piGpioBase_ + 0x0000B000),
               GPIO_PWM(piGpioBase_ + 0x0020C000),
-              gpio(mapHardware<const int>(GPIO_PWM)),
-              pwm(mapHardware<const int>(GPIO_PWM)),
-              clk(mapHardware<const int>(GPIO_CLOCK_BASE)),
-              pads(mapHardware<const int>(GPIO_PADS)),
-              // timer(mapHardware<const int>(GPIO_TIMER, true)),
+              gpio(mapHardware<int>(GPIO_PWM)),
+              pwm(mapHardware<int>(GPIO_PWM)),
+              clk(mapHardware<int>(GPIO_CLOCK_BASE)),
+              pads(mapHardware<int>(GPIO_PADS)),
               timer(mapTimer(GPIO_TIMER)),
               timerIrqRaw(timer + TIMER_IRQ_RAW<int>()),
-              _wiringPiGpio(gpio),
-              _wiringPiPwm(pwm),
-              _wiringPiClk(clk),
-              _wiringPiPads(pads),
-              _wiringPiTimer(timer),
               epochMilli_(initialiseEpochMilli()),
               epochMicro_(initialiseEpochMicro())
         {
-            // if (wiringPiDebug_)
-            // {
-            //     std::cout << "wiringPi: wiringPiSetup called" << std::endl;
-            //     std::cout << "Rev: " << PI_REV<int>() << std::endl;
-            //     std::cout << "Maker: " << PI_MAKER<int>() << std::endl;
-            //     std::cout << "Model: " << PI_MODEL<int>() << std::endl;
-            //     std::cout << "Memory: " << PI_MEM<int>() << std::endl;
-            //     std::cout << "Warranty: " << PI_WARRANTY<int>() << std::endl;
-            //     std::cout << "Epoch: " << epochMilli() << " milliseconds" << std::endl;
-            //     std::cout << "Epoch micro: " << epochMicro() << " microseconds" << std::endl;
-            //     std::cout << "Now: " << millis() << " milliseconds" << std::endl;
-            //     std::cout << "Now: " << micros() << " microseconds" << std::endl;
-            //     printMode(wiringPiMode_);
-            // }
-
             // Add GPIO to the device registry on pins 0 to 39
+            // Should ultimately be changed to deal with other modes - use only GPIO for now
             for (size_t i = 0; i < 40; i++)
             {
+                // Initialise the device
                 const WiringPi::GPIO device(i);
 
                 // Add the device name to the name database
@@ -94,18 +75,23 @@ namespace WiringPi
                 // Add device to pointer registry
                 devicePtrs_.push_back(std::make_unique<GPIO>(device));
 
+                // Add its occupied pins to the pinStart and pinEnd arrays
                 pinStart_.push_back(i);
                 pinEnd_.push_back(i);
             }
 
+            // Add null devices to the device registry on pins 40 to 63
             for (size_t i = 40; i < 64; i++)
             {
+                const WiringPi::nullDevice device(i);
                 pinRegistry_.push_back(1);
-                devNames_.push_back("empty");
+                devNames_.push_back(device.deviceName());
+                devicePtrs_.push_back(std::make_unique<nullDevice>(device));
                 pinStart_.push_back(i);
                 pinEnd_.push_back(i);
             }
 
+            // Resize correctly - only 64 pins
             pinRegistry_.resize(64);
             devNames_.resize(64);
             devicePtrs_.resize(64);
@@ -116,28 +102,43 @@ namespace WiringPi
         ~wiringPi(){};
 
         // Read an input bit
-        inline int digitalRead(const size_t deviceNo) const
+        inline int digitalReadOnboard(const size_t deviceNo) const
         {
-            std::cout << "Called wiringPi digitalRead" << std::endl;
-            return devicePtrs_[deviceNo]->digitalRead();
+            // std::cout << "Called wiringPi digitalRead on onboard device number " << deviceNo << std::endl;
+            return devicePtrs_[deviceNo]->digitalRead(gpioPtr(), gpioToGPLEV()[deviceNo]);
+        }
+        inline int digitalReadOffboard(const size_t deviceNo) const
+        {
+            // std::cout << "Called wiringPi digitalRead on offboard device number " << deviceNo << std::endl;
+            return devicePtrs_[deviceNo + 64]->digitalRead();
         }
 
-        inline const std::vector<int> &pinToGpio() const
+        // Write an output bit
+        inline void digitalWriteOnboard(const size_t deviceNo, const int value)
+        {
+            devicePtrs_[deviceNo]->digitalWrite(gpioPtr(), gpioCLRSET_[deviceNo + (64 * static_cast<size_t>(value))]);
+        }
+        inline void digitalWriteOffboard(const size_t deviceNo, const int value)
+        {
+            devicePtrs_[deviceNo + 64]->digitalWrite(value);
+        }
+
+        inline constexpr const std::array<pin_t, 64> &pinToGpio() const
         {
             return pinToGpio_;
         }
 
-        inline const std::vector<int> &physToGpio() const
+        inline constexpr const std::array<pin_t, 64> &physToGpio() const
         {
             return physToGpio_;
         }
 
-        inline const std::vector<int> &sysFds() const
+        inline constexpr const std::array<pin_t, 64> &sysFds() const
         {
             return sysFds_;
         }
 
-        inline const std::vector<int> &gpioToGPLEV() const
+        inline constexpr const std::array<pin_t, 64> &gpioToGPLEV() const
         {
             return gpioToGPLEV_;
         }
@@ -209,7 +210,11 @@ namespace WiringPi
             return wiringPiMode_;
         }
 
-        const int *gpioPtr() const
+        inline constexpr const int *gpioPtr() const
+        {
+            return gpio;
+        }
+        inline constexpr int *gpioPtr()
         {
             return gpio;
         }
@@ -227,16 +232,18 @@ namespace WiringPi
                 pinRegistry_[i + 64] = pinRegistry_[i + 64] + 1;
             }
 
-            // Add the start and end pins
-            pinStart_.push_back(device.pinBase() + 64);
-            // pinEnd_.push_back(device.pinBase() + device.numPins());
-            pinEnd_.push_back(device.pinMax() + 64);
+            // Size appropriately - don't add more than needed
+            const size_t newSize = pinStart_.size() + 1;
+            pinStart_.resize(newSize);
+            pinEnd_.resize(newSize);
+            devNames_.resize(newSize);
+            devicePtrs_.resize(newSize);
 
-            // Add the device name to the name database
-            devNames_.push_back(device.deviceName());
-
-            // Add device to pointer registry
-            devicePtrs_.push_back(std::make_unique<deviceType>(device));
+            // // Add device to end
+            pinStart_[newSize - 1] = device.pinBase() + 64;
+            pinEnd_[newSize - 1] = device.pinMax() + 64;
+            devNames_[newSize - 1] = device.deviceName();
+            devicePtrs_[newSize - 1] = std::make_unique<deviceType>(device);
         }
 
         void printPinRegistry() const
@@ -264,15 +271,16 @@ namespace WiringPi
                 if (((i % 8) == 0) && (i > 0))
                 {
                     std::cout << "} " << i - 8 << " -> " << i - 1 << std::endl;
-                    // std::cout << i - 8 << " -> " << i << std::endl;
                     std::cout << "{ ";
                 }
                 std::cout << pinRegistry_[i] << " ";
             }
-            std::cout << "}" << std::endl;
+            std::cout << "} " << pinRegistry_.size() - 8 << " -> " << pinRegistry_.size() - 1 << std::endl;
 
             // Print the device names and their assigned pins
-            for (size_t i = 0; i < devNames_.size(); i++)
+            // for (size_t i = 0; i < devNames_.size(); i++)
+            std::cout << "Offboard devices:" << std::endl;
+            for (size_t i = 64; i < devNames_.size(); i++)
             {
                 if (pinStart_[i] == pinEnd_[i])
                 {
@@ -300,28 +308,32 @@ namespace WiringPi
             return true;
         }
 
+        inline const std::vector<std::string> &devNames() const
+        {
+            return devNames_;
+        }
+
     private:
         // Basic info
-        static constexpr int piModel_ = PI_MODEL<int>();
-        static constexpr int gpioLayout_ = GPIO_LAYOUT<int>();
-        static constexpr int piRev_ = PI_REV<int>();
-        static constexpr int piMem_ = PI_MEM<int>();
-        static constexpr int piMaker_ = PI_MAKER<int>();
-        static constexpr int piWarranty_ = PI_WARRANTY<int>();
+        static constexpr const int piModel_ = PI_MODEL<int>();
+        static constexpr const int gpioLayout_ = GPIO_LAYOUT<int>();
+        static constexpr const int piRev_ = PI_REV<int>();
+        static constexpr const int piMem_ = PI_MEM<int>();
+        static constexpr const int piMaker_ = PI_MAKER<int>();
+        static constexpr const int piWarranty_ = PI_WARRANTY<int>();
 
         // Registry of devices
-        // std::vector<int> pinRegistry_ = std::vector<int>(64, 0);
-        std::vector<int> pinRegistry_;
+        std::vector<pin_t> pinRegistry_;
         std::vector<std::string> devNames_;
         std::vector<size_t> pinStart_;
         std::vector<size_t> pinEnd_;
         std::vector<std::unique_ptr<WiringPi::wiringPiNode>> devicePtrs_;
 
         // Setup info
-        static constexpr int wiringPiSetuped_ = static_cast<int>(true);
+        static constexpr const int wiringPiSetuped_ = static_cast<int>(true);
         const int wiringPiDebug_;
         const int wiringPiReturnCodes_;
-        static constexpr int wiringPiMode_ = getMode<int>(wpiMode, piModel_);
+        static constexpr const int wiringPiMode_ = getMode<int>(wpiMode, piModel_);
 
         int checkDevMem()
         {
@@ -330,21 +342,17 @@ namespace WiringPi
             return fd;
         }
 
-        const std::vector<int> pinToGpio_;
-        const std::vector<int> physToGpio_;
-        const std::vector<int> sysFds_;
-        const std::vector<int> gpioToGPLEV_ = std::vector<int>{
-            13, 13, 13, 13, 13, 13, 13, 13, //
-            13, 13, 13, 13, 13, 13, 13, 13, //
-            13, 13, 13, 13, 13, 13, 13, 13, //
-            13, 13, 13, 13, 13, 13, 13, 13, //
-            14, 14, 14, 14, 14, 14, 14, 14, //
-            14, 14, 14, 14, 14, 14, 14, 14, //
-            14, 14, 14, 14, 14, 14, 14, 14, //
-            14, 14, 14, 14, 14, 14, 14, 14};
+        // Pin tables
+        static constexpr const std::array<pin_t, 128> gpioCLRSET_ = gpioCLRSETI();
+        static constexpr const std::array<pin_t, 64> pinToGpio_ = pinToGpioI(gpioLayout_);
+        static constexpr const std::array<pin_t, 64> physToGpio_ = physToGpioI(gpioLayout_);
+        static constexpr const std::array<pin_t, 64> gpioToGPLEV_ = gpioToGPLEVI();
+
+        // System mode pin table cannot be constexpr
+        const std::array<pin_t, 64> sysFds_ = sysFdsI(wiringPiMode_);
 
         const int piGpioBase_;
-        static constexpr int piGpioPupOffset_ = piGpioPupOffset<int>(piModel_);
+        static constexpr const int piGpioPupOffset_ = piGpioPupOffset<int>(piModel_);
         const int usingGpioMem_;
 
         // Private methods for initialising const member variables
@@ -447,100 +455,7 @@ namespace WiringPi
                         strerror(errno));
                 }
             }
-
             return static_cast<int>(false);
-        }
-
-        const std::vector<int> physToGpioI(const int layout)
-        {
-            if (layout == 1) // A, B, Rev 1, 1.1
-            {
-                return std::vector<int>{
-                    -1, -1, -1, 0, -1, 1, -1, 4,    //
-                    14, -1, 15, 17, 18, 21, -1, 22, //
-                    23, -1, 24, 10, -1, 9, 25, 11,  //
-                    8, -1, 7, -1, -1, -1, -1, -1,   //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1};
-            }
-            else // A2, B2, A+, B+, CM, Pi2, Pi3, Zero, Zero W, Zero 2 W
-            {
-                return std::vector<int>{
-                    -1, -1, -1, 2, -1, 3, -1, 4,    //
-                    14, -1, 15, 17, 18, 27, -1, 22, //
-                    23, -1, 24, 10, -1, 9, 25, 11,  //
-                    8, -1, 7, 0, 1, 5, -1, 6,       //
-                    12, 13, -1, 19, 16, 26, 20, -1, //
-                    21, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, 28, 29, 30, 31, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1};
-            }
-        }
-
-        const std::vector<int> pinToGpioI(const int layout)
-        {
-            if (layout == 1) // A, B, Rev 1, 1.1
-            {
-                return std::vector<int>{
-                    17, 18, 21, 22, 23, 24, 25, 4,  //
-                    0, 1, 8, 7, 10, 9, 11, 14,      //
-                    15, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1};
-            }
-            else // A2, B2, A+, B+, CM, Pi2, Pi3, Zero, Zero W, Zero 2 W
-            {
-                return std::vector<int>{
-                    17, 18, 27, 22, 23, 24, 25, 4,  //
-                    2, 3, 8, 7, 10, 9, 11, 14,      //
-                    15, 28, 29, 30, 31, 5, 6, 13,   //
-                    19, 26, 12, 16, 20, 21, 0, 1,   //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1};
-            }
-        }
-
-        const std::vector<int> sysFdsI(const int mode)
-        {
-            if (mode == WPI_MODE_GPIO_SYS<int>())
-            {
-                char fName[128];
-                std::vector<int> vec = std::vector<int>{
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1};
-                for (size_t pin = 0; pin < 64; ++pin)
-                {
-                    // std::cout << "Pin " << pin << std::endl;
-                    sprintf(fName, "/sys/class/gpio/gpio%d/value", pin);
-                    vec[pin] = open(fName, O_RDWR);
-                }
-                return vec;
-            }
-            else
-            {
-                return std::vector<int>{
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1, //
-                    -1, -1, -1, -1, -1, -1, -1, -1};
-            }
         }
 
         const int GPIO_PADS;
@@ -564,7 +479,8 @@ namespace WiringPi
             return ptr;
         }
 
-        const int *gpio;
+        // const int *gpio;
+        int *gpio;
         const int *pwm;
         const int *clk;
         const int *pads;
@@ -572,12 +488,13 @@ namespace WiringPi
         const int *timerIrqRaw;
 
         // Base addresses
-        const int *_wiringPiGpio;
-        const int *_wiringPiPwm;
-        const int *_wiringPiClk;
-        const int *_wiringPiPads;
-        const int *_wiringPiTimer;
-        const int *_wiringPiTimerIrqRaw;
+        // These seem unnecessary
+        // const int *_wiringPiGpio;
+        // const int *_wiringPiPwm;
+        // const int *_wiringPiClk;
+        // const int *_wiringPiPads;
+        // const int *_wiringPiTimer;
+        // const int *_wiringPiTimerIrqRaw;
 
         const time_t epochMilli_;
         time_t initialiseEpochMilli()
@@ -606,8 +523,8 @@ namespace WiringPi
         }
 
         static constexpr const char *version_ = VERSION();
-        static constexpr int versionMajor_ = VERSION_MAJOR<int>();
-        static constexpr int versionMinor_ = VERSION_MINOR<int>();
+        static constexpr const int versionMajor_ = VERSION_MAJOR<int>();
+        static constexpr const int versionMinor_ = VERSION_MINOR<int>();
     };
 }
 

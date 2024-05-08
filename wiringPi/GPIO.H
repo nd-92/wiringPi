@@ -13,35 +13,46 @@ namespace WiringPi
     class GPIO : public wiringPiNode
     {
     public:
-        GPIO(
+        constexpr GPIO(
             const size_t pinBaseVal)
             : pinBase_(pinBaseVal){};
 
-        // inline int digitalRead() const
+        // inline void digitalWrite() const
         // {
-        //     // Unsure exactly what this expression does
-        //     if ((*(wPi_.gpioPtr() + wPi_.gpioToGPLEV()[pinBase_]) & (1 << (pinBase_ & 31))) != 0)
-        //     // if (0 == 0)
-        //     {
-        //         std::cout << "GPIO digitalRead returning 1" << std::endl;
-        //         return HIGH<int>();
-        //     }
-        //     else
-        //     {
-        //         std::cout << "GPIO digitalRead returning 0" << std::endl;
-        //         return LOW<int>();
-        //     }
+        //     std::cout << deviceName() << " digitalWrite writing 99" << std::endl;
         // }
 
-        inline int digitalRead() const
+        inline int digitalRead(const int *gpioPtr, const pin_t gpioToGPLEV) const
         {
-            std::cout << deviceName() << " digitalRead returning 1" << std::endl;
-            return HIGH<int>();
+            // Unsure exactly what this expression does
+            // Can parts of this be computed ahead of time?
+            if ((*(gpioPtr + gpioToGPLEV) & (1 << (static_cast<pin_t>(pinBase_) & 31))) != 0)
+            {
+                // std::cout << deviceName() << " digitalRead returning 1" << std::endl;
+                return HIGH<int>();
+            }
+            else
+            {
+                // std::cout << deviceName() << " digitalRead returning 0" << std::endl;
+                return LOW<int>();
+            }
+
+            // const int k = (*(gpioPtr + gpioToGPLEV[pin]) & (1 << (static_cast<pin_t>(pin) & 31)));
+            // return std::min(k, k / k);
         }
 
-        inline void digitalWrite() const
+        inline void digitalWrite(int *gpioPtr, const int offsetValue)
         {
-            std::cout << deviceName() << " digitalWrite writing 99" << std::endl;
+            // if (value == LOW())
+            // {
+            //     *(gpioPtr + gpioToGPCLR[pinBase_]) = 1 << (pinBase_ & 31);
+            // }
+            // else
+            // {
+            //     *(gpioPtr + gpioToGPSET[pinBase_]) = 1 << (pinBase_ & 31);
+            // }
+            // std::cout << "Writing 1 << (pinBase_ & 31) = " << 1 << (pinBase_ & 31) << std::endl;
+            *(gpioPtr + offsetValue) = 1 << (pinBase_ & 31);
         }
 
         inline std::string deviceName() const
@@ -68,14 +79,6 @@ namespace WiringPi
         const size_t pinBase_;
         const size_t numPins_ = 1;
         const size_t pinMax_ = pinBase_ + numPins_ - 1;
-
-        // const wiringPi<WPI_MODE_GPIO<int>()> &wPi_;
-
-        // Const ptr to gpio - probably should not be raw ptr
-        // const int *gpio_;
-
-        // Ref to gpioToGPLEV vector
-        // const std::vector<int> &gpioToGPLEV_;
     };
 }
 
