@@ -14,10 +14,10 @@ namespace WiringPi
             const size_t pinBaseVal)
             : pinBase_(pinBaseVal){};
 
-        inline int digitalRead() const
+        inline gpio_t digitalRead() const
         {
             // std::cout << deviceName() << " digitalRead returning LOW" << std::endl;
-            return LOW<int>();
+            return LOW<gpio_t>();
         }
 
         inline std::string deviceName() const

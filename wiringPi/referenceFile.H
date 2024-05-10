@@ -279,23 +279,23 @@ extern int wiringPiFailure(const int fatal, const char *message, ...);
 
 // Core wiringPi functions
 
-extern struct wiringPiNodeStruct *wiringPiFindNode(const pinLabel pin);
-extern struct wiringPiNodeStruct *wiringPiNewNode(const pinLabel pinBase, const pinLabel numPins);
+extern struct wiringPiNodeStruct *wiringPiFindNode(const pinLabel pin);                            // Implemented
+extern struct wiringPiNodeStruct *wiringPiNewNode(const pinLabel pinBase, const pinLabel numPins); // Implemented
 
-extern void wiringPiVersion(int *major, int *minor);
-extern int wiringPiSetup(void);
-extern int wiringPiSetupSys(void);
-extern int wiringPiSetupGpio(void);
-extern int wiringPiSetupPhys(void);
+extern void wiringPiVersion(int *major, int *minor); // Implemented
+extern int wiringPiSetup(void);                      // Implemented
+extern int wiringPiSetupSys(void);                   // Implemented
+extern int wiringPiSetupGpio(void);                  // Implemented
+extern int wiringPiSetupPhys(void);                  // Implemented
 
 extern void pinModeAlt(pinLabel pin, const pinLabel mode);
 extern void pinMode(pinLabel pin, const int mode);
 extern void pullUpDnControl(pinLabel pin, const int pud);
-extern pinLabel digitalRead(pinLabel pin);
-extern void digitalWrite(pinLabel pin, const int value);
-extern void pwmWrite(pinLabel pin, const int value);
-extern int analogRead(const pinLabel pin);
-extern void analogWrite(const pinLabel pin, const int value);
+extern pinLabel digitalRead(pinLabel pin);                    // Implemented
+extern void digitalWrite(pinLabel pin, const int value);      // Implemented
+extern void pwmWrite(pinLabel pin, const int value);          // Implemented
+extern int analogRead(const pinLabel pin);                    // Implemented
+extern void analogWrite(const pinLabel pin, const int value); // Implemented
 
 // PiFace specifics
 //	(Deprecated)
@@ -337,9 +337,9 @@ extern int piHiPri(const int pri);
 
 // Extras from arduino land
 
-extern void delay(unsigned int howLong);
-extern void delayMicroseconds(const __time_t howLong);
-extern unsigned int millis(void);
-extern unsigned int micros(void);
+extern void delay(unsigned int howLong);               // Implemented
+extern void delayMicroseconds(const __time_t howLong); // Implemented
+extern unsigned int millis(void);                      // Implemented
+extern unsigned int micros(void);                      // Implemented
 
 #endif

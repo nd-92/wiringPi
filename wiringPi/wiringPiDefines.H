@@ -5,7 +5,12 @@ namespace WiringPi
 {
 
     // Data type of pins
-    typedef int pin_t;
+    typedef unsigned int pin_t;
+    typedef unsigned int gpio_t;
+    typedef unsigned int pwm_t;
+    typedef unsigned int clk_t;
+    typedef unsigned int pads_t;
+    typedef unsigned int timer_t;
 
     // Suppress unused parameter warnings - not used yet
     // #define UNU __attribute__((unused))
@@ -47,130 +52,105 @@ namespace WiringPi
     }
 
     // wiringPi modes
-    template <typename T>
-    consteval T WPI_MODE_PINS()
+    consteval int WPI_MODE_PINS()
     {
         return 0;
     }
-    template <typename T>
-    consteval T WPI_MODE_GPIO()
+    consteval int WPI_MODE_GPIO()
     {
         return 1;
     }
-    template <typename T>
-    consteval T WPI_MODE_GPIO_SYS()
+    consteval int WPI_MODE_GPIO_SYS()
     {
         return 2;
     }
-    template <typename T>
-    consteval T WPI_MODE_PHYS()
+    consteval int WPI_MODE_PHYS()
     {
         return 3;
     }
-    template <typename T>
-    consteval T WPI_MODE_PIFACE()
+    consteval int WPI_MODE_PIFACE()
     {
         return 4;
     }
-    template <typename T>
-    consteval T WPI_MODE_UNINITIALISED()
+    consteval int WPI_MODE_UNINITIALISED()
     {
         return -1;
     }
 
     // Pi models
-    template <typename T>
-    consteval T PI_MODEL_A()
+    consteval int PI_MODEL_A()
     {
         return 0;
     }
-    template <typename T>
-    consteval T PI_MODEL_B()
+    consteval int PI_MODEL_B()
     {
         return 1;
     }
-    template <typename T>
-    consteval T PI_MODEL_AP()
+    consteval int PI_MODEL_AP()
     {
         return 2;
     }
-    template <typename T>
-    consteval T PI_MODEL_BP()
+    consteval int PI_MODEL_BP()
     {
         return 3;
     }
-    template <typename T>
-    consteval T PI_MODEL_2()
+    consteval int PI_MODEL_2()
     {
         return 4;
     }
-    template <typename T>
-    consteval T PI_ALPHA()
+    consteval int PI_ALPHA()
     {
         return 5;
     }
-    template <typename T>
-    consteval T PI_MODEL_CM()
+    consteval int PI_MODEL_CM()
     {
         return 6;
     }
-    template <typename T>
-    consteval T PI_MODEL_07()
+    consteval int PI_MODEL_07()
     {
         return 7;
     }
-    template <typename T>
-    consteval T PI_MODEL_3B()
+    consteval int PI_MODEL_3B()
     {
         return 8;
     }
-    template <typename T>
-    consteval T PI_MODEL_ZERO()
+    consteval int PI_MODEL_ZERO()
     {
         return 9;
     }
-    template <typename T>
-    consteval T PI_MODEL_CM3()
+    consteval int PI_MODEL_CM3()
     {
         return 10;
     }
-    template <typename T>
-    consteval T PI_MODEL_ZERO_W()
+    consteval int PI_MODEL_ZERO_W()
     {
         return 12;
     }
-    template <typename T>
-    consteval T PI_MODEL_3BP()
+    consteval int PI_MODEL_3BP()
     {
         return 13;
     }
-    template <typename T>
-    consteval T PI_MODEL_3AP()
+    consteval int PI_MODEL_3AP()
     {
         return 14;
     }
-    template <typename T>
-    consteval T PI_MODEL_CM3P()
+    consteval int PI_MODEL_CM3P()
     {
         return 16;
     }
-    template <typename T>
-    consteval T PI_MODEL_4B()
+    consteval int PI_MODEL_4B()
     {
         return 17;
     }
-    template <typename T>
-    consteval T PI_MODEL_ZERO_2W()
+    consteval int PI_MODEL_ZERO_2W()
     {
         return 18;
     }
-    template <typename T>
-    consteval T PI_MODEL_400()
+    consteval int PI_MODEL_400()
     {
         return 19;
     }
-    template <typename T>
-    consteval T PI_MODEL_CM4()
+    consteval int PI_MODEL_CM4()
     {
         return 20;
     }
@@ -261,8 +241,7 @@ namespace WiringPi
         return static_cast<T>(0xFE000000);
     }
 
-    // GPPUD:
-    // GPIO Pin pull up/down register
+    // GPPUD: pin pull up/down register
     // Pin pull-up/down for pins 15 : 0
     // Pin pull-up/down for pins 31 : 16
     // Pin pull-up/down for pins 47 : 32
@@ -293,8 +272,39 @@ namespace WiringPi
         return 60;
     }
 
-    // Timer
-    // Word offsets
+    // PWM offsets into the PWM control region
+    template <typename T>
+    consteval T PWM_CONTROL()
+    {
+        return 0;
+    }
+    template <typename T>
+    consteval T PWM_STATUS()
+    {
+        return 1;
+    }
+    template <typename T>
+    consteval T PWM0_RANGE()
+    {
+        return 4;
+    }
+    template <typename T>
+    consteval T PWM0_DATA()
+    {
+        return 5;
+    }
+    template <typename T>
+    consteval T PWM1_RANGE()
+    {
+        return 8;
+    }
+    template <typename T>
+    consteval T PWM1_DATA()
+    {
+        return 9;
+    }
+
+    // Timer offsets
     template <typename T>
     consteval T TIMER_LOAD()
     {

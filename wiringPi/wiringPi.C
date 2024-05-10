@@ -5,44 +5,37 @@
 
 using namespace WiringPi;
 
+// inline constexpr pin_t h(const pin_t i)
+// {
+//     return 7 + (i / 64) + (i / 32);
+//     // return 7 + (i / 32);
+// }
+
+inline constexpr size_t g(const size_t i)
+{
+    return 13 + (i / 32);
+}
+
 int main(void)
 {
 
-    wiringPi<WPI_MODE_GPIO<int>()> wPi;
+    wiringPi<WPI_MODE_GPIO()> wPi;
 
-    const dummyDevice dev(0);
+    wPi.addDevice(dummyDevice(0));
 
-    const dummyDevice dev2(8);
-
-    wPi.addDevice(dev);
-
-    wPi.addDevice(dev2);
+    wPi.addDevice(dummyDevice(8));
 
     wPi.printPinRegistry();
 
-    std::cout << "wpi.readOffboard(1) = " << wPi.digitalReadOffboard(1) << std::endl;
-    wPi.digitalWriteOnboard(1, 0);
-    wPi.digitalWriteOffboard(1, 0);
+    std::vector<wiringPiNode> f = {GPIO(0), dummyDevice(0), dummyDevice(8)};
 
-    // for (size_t i = 0; i < 64; i++)
-    // {
-    //     if (((i % 8) == 0) && (i > 0))
-    //     {
-    //         std::cout << std::endl;
-    //     }
-    //     std::cout << wPi.pinToGpio()[i] << " ";
-    // }
-    // std::cout << std::endl;
-    // std::cout << std::endl;
-    // for (size_t i = 0; i < 64; i++)
-    // {
-    //     if (((i % 8) == 0) && (i > 0))
-    //     {
-    //         std::cout << std::endl;
-    //     }
-    //     std::cout << wPi.sysFds()[i] << " ";
-    // }
-    // std::cout << std::endl;
+    for (size_t i = 0; i < 3; i++)
+    {
+        std::cout << f[i].deviceName() << ".digitalRead() = " << f[1].digitalRead() << std::endl;
+    }
+
+    std::cout << "wpi.readOnboard(1) = " << wPi.digitalReadOnboard(1) << std::endl;
+    // wPi.digitalWriteOnboard(63, 0);
 
     return 0;
 }

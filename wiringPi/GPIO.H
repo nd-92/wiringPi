@@ -22,26 +22,26 @@ namespace WiringPi
         //     std::cout << deviceName() << " digitalWrite writing 99" << std::endl;
         // }
 
-        inline int digitalRead(const int *gpioPtr, const pin_t gpioToGPLEV) const
+        inline gpio_t digitalRead(const gpio_t *gpioPtr, const pin_t gpioToGPLEV) const
         {
             // Unsure exactly what this expression does
             // Can parts of this be computed ahead of time?
             if ((*(gpioPtr + gpioToGPLEV) & (1 << (static_cast<pin_t>(pinBase_) & 31))) != 0)
             {
                 // std::cout << deviceName() << " digitalRead returning 1" << std::endl;
-                return HIGH<int>();
+                return HIGH<gpio_t>();
             }
             else
             {
                 // std::cout << deviceName() << " digitalRead returning 0" << std::endl;
-                return LOW<int>();
+                return LOW<gpio_t>();
             }
 
             // const int k = (*(gpioPtr + gpioToGPLEV[pin]) & (1 << (static_cast<pin_t>(pin) & 31)));
             // return std::min(k, k / k);
         }
 
-        inline void digitalWrite(int *gpioPtr, const int offsetValue)
+        inline void digitalWrite(gpio_t *gpioPtr, const gpio_t offsetValue)
         {
             // if (value == LOW())
             // {
@@ -53,6 +53,11 @@ namespace WiringPi
             // }
             // std::cout << "Writing 1 << (pinBase_ & 31) = " << 1 << (pinBase_ & 31) << std::endl;
             *(gpioPtr + offsetValue) = 1 << (pinBase_ & 31);
+        }
+
+        inline void pwmWrite(int *pwmPtr, const int offsetValue, const int value)
+        {
+            *(pwmPtr + offsetValue) = value;
         }
 
         inline std::string deviceName() const
