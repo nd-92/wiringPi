@@ -6,34 +6,8 @@
 #include "wiringPiTemplateMacros.H"
 #include "wiringPiPinTables.H"
 #include "wiringPiNode.H"
-// #include "dummyDevice.H"
-#include "GPIO.H"
+#include "onboardPin.H"
 #include "nullDevice.H"
-
-// void printMode(const int mode)
-// {
-//     switch (mode)
-//     {
-//     case 0:
-//         std::cout << "Mode = WPI_MODE_PINS" << std::endl;
-//         break;
-//     case 1:
-//         std::cout << "Mode = WPI_MODE_GPIO" << std::endl;
-//         break;
-//     case 2:
-//         std::cout << "Mode = WPI_MODE_GPIO_SYS" << std::endl;
-//         break;
-//     case 3:
-//         std::cout << "Mode = WPI_MODE_PHYS" << std::endl;
-//         break;
-//     case 4:
-//         std::cout << "Mode = WPI_MODE_PIFACE" << std::endl;
-//         break;
-//     default:
-//         std::cout << "Mode = WPI_MODE_UNINITIALISED" << std::endl;
-//         break;
-//     }
-// }
 
 namespace WiringPi
 {
@@ -66,14 +40,14 @@ namespace WiringPi
             for (size_t i = 0; i < 40; i++)
             {
                 // Initialise the device
-                const WiringPi::GPIO device(i);
+                const WiringPi::onboardPin device(i);
 
                 // Add the device name to the name database
                 pinRegistry_.push_back(1);
                 devNames_.push_back(device.deviceName());
 
                 // Add device to pointer registry
-                devicePtrs_.push_back(std::make_unique<GPIO>(device));
+                devicePtrs_.push_back(std::make_unique<onboardPin>(device));
 
                 // Add its occupied pins to the pinStart and pinEnd arrays
                 pinStart_.push_back(i);

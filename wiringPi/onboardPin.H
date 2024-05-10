@@ -1,5 +1,5 @@
-#ifndef __WIRING_PI_GPIO_H
-#define __WIRING_PI_GPIO_H
+#ifndef __WIRING_PI_onboardPin_H
+#define __WIRING_PI_onboardPin_H
 
 // #include "wiringPiIncludes.H"
 // #include "wiringPiDefines.H"
@@ -10,10 +10,10 @@
 
 namespace WiringPi
 {
-    class GPIO : public wiringPiNode
+    class onboardPin : public wiringPiNode
     {
     public:
-        constexpr GPIO(
+        constexpr onboardPin(
             const size_t pinBaseVal)
             : pinBase_(pinBaseVal){};
 
