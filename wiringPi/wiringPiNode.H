@@ -90,7 +90,7 @@ namespace WiringPi
         }
 
         // Return the device name
-        virtual inline std::string deviceName() const
+        virtual inline consteval std::string_view deviceName() const
         {
             return "wiringPiNode";
         }

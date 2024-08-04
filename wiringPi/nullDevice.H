@@ -18,7 +18,7 @@ namespace WiringPi
 
         ~nullDevice() {};
 
-        inline std::string deviceName() const
+        inline consteval std::string_view deviceName() const
         {
             return "Null";
         }

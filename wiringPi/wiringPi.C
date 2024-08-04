@@ -32,6 +32,8 @@ int main(void)
 
     std::cout << wPi.micros() << " microseconds" << std::endl;
 
+    std::cout << wPi.onboardNames() << std::endl;
+
     // wPi.addDevice(dummyDevice(0, 0));
 
     // wPi.addDevice(dummyDevice(8, 0));

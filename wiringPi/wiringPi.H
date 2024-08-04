@@ -200,6 +200,11 @@ namespace WiringPi
             return pwm;
         }
 
+        inline consteval std::string_view onboardNames() const
+        {
+            return pinRegistry_.deviceName();
+        }
+
         // template <class deviceType>
         // inline void addDevice(deviceType device)
         // {
@@ -304,7 +309,8 @@ namespace WiringPi
 
         // Registry of devices
         // static constinit std::array<WiringPi::onboardPin, 40> onboardPins_ = pinRegistryI();
-        WiringPi::onboardPins pinRegistry_;
+        // static constinit onboardPins pinRegistry_;
+        static constinit onboardPins pinRegistry_;
         // std::vector<pin_t> deviceRegistry_;
         // std::vector<std::string> devNames_;
         // std::vector<size_t> pinStart_;
@@ -412,7 +418,7 @@ namespace WiringPi
 
         // Map individual hardware components
         template <typename T0, typename T1>
-        T0 *mapHardware(const T1 offset)
+        volatile T0 *mapHardware(const T1 offset)
         {
             return static_cast<T0 *>(mmap(0, BLOCK_SIZE<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, checkDevMem(), static_cast<__off_t>(offset)));
         }

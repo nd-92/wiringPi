@@ -143,10 +143,10 @@ namespace WiringPi
         //     }
         // }
 
-        // inline std::string deviceName() const
-        // {
-        //     return "GPIO";
-        // }
+        inline consteval std::string_view deviceName() const
+        {
+            return "GPIO";
+        }
 
         // inline constexpr size_t pinBase() const
         // {

@@ -25,7 +25,7 @@ namespace WiringPi
             return LOW<gpio_t>();
         }
 
-        inline std::string deviceName() const
+        inline consteval std::string_view deviceName() const
         {
             return "dummyDevice";
         }
