@@ -13,7 +13,7 @@ namespace WiringPi
     class wiringPiNode
     {
     public:
-        constexpr wiringPiNode() {};
+        constexpr inline wiringPiNode() {};
 
         ~wiringPiNode() {};
 
@@ -36,11 +36,11 @@ namespace WiringPi
 
         // Read the value of a given Pin, returning HIGH or LOW
         // Overloaded to accept ptrs to onboard gpio pins
-        virtual inline gpio_t digitalRead() const
+        [[nodiscard]] virtual inline gpio_t digitalRead() const
         {
             return 0;
         }
-        virtual inline gpio_t digitalRead(
+        [[nodiscard]] virtual inline gpio_t digitalRead(
             [[maybe_unused]] const pin_t *gpioPtr,
             [[maybe_unused]] const pin_t gpioToGPLEV) const
         {
@@ -73,7 +73,7 @@ namespace WiringPi
         }
 
         // Read the analog value of a given Pin
-        virtual inline int analogRead() const
+        [[nodiscard]] virtual inline int analogRead() const
         {
             return 0;
         }
@@ -90,22 +90,22 @@ namespace WiringPi
         }
 
         // Return the device name
-        virtual inline consteval std::string_view deviceName() const
+        [[nodiscard]] virtual inline consteval std::string_view deviceName() const
         {
             return "wiringPiNode";
         }
 
-        virtual inline constexpr size_t pinBase() const
+        [[nodiscard]] virtual inline constexpr size_t pinBase() const
         {
             return pinBase_;
         }
 
-        virtual inline constexpr size_t numPins() const
+        [[nodiscard]] virtual inline constexpr size_t numPins() const
         {
             return numPins_;
         }
 
-        virtual inline constexpr size_t pinMax() const
+        [[nodiscard]] virtual inline constexpr size_t pinMax() const
         {
             return pinMax_;
         }

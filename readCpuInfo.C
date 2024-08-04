@@ -603,49 +603,49 @@ int main()
 
     // Write to the file
     MyFile << "    template <typename T>" << std::endl;
-    MyFile << "    consteval T GPIO_LAYOUT()" << std::endl;
+    MyFile << "    [[nodiscard]] inline consteval T GPIO_LAYOUT()" << std::endl;
     MyFile << "    {" << std::endl;
     MyFile << "        return " << layout << ";" << std::endl;
     MyFile << "    }" << std::endl;
     MyFile << std::endl;
 
     MyFile << "    template <typename T>" << std::endl;
-    MyFile << "    consteval T PI_MODEL()" << std::endl;
+    MyFile << "    [[nodiscard]] inline consteval T PI_MODEL()" << std::endl;
     MyFile << "    {" << std::endl;
     MyFile << "        return " << model << ";" << std::endl;
     MyFile << "    }" << std::endl;
     MyFile << std::endl;
 
     MyFile << "    template <typename T>" << std::endl;
-    MyFile << "    consteval T PI_REV()" << std::endl;
+    MyFile << "    [[nodiscard]] inline consteval T PI_REV()" << std::endl;
     MyFile << "    {" << std::endl;
     MyFile << "        return " << rev << ";" << std::endl;
     MyFile << "    }" << std::endl;
     MyFile << std::endl;
 
     MyFile << "    template <typename T>" << std::endl;
-    MyFile << "    consteval T PI_MEM()" << std::endl;
+    MyFile << "    [[nodiscard]] inline consteval T PI_MEM()" << std::endl;
     MyFile << "    {" << std::endl;
     MyFile << "        return " << mem << ";" << std::endl;
     MyFile << "    }" << std::endl;
     MyFile << std::endl;
 
     MyFile << "    template <typename T>" << std::endl;
-    MyFile << "    consteval T PI_MAKER()" << std::endl;
+    MyFile << "    [[nodiscard]] inline consteval T PI_MAKER()" << std::endl;
     MyFile << "    {" << std::endl;
     MyFile << "        return " << maker << ";" << std::endl;
     MyFile << "    }" << std::endl;
     MyFile << std::endl;
 
     MyFile << "    template <typename T>" << std::endl;
-    MyFile << "    consteval T PI_WARRANTY()" << std::endl;
+    MyFile << "    [[nodiscard]] inline consteval T PI_WARRANTY()" << std::endl;
     MyFile << "    {" << std::endl;
     MyFile << "        return " << warranty << ";" << std::endl;
     MyFile << "    }" << std::endl;
     MyFile << std::endl;
 
     MyFile << "    template <typename T>" << std::endl;
-    MyFile << "    consteval T USING_GPIOMEM()" << std::endl;
+    MyFile << "    [[nodiscard]] inline consteval T USING_GPIOMEM()" << std::endl;
     MyFile << "    {" << std::endl;
     MyFile << "        return " << usingGpioMem << ";" << std::endl;
     MyFile << "    }" << std::endl;

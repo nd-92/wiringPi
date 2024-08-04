@@ -12,7 +12,7 @@
 
 namespace WiringPi
 {
-    consteval std::array<gpio_t, 40> pinModeI()
+    [[nodiscard]] inline consteval std::array<gpio_t, 40> pinModeI()
     {
         return std::array<gpio_t, 40>{
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  //
@@ -21,7 +21,7 @@ namespace WiringPi
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; //
     }
 
-    consteval std::array<gpio_t, 40> pullRegI()
+    [[nodiscard]] inline consteval std::array<gpio_t, 40> pullRegI()
     {
         std::array<gpio_t, 40> arr;
         for (size_t i = 0; i < 40; i++)
@@ -31,7 +31,7 @@ namespace WiringPi
         return arr;
     }
 
-    consteval std::array<gpio_t, 40> pullShiftI()
+    [[nodiscard]] inline consteval std::array<gpio_t, 40> pullShiftI()
     {
         std::array<gpio_t, 40> arr;
         for (size_t i = 0; i < 40; i++)
@@ -44,7 +44,7 @@ namespace WiringPi
     class onboardPins
     {
     public:
-        constexpr onboardPins() {};
+        [[nodiscard]] inline constexpr onboardPins() {};
 
         // inline void digitalWrite() const
         // {
@@ -54,7 +54,7 @@ namespace WiringPi
         // Offset to the GPIO Input level registers for each GPIO pin
         // This is equivalent to the gpioToGPLEV table
         // Returns 13 on pins 0 -> 31, 14 on pins 32 -> 63
-        inline constexpr gpio_t gpioToGPLEV(const pin_t i) const
+        [[nodiscard]] inline constexpr gpio_t gpioToGPLEV(const pin_t i) const
         {
             return 13 + (i / 32);
         }
@@ -63,12 +63,12 @@ namespace WiringPi
         // This is equivalent to the gpioToGPCLR and gpioToGPSET tables
         // Value passed to this function should be deviceNo + (64 * !value)
         // Returns 10 -> 11 for digital value LOW, 7 -> 8 for digital value HIGH
-        inline constexpr gpio_t gpioCLRSET(const pin_t i) const
+        [[nodiscard]] inline constexpr gpio_t gpioCLRSET(const pin_t i) const
         {
             return 7 + (i / 64) + (i / 32);
         }
 
-        inline gpio_t digitalRead(const volatile gpio_t *gpioPtr, const pin_t pinNumber) const
+        [[nodiscard]] inline gpio_t digitalRead(const volatile gpio_t *gpioPtr, const pin_t pinNumber) const
         {
             // Unsure exactly what this expression does
             // Can parts of this be computed ahead of time?
@@ -143,7 +143,7 @@ namespace WiringPi
         //     }
         // }
 
-        inline consteval std::string_view deviceName() const
+        [[nodiscard]] inline consteval std::string_view deviceName() const
         {
             return "GPIO";
         }

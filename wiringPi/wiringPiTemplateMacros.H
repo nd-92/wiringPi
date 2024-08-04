@@ -8,7 +8,7 @@ namespace WiringPi
 {
 
     // Check WPI mode
-    consteval int getMode(const int mode, const int model)
+    [[nodiscard]] inline consteval int getMode(const int mode, const int model)
     {
         // T wpiMode = WPI_MODE_UNINITIALISED<T>();
         // if ((model == PI_MODEL_CM<T>()) || (model == PI_MODEL_CM3<T>()) || (model == PI_MODEL_CM3P<T>()))
@@ -44,7 +44,7 @@ namespace WiringPi
 
     // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0
     template <typename T>
-    consteval T piGpioPupOffset(const int model)
+    [[nodiscard]] inline consteval T piGpioPupOffset(const int model)
     {
         T i = 0;
         switch (model)
@@ -73,7 +73,7 @@ namespace WiringPi
     }
 
     // Initialise the base address of the GPIO memory mapped hardware IO
-    consteval int piGpioBase(const int model)
+    [[nodiscard]] inline consteval int piGpioBase(const int model)
     {
         int i = 0;
         // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0

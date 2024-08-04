@@ -22,7 +22,7 @@ int main(void)
 
     for (size_t i = 0; i < 40; i++)
     {
-        wPi.digitalReadOnboard(i);
+        static_cast<void>(wPi.digitalReadOnboard(i));
     }
 
     for (size_t i = 0; i < 40; i++)

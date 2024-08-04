@@ -10,7 +10,7 @@ namespace WiringPi
     class dummyDevice : public wiringPiNode
     {
     public:
-        constexpr dummyDevice(
+        [[nodiscard]] inline constexpr dummyDevice(
             const size_t pinBaseVal,
             const size_t pinMode)
             : pinBase_(pinBaseVal)
@@ -19,28 +19,28 @@ namespace WiringPi
             pinMode_ = pinMode;
         };
 
-        inline gpio_t digitalRead() const
+        [[nodiscard]] inline gpio_t digitalRead() const
         {
             // std::cout << deviceName() << " digitalRead returning LOW" << std::endl;
             return LOW<gpio_t>();
         }
 
-        inline consteval std::string_view deviceName() const
+        [[nodiscard]] inline consteval std::string_view deviceName() const
         {
             return "dummyDevice";
         }
 
-        inline constexpr size_t pinBase() const
+        [[nodiscard]] inline constexpr size_t pinBase() const
         {
             return pinBase_;
         }
 
-        inline constexpr size_t numPins() const
+        [[nodiscard]] inline constexpr size_t numPins() const
         {
             return numPins_;
         }
 
-        inline constexpr size_t pinMax() const
+        [[nodiscard]] inline constexpr size_t pinMax() const
         {
             return pinMax_;
         }

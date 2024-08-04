@@ -6,17 +6,14 @@
 
 namespace WiringPi
 {
-    // using pinTable = std::array<pin_t, 64>;
-    typedef std::array<pin_t, 64> pinTable;
-
     // Type safe initialisation of a default value of -1
     template <typename T>
-    consteval T gpioMinusOne()
+    [[nodiscard]] inline consteval T gpioMinusOne()
     {
         return static_cast<T>(-1);
     }
 
-    consteval const pinTable gpioToPwmPortI()
+    [[nodiscard]] inline consteval const pinTable gpioToPwmPortI()
     {
         return std::array<pin_t, 64>{
             0, 0, 0, 0, 0, 0, 0, 0,                                                    //
@@ -29,7 +26,7 @@ namespace WiringPi
             0, 0, 0, 0, 0, 0, 0, 0};
     }
 
-    consteval const pinTable pinToGpioI(const int layout)
+    [[nodiscard]] inline consteval const pinTable pinToGpioI(const int layout)
     {
         if (layout == 1) // A, B, Rev 1, 1.1
         {
@@ -57,7 +54,7 @@ namespace WiringPi
         }
     }
 
-    consteval const pinTable physToGpioI(const int layout)
+    [[nodiscard]] inline consteval const pinTable physToGpioI(const int layout)
     {
         if (layout == 1) // A, B, Rev 1, 1.1
         {
@@ -85,7 +82,7 @@ namespace WiringPi
         }
     }
 
-    consteval const pinTable gpioToGPLEVI()
+    [[nodiscard]] inline consteval const pinTable gpioToGPLEVI()
     {
         return pinTable{
             13, 13, 13, 13, 13, 13, 13, 13, //
@@ -98,7 +95,7 @@ namespace WiringPi
             14, 14, 14, 14, 14, 14, 14, 14};
     }
 
-    constexpr const pinTable sysFdsI(const int mode)
+    [[nodiscard]] inline constexpr const pinTable sysFdsI(const int mode)
     {
         if (mode == WPI_MODE_GPIO_SYS())
         {

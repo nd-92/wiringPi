@@ -10,7 +10,7 @@ namespace WiringPi
     class nullDevice : public wiringPiNode
     {
     public:
-        constexpr nullDevice(
+        [[nodiscard]] inline constexpr nullDevice(
             const size_t pinBaseVal,
             const size_t pinMode)
             : pinMode_(pinMode),
@@ -18,7 +18,7 @@ namespace WiringPi
 
         ~nullDevice() {};
 
-        inline consteval std::string_view deviceName() const
+        [[nodiscard]] inline consteval std::string_view deviceName() const
         {
             return "Null";
         }
