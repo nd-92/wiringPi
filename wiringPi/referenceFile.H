@@ -84,7 +84,7 @@ constexpr pinLabel PI_GPIO_MASK = 0xFFFFFFC0;
 #define GPIO_CLOCK 3
 #define SOFT_PWM_OUTPUT 4
 #define SOFT_TONE_OUTPUT 5
-#define PWM_TONE_OUTPUT 6
+#define PWM_tONE_OUTPUT 6
 
 // #define LOW 0
 // #define HIGH 1
@@ -288,9 +288,9 @@ extern int wiringPiSetupSys(void);                   // Implemented
 extern int wiringPiSetupGpio(void);                  // Implemented
 extern int wiringPiSetupPhys(void);                  // Implemented
 
-extern void pinModeAlt(pinLabel pin, const pinLabel mode);
-extern void pinMode(pinLabel pin, const int mode);
-extern void pullUpDnControl(pinLabel pin, const int pud);
+extern void pinModeAlt(pinLabel pin, const pinLabel mode);    // Should probably be constructor of wiringPiNode
+extern void pinMode(pinLabel pin, const int mode);            // Should probably be constructor of wiringPiNode
+extern void pullUpDnControl(pinLabel pin, const int pud);     // Implemented
 extern pinLabel digitalRead(pinLabel pin);                    // Implemented
 extern void digitalWrite(pinLabel pin, const int value);      // Implemented
 extern void pwmWrite(pinLabel pin, const int value);          // Implemented
@@ -303,8 +303,8 @@ extern void analogWrite(const pinLabel pin, const int value); // Implemented
 // On-Board Raspberry Pi hardware specific stuff
 
 extern int piGpioLayout(void);
-extern int piBoardRev(void); // Deprecated
-extern void piBoardId(int *model, int *rev, int *mem, int *maker, int *overVolted);
+extern int piBoardRev(void);                                                        // Deprecated
+extern void piBoardId(int *model, int *rev, int *mem, int *maker, int *overVolted); // Implemented as constexpr
 extern unsigned int wpiPinToGpio(const int wpiPin);
 extern unsigned int physPinToGpio(const int physPin);
 extern void setPadDrive(const unsigned int group, const unsigned int value);

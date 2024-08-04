@@ -11,10 +11,12 @@ namespace WiringPi
     {
     public:
         constexpr nullDevice(
-            const size_t pinBaseVal)
-            : pinBase_(pinBaseVal){};
+            const size_t pinBaseVal,
+            const size_t pinMode)
+            : pinMode_(pinMode),
+              pinBase_(pinBaseVal) {};
 
-        ~nullDevice(){};
+        ~nullDevice() {};
 
         inline std::string deviceName() const
         {
@@ -22,6 +24,7 @@ namespace WiringPi
         }
 
     private:
+        const size_t pinMode_;
         const size_t pinBase_;
         const size_t numPins_ = 1;
         const size_t pinMax_ = pinBase_ + numPins_ - 1;

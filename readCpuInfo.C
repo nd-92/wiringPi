@@ -1,3 +1,8 @@
+// ************************************************************ //
+//  readCpuInfo.C:                                              //
+//	This program reads the info about the model of Raspberry Pi //
+// ************************************************************ //
+
 // Header includes
 #include <fstream>
 #include <iostream>
@@ -132,10 +137,10 @@ int piGpioLayout(void)
         }
     }
 
-    if (strncmp(line, "Hardware", 8) != 0)
-    {
-        piGpioLayoutOops("No \"Hardware\" line");
-    }
+    // if (strncmp(line, "Hardware", 8) != 0)
+    //{
+    //     piGpioLayoutOops("No \"Hardware\" line");
+    // }
 
     // if (wiringPiDebug)
     {
@@ -571,6 +576,22 @@ int main()
         }
     }
 
+    bool usingGpioMem = false;
+    constexpr const char *gpiomem_global = "/dev/mem";
+    constexpr const char *gpiomem_BCM = "/dev/gpiomem";
+    constexpr const char *gpiomemGlobal = gpiomem_global;
+    constexpr const char *gpiomemModule = gpiomem_BCM;
+    int fd;
+
+    if ((fd = open(gpiomemGlobal, O_RDWR | O_SYNC | O_CLOEXEC)) < 0)
+    {
+
+        if ((fd = open(gpiomemModule, O_RDWR | O_SYNC | O_CLOEXEC)) >= 0) // We're using gpiomem
+        {
+            usingGpioMem = true;
+        }
+    }
+
     std::ofstream MyFile("piInfo.H");
 
     MyFile << "#ifndef __PI_INFO_H" << std::endl;
@@ -620,6 +641,13 @@ int main()
     MyFile << "    consteval T PI_WARRANTY()" << std::endl;
     MyFile << "    {" << std::endl;
     MyFile << "        return " << warranty << ";" << std::endl;
+    MyFile << "    }" << std::endl;
+    MyFile << std::endl;
+
+    MyFile << "    template <typename T>" << std::endl;
+    MyFile << "    consteval T USING_GPIOMEM()" << std::endl;
+    MyFile << "    {" << std::endl;
+    MyFile << "        return " << usingGpioMem << ";" << std::endl;
     MyFile << "    }" << std::endl;
     MyFile << std::endl;
 

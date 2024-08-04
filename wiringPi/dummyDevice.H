@@ -11,8 +11,13 @@ namespace WiringPi
     {
     public:
         constexpr dummyDevice(
-            const size_t pinBaseVal)
-            : pinBase_(pinBaseVal){};
+            const size_t pinBaseVal,
+            const size_t pinMode)
+            : pinBase_(pinBaseVal)
+        {
+            // Set the mode of the pin
+            pinMode_ = pinMode;
+        };
 
         inline gpio_t digitalRead() const
         {
@@ -41,6 +46,7 @@ namespace WiringPi
         }
 
     private:
+        size_t pinMode_;
         const size_t pinBase_;
         const size_t numPins_ = 8;
         const size_t pinMax_ = pinBase_ + numPins_ - 1;

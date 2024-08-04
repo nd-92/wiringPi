@@ -189,7 +189,7 @@ const unsigned short pciemem_RP1_Device = 0x0001;
 static volatile unsigned int GPIO_PADS;
 static volatile unsigned int GPIO_CLOCK_BASE;
 static volatile unsigned int GPIO_BASE;
-static volatile unsigned int GPIO_TIMER;
+static volatile unsigned int GPIO_tIMER;
 static volatile unsigned int GPIO_PWM;
 static volatile unsigned int GPIO_RIO;
 
@@ -2026,7 +2026,7 @@ void pinMode(int pin, int mode)
         {
             softToneCreate(origPin);
         }
-        else if (mode == PWM_TONE_OUTPUT)
+        else if (mode == piPWM_tONE_OUTPUT)
         {
             pinMode(origPin, PWM_OUTPUT); // Call myself to enable PWM mode
             pwmSetMode(PWM_MODE_MS);

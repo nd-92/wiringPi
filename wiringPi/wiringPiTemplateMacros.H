@@ -72,6 +72,41 @@ namespace WiringPi
         return i;
     }
 
+    // Initialise the base address of the GPIO memory mapped hardware IO
+    consteval int piGpioBase(const int model)
+    {
+        int i = 0;
+        // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0
+        switch (model)
+        {
+        case PI_MODEL_A():
+        case PI_MODEL_B():
+        case PI_MODEL_AP():
+        case PI_MODEL_BP():
+        case PI_ALPHA():
+        case PI_MODEL_CM():
+        case PI_MODEL_ZERO():
+        case PI_MODEL_ZERO_W():
+            i = GPIO_PERI_BASE_OLD<int>();
+            break;
+        case PI_MODEL_4B():
+        case PI_MODEL_400():
+        case PI_MODEL_CM4():
+            i = GPIO_PERI_BASE_2711<int>();
+            break;
+        default:
+            i = GPIO_PERI_BASE_2835<int>();
+            break;
+        }
+
+        if (USING_GPIOMEM<bool>() == true)
+        {
+            i = 0;
+        }
+
+        return i;
+    }
+
     void failure(const char *message, ...)
     {
         va_list argp;

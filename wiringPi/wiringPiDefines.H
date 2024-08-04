@@ -1,16 +1,21 @@
 #ifndef __WIRING_PI_DEFINES_H
 #define __WIRING_PI_DEFINES_H
 
+#include "wiringPiIncludes.H"
+
 namespace WiringPi
 {
 
     // Data type of pins
-    typedef unsigned int pin_t;
-    typedef unsigned int gpio_t;
-    typedef unsigned int pwm_t;
-    typedef unsigned int clk_t;
-    typedef unsigned int pads_t;
-    typedef unsigned int timer_t;
+    // typedef unsigned int pin_t;
+    typedef size_t pin_t;
+    // typedef unsigned int gpio_t;
+    typedef size_t gpio_t;
+    typedef size_t pwm_t;
+    typedef size_t clk_t;
+    typedef size_t pads_t;
+    typedef size_t timer_t;
+    typedef std::array<pin_t, 64> pinTable;
 
     // Suppress unused parameter warnings - not used yet
     // #define UNU __attribute__((unused))
@@ -37,6 +42,43 @@ namespace WiringPi
     consteval const char *ENV_GPIOMEM()
     {
         return "WIRINGPI_GPIOMEM";
+    }
+
+    // Pin modes
+    template <typename T>
+    consteval T INPUT()
+    {
+        return 0;
+    }
+    template <typename T>
+    consteval T OUTPUT()
+    {
+        return 1;
+    }
+    template <typename T>
+    consteval T PWM_OUTPUT()
+    {
+        return 2;
+    }
+    template <typename T>
+    consteval T GPIO_CLOCK()
+    {
+        return 3;
+    }
+    template <typename T>
+    consteval T SOFT_PWM_OUTPUT()
+    {
+        return 4;
+    }
+    template <typename T>
+    consteval T SOFT_TONE_OUTPUT()
+    {
+        return 5;
+    }
+    template <typename T>
+    consteval T PWM_TONE_OUTPUT()
+    {
+        return 6;
     }
 
     // Return values
@@ -270,6 +312,24 @@ namespace WiringPi
     consteval T GPPUPPDN3()
     {
         return 60;
+    }
+
+    // Pull up/down/none
+
+    template <typename T>
+    consteval T PUD_OFF()
+    {
+        return 0;
+    }
+    template <typename T>
+    consteval T PUD_DOWN()
+    {
+        return 1;
+    }
+    template <typename T>
+    consteval T PUD_UP()
+    {
+        return 2;
     }
 
     // PWM offsets into the PWM control region

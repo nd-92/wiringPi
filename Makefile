@@ -7,7 +7,8 @@ WFLAGS = -Werror -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wforma
 -Wpointer-arith -Wredundant-decls -Wshadow -Wsign-promo -Wwrite-strings -Wimplicit-fallthrough=5 -Wstringop-overflow=4 -Wstrict-aliasing=3
 
 INCLUDE	= -I.
-DEFS = -D_GNU_SOURCE
+# DEFS = -D_GNU_SOURCE
+DEFS =
 CFLAGS = $(OPTFLAGS) $(CXXSTANDARD) $(MFLAGS) $(WFLAGS) $(INCLUDE) $(DEFS) -pipe -fPIC $(EXTRA_CFLAGS)
 LIBS = -lm -lpthread -lrt -lcrypt
 

@@ -6,14 +6,16 @@ consteval const char *VERSION()
     return "2.70";
 }
 
-template <typename T>
-consteval T VERSION_MAJOR()
+// template <typename T>
+// consteval T VERSION_MAJOR()
+consteval int VERSION_MAJOR()
 {
     return 2;
 }
 
-template <typename T>
-consteval T VERSION_MINOR()
+// template <typename T>
+// consteval T VERSION_MINOR()
+consteval int VERSION_MINOR()
 {
     return 70;
 }

@@ -13,9 +13,9 @@ namespace WiringPi
     class wiringPiNode
     {
     public:
-        constexpr wiringPiNode(){};
+        constexpr wiringPiNode() {};
 
-        ~wiringPiNode(){};
+        ~wiringPiNode() {};
 
         // Sets the mode of a pin to be input, output or PWM output
         virtual inline void pinMode() const
@@ -26,6 +26,13 @@ namespace WiringPi
         virtual inline void pullUpDnControl() const
         {
         }
+        virtual inline void pullUpDnControl(
+            [[maybe_unused]] volatile gpio_t *gpioPtr,
+            [[maybe_unused]] const gpio_t value,
+            [[maybe_unused]] const int piGpioPupOffset)
+        {
+            // std::cout << "Called dummy " << (*gpioPtr + offsetValue + value + static_cast<gpio_t>(piGpioPupOffset)) << std::endl;
+        }
 
         // Read the value of a given Pin, returning HIGH or LOW
         // Overloaded to accept ptrs to onboard gpio pins
@@ -33,10 +40,12 @@ namespace WiringPi
         {
             return 0;
         }
-        virtual inline gpio_t digitalRead(const pin_t *gpioPtr, const pin_t gpioToGPLEV) const
+        virtual inline gpio_t digitalRead(
+            [[maybe_unused]] const pin_t *gpioPtr,
+            [[maybe_unused]] const pin_t gpioToGPLEV) const
         {
-            // Return 0
-            return 0 * (*(gpioPtr + gpioToGPLEV) & (1 << (static_cast<pin_t>(pinBase_) & 31)));
+            return 0;
+            // return 0 * (*(gpioPtr + gpioToGPLEV) & (1 << (static_cast<pin_t>(pinBase_) & 31)));
         }
 
         // Set an output bit
@@ -52,11 +61,11 @@ namespace WiringPi
         }
 
         // Set an output pwm value
-        virtual inline void pwmWrite(const int value) const
+        virtual inline void pwmWrite(const pwm_t value) const
         {
             std::cout << deviceName() << " writing pwm value " << value << std::endl;
         }
-        virtual inline void pwmWrite(int *pwmPtr, const int offsetValue, const int value)
+        virtual inline void pwmWrite(pwm_t *pwmPtr, const int offsetValue, const int value)
         {
             std::cout << deviceName() << " writing pwm value " << value << std::endl;
             *(pwmPtr + (0 * offsetValue)) = 0 * value;
@@ -101,10 +110,55 @@ namespace WiringPi
             return pinMax_;
         }
 
+        inline void delay(const time_t howLong) const
+        {
+            struct timespec sleeper, dummy;
+
+            sleeper.tv_sec = howLong / 1000;
+            sleeper.tv_nsec = (howLong % 1000) * 1000000;
+
+            nanosleep(&sleeper, &dummy);
+        }
+
+        inline void delayMicrosecondsHard(const time_t howLong) const
+        {
+            struct timeval tNow, tLong, tEnd;
+
+            gettimeofday(&tNow, NULL);
+            tLong.tv_sec = howLong / 1000000;
+            tLong.tv_usec = howLong % 1000000;
+            timeradd(&tNow, &tLong, &tEnd);
+
+            while (timercmp(&tNow, &tEnd, <))
+            {
+                gettimeofday(&tNow, NULL);
+            }
+        }
+
+        inline void delayMicroseconds(const time_t howLong) const
+        {
+            struct timespec sleeper;
+            if (howLong == 0)
+            {
+                return;
+            }
+            else if (howLong < 100)
+            {
+                delayMicrosecondsHard(howLong);
+            }
+            else
+            {
+                sleeper.tv_sec = (howLong / 1000000);
+                sleeper.tv_nsec = (howLong % 1000000) * 1000L;
+                nanosleep(&sleeper, NULL);
+            }
+        }
+
     private:
-        const size_t pinBase_ = 0;
-        const size_t numPins_ = 0;
-        const size_t pinMax_ = 0;
+        static constexpr const size_t pinMode_ = 0;
+        static constexpr const size_t pinBase_ = 0;
+        static constexpr const size_t numPins_ = 0;
+        static constexpr const size_t pinMax_ = 0;
     };
 }
 

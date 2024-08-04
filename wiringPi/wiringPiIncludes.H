@@ -4,6 +4,8 @@
 // Header includes
 #include <iostream>
 #include <vector>
+#include <array>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -26,5 +28,6 @@
 #include <memory>
 #include <utility>
 #include <algorithm>
+#include <cassert>
 
 #endif

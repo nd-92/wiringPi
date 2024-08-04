@@ -6,27 +6,20 @@
 #include "wiringPiTemplateMacros.H"
 #include "wiringPiPinTables.H"
 #include "wiringPiNode.H"
-#include "onboardPin.H"
+#include "onboardPins.H"
 #include "nullDevice.H"
 
 namespace WiringPi
 {
     // Templated, but at present only works correctly in GPIO mode
-    template <int wpiMode>
+    // template <int wpiMode>
     class wiringPi
     {
     public:
         wiringPi()
             : wiringPiDebug_(isDebug()),
               wiringPiReturnCodes_(isReturnCodes()),
-              piGpioBase_(piGpioBase(piModel_)),
-              usingGpioMem_(usingGpioMem()),
-              GPIO_PADS(piGpioBase_ + 0x00100000),
-              GPIO_CLOCK_BASE(piGpioBase_ + 0x00101000),
-              GPIO_BASE(piGpioBase_ + 0x00200000),
-              GPIO_TIMER(piGpioBase_ + 0x0000B000),
-              GPIO_PWM(piGpioBase_ + 0x0020C000),
-              gpio(mapHardware<gpio_t>(GPIO_PWM)),
+              gpio(mapHardware<gpio_t>(GPIO_BASE)),
               pwm(mapHardware<pwm_t>(GPIO_PWM)),
               clk(mapHardware<clk_t>(GPIO_CLOCK_BASE)),
               pads(mapHardware<pads_t>(GPIO_PADS)),
@@ -35,88 +28,120 @@ namespace WiringPi
               epochMilli_(initialiseEpochMilli()),
               epochMicro_(initialiseEpochMicro())
         {
-            // Add GPIO to the device registry on pins 0 to 39
+            // Add GPIO to the device registry on pins 1 to 40
             // Should ultimately be changed to deal with other modes - use only GPIO for now
-            for (size_t i = 0; i < 40; i++)
-            {
-                // Initialise the device
-                const WiringPi::onboardPin device(i);
+            // for (size_t i = 1; i < 41; i++)
+            // {
+            //     // Initialise the device
+            //     // By default set to mode 0
+            //     const WiringPi::onboardPin device(i, INPUT<gpio_t>());
 
-                // Add the device name to the name database
-                pinRegistry_.push_back(1);
-                devNames_.push_back(device.deviceName());
+            //     // Add the device name to the name database
+            //     deviceRegistry_.push_back(1);
+            //     devNames_.push_back(device.deviceName());
 
-                // Add device to pointer registry
-                devicePtrs_.push_back(std::make_unique<onboardPin>(device));
+            //     // Add device to pointer registry
+            //     devicePtrs_.push_back(std::make_unique<onboardPin>(device));
 
-                // Add its occupied pins to the pinStart and pinEnd arrays
-                pinStart_.push_back(i);
-                pinEnd_.push_back(i);
-            }
+            //     // Add its occupied pins to the pinStart and pinEnd arrays
+            //     pinStart_.push_back(i);
+            //     pinEnd_.push_back(i);
 
-            // Add null devices to the device registry on pins 40 to 63
-            for (size_t i = 40; i < 64; i++)
-            {
-                const WiringPi::nullDevice device(i);
-                pinRegistry_.push_back(1);
-                devNames_.push_back(device.deviceName());
-                devicePtrs_.push_back(std::make_unique<nullDevice>(device));
-                pinStart_.push_back(i);
-                pinEnd_.push_back(i);
-            }
+            //     // Set the mode of the pins
+            //     // By default set to mode 0
+            //     // const gpio_t fSel = gpioToGPFSEL(pinBase_);
+            //     // const gpio_t shift = gpioToShift(pinBase_);
+            //     // const size_t j = device.bitSetI(gpioConstPtr(), 0, gpioToGPFSEL(i), gpioToShift(i));
+            //     // std::cout << "bitSetI(" << i << ") = " << bitSetI(gpioConstPtr(), INPUT<gpio_t>(), i) << std::endl;
+            //     // *(gpio_ + gpioToGPFSEL(i)) = bitSetI(gpio_, INPUT<gpio_t>(), i);
+            //     const unsigned int fSel = gpioToGPFSEL(i);
+            //     const unsigned int shift = gpioToShift(i);
+            //     const unsigned int setVal = (*(gpio + fSel) & ~static_cast<unsigned int>(7 << shift));
+            //     std::cout << "INPUT: " << setVal << " on device " << i << std::endl;
+            //     // *(__gpio + fSel) = (*(__gpio + fSel) & ~(7 << shift));
+            // }
 
-            // Resize correctly - only 64 pins
-            pinRegistry_.resize(64);
-            devNames_.resize(64);
-            devicePtrs_.resize(64);
-            pinStart_.resize(64);
-            pinEnd_.resize(64);
+            // Add null devices to the device registry on pins 41 to 63
+            // for (size_t i = 41; i < 64; i++)
+            // {
+            //     const WiringPi::nullDevice device(i, 0);
+            //     deviceRegistry_.push_back(1);
+            //     devNames_.push_back(device.deviceName());
+            //     devicePtrs_.push_back(std::make_unique<nullDevice>(device));
+            //     pinStart_.push_back(i);
+            //     pinEnd_.push_back(i);
+            // }
+
+            // // Resize correctly - only 64 pins
+            // deviceRegistry_.resize(64);
+            // devNames_.resize(64);
+            // devicePtrs_.resize(64);
+            // pinStart_.resize(64);
+            // pinEnd_.resize(64);
+
+            // Check that the maps succeeded
+            assert((gpio != MAP_FAILED));
+            assert((pwm != MAP_FAILED));
+            assert((clk != MAP_FAILED));
+            assert((pads != MAP_FAILED));
+            assert((timer != MAP_FAILED));
         }
 
-        ~wiringPi(){};
+        ~wiringPi() {};
 
         // Read an input bit
-        inline gpio_t digitalReadOnboard(const size_t deviceNo) const
+        inline gpio_t digitalReadOnboard(const pin_t pinNumber) const
         {
             // std::cout << "Called wiringPi digitalRead on onboard device number " << deviceNo << std::endl;
-            return devicePtrs_[deviceNo]->digitalRead(gpioConstPtr(), gpioToGPLEV(deviceNo));
+            return pinRegistry_.digitalRead(gpioConstPtr(), pinNumber);
         }
-        inline gpio_t digitalReadOffboard(const size_t deviceNo) const
-        {
-            // std::cout << "Called wiringPi digitalRead on offboard device number " << deviceNo << std::endl;
-            return devicePtrs_[deviceNo + 64]->digitalRead();
-        }
+        // inline gpio_t digitalReadOffboard(const size_t deviceNo) const
+        // {
+        //     // std::cout << "Called wiringPi digitalRead on offboard device number " << deviceNo << std::endl;
+        //     return devicePtrs_[deviceNo + 64]->digitalRead();
+        // }
 
         // Write an output bit
-        inline void digitalWriteOnboard(const size_t deviceNo, const gpio_t value)
+        inline void digitalWriteOnboard(const pin_t pinNumber, const gpio_t value)
         {
-            devicePtrs_[deviceNo]->digitalWrite(gpioPtr(), gpioCLRSET(deviceNo + (64 * !value)));
+            pinRegistry_.digitalWrite(gpioPtr(), pinNumber, value);
         }
-        inline void digitalWriteOffboard(const size_t deviceNo, const gpio_t value)
-        {
-            devicePtrs_[deviceNo + 64]->digitalWrite(value);
-        }
+        // inline void digitalWriteOffboard(const size_t deviceNo, const gpio_t value)
+        // {
+        //     devicePtrs_[deviceNo + 64]->digitalWrite(value);
+        // }
 
         // Set an output pwm value
-        inline void pwmWriteOnboard(const size_t deviceNo, const int value)
-        {
-            devicePtrs_[deviceNo]->pwmWrite(pwmPtr(), gpioToPwmPort_[deviceNo], value);
-        }
-        inline void pwmWriteOffboard(const size_t deviceNo, const int value)
-        {
-            devicePtrs_[deviceNo + 64]->pwmWrite(value);
-        }
+        // inline void pwmWriteOnboard(const size_t deviceNo, const gpio_t value)
+        // {
+        //     devicePtrs_[deviceNo]->pwmWrite(pwmPtr(), gpioToPwmPort()[deviceNo], value);
+        // }
+        // inline void pwmWriteOffboard(const size_t deviceNo, const pwm_t value)
+        // {
+        //     devicePtrs_[deviceNo + 64]->pwmWrite(value);
+        // }
+
+        // Control the internal pull-up/down resistors on a GPIO pin
+        // inline void pullUpDnControlOnboard(const size_t deviceNo, const gpio_t value)
+        // {
+        //     devicePtrs_[deviceNo]->pullUpDnControl(gpioPtr(), value, piGpioPupOffset_);
+        // }
 
         // Read the analog value of a given pin
-        inline int analogReadOffboard(const size_t deviceNo) const
-        {
-            return devicePtrs_[deviceNo + 64]->analogRead();
-        }
+        // inline int analogReadOffboard(const size_t deviceNo) const
+        // {
+        //     return devicePtrs_[deviceNo + 64]->analogRead();
+        // }
 
         // Write the analog value of a given pin
-        inline void analogWriteOffboard(const size_t deviceNo, const int value)
+        // inline void analogWriteOffboard(const size_t deviceNo, const int value)
+        // {
+        //     devicePtrs_[deviceNo + 64]->analogWrite(value);
+        // }
+
+        inline constexpr const pinTable &gpioToPwmPort() const
         {
-            devicePtrs_[deviceNo + 64]->analogWrite(value);
+            return gpioToPwmPort_;
         }
 
         inline constexpr const pinTable &pinToGpio() const
@@ -132,50 +157,6 @@ namespace WiringPi
         inline constexpr const pinTable &sysFds() const
         {
             return sysFds_;
-        }
-
-        inline void delay(const time_t howLong) const
-        {
-            struct timespec sleeper, dummy;
-
-            sleeper.tv_sec = howLong / 1000;
-            sleeper.tv_nsec = (howLong % 1000) * 1000000;
-
-            nanosleep(&sleeper, &dummy);
-        }
-
-        inline void delayMicrosecondsHard(const time_t howLong) const
-        {
-            struct timeval tNow, tLong, tEnd;
-
-            gettimeofday(&tNow, NULL);
-            tLong.tv_sec = howLong / 1000000;
-            tLong.tv_usec = howLong % 1000000;
-            timeradd(&tNow, &tLong, &tEnd);
-
-            while (timercmp(&tNow, &tEnd, <))
-            {
-                gettimeofday(&tNow, NULL);
-            }
-        }
-
-        inline void delayMicroseconds(const time_t howLong) const
-        {
-            struct timespec sleeper;
-            if (howLong == 0)
-            {
-                return;
-            }
-            else if (howLong < 100)
-            {
-                delayMicrosecondsHard(howLong);
-            }
-            else
-            {
-                sleeper.tv_sec = (howLong / 1000000);
-                sleeper.tv_nsec = (howLong % 1000000) * 1000L;
-                nanosleep(&sleeper, NULL);
-            }
         }
 
         inline time_t micros() const
@@ -201,141 +182,115 @@ namespace WiringPi
             return wiringPiMode_;
         }
 
-        inline constexpr const gpio_t *gpioConstPtr() const
+        inline constexpr const volatile gpio_t *gpioConstPtr() const
         {
             return gpio;
         }
-        inline constexpr gpio_t *gpioPtr()
+        inline constexpr volatile gpio_t *gpioPtr()
         {
             return gpio;
         }
 
-        inline constexpr const int *pwmConstPtr() const
+        inline constexpr const volatile pwm_t *pwmConstPtr() const
         {
             return pwm;
         }
-        inline constexpr int *pwmPtr()
+        inline constexpr volatile pwm_t *pwmPtr()
         {
             return pwm;
         }
 
-        template <class deviceType>
-        inline void addDevice(deviceType device)
-        {
-            // Resize to accomodate the total pin count
-            // Set pins by default to unused
-            pinRegistry_.resize(std::max(device.pinBase() + device.numPins() + 64, pinRegistry_.size()), 0);
-
-            // Add the used pins to the pin count
-            for (size_t i = device.pinBase(); i < device.pinBase() + device.numPins(); i++)
-            {
-                pinRegistry_[i + 64] = pinRegistry_[i + 64] + 1;
-            }
-
-            // Size appropriately - don't add more than needed
-            const size_t newSize = pinStart_.size() + 1;
-            pinStart_.resize(newSize);
-            pinEnd_.resize(newSize);
-            devNames_.resize(newSize);
-            devicePtrs_.resize(newSize);
-
-            // // Add device to end
-            pinStart_[newSize - 1] = device.pinBase() + 64;
-            pinEnd_[newSize - 1] = device.pinMax() + 64;
-            devNames_[newSize - 1] = device.deviceName();
-            devicePtrs_[newSize - 1] = std::make_unique<deviceType>(device);
-        }
-
-        inline void printPinRegistry() const
-        {
-            std::cout << "========================" << std::endl;
-            std::cout << "WiringPi device registry" << std::endl;
-            std::cout << "========================" << std::endl;
-            std::cout << "Total registered pins: " << pinRegistry_.size() << std::endl;
-
-            // Validate the pin registry
-            if (validatePinRegistry())
-            {
-                std::cout << "Device registry valid" << std::endl;
-            }
-            else
-            {
-                std::cout << "Device registry invalid" << std::endl;
-            }
-
-            // Print the device registry pins:
-            std::cout << "Device pin layout:" << std::endl;
-            std::cout << "{ ";
-            for (size_t i = 0; i < pinRegistry_.size(); i++)
-            {
-                if (((i % 8) == 0) && (i > 0))
-                {
-                    std::cout << "} " << i - 8 << " -> " << i - 1 << std::endl;
-                    std::cout << "{ ";
-                }
-                std::cout << pinRegistry_[i] << " ";
-            }
-            std::cout << "} " << pinRegistry_.size() - 8 << " -> " << pinRegistry_.size() - 1 << std::endl;
-
-            // Print the device names and their assigned pins
-            std::cout << "Offboard devices:" << std::endl;
-            for (size_t i = 64; i < devNames_.size(); i++)
-            {
-                if (pinStart_[i] == pinEnd_[i])
-                {
-                    std::cout << devNames_[i] << " registered on pin " << pinStart_[i] << std::endl;
-                }
-                else
-                {
-                    std::cout << devNames_[i] << " registered on pins " << pinStart_[i] << " -> " << pinEnd_[i] << std::endl;
-                }
-            }
-        }
-
-        inline bool validatePinRegistry() const
-        {
-            // Check for pin overlap
-            for (size_t i = 0; i < pinRegistry_.size(); i++)
-            {
-                if (pinRegistry_[i] > 1)
-                {
-                    // Return false if overlap
-                    return false;
-                }
-            }
-            // Return true if no overlap
-            return true;
-        }
-
-        inline const std::vector<std::string> &devNames() const
-        {
-            return devNames_;
-        }
-
-        // inline void pwmSetRange(const int range)
+        // template <class deviceType>
+        // inline void addDevice(deviceType device)
         // {
-        //     *(pwmPtr() + PWM0_RANGE<int>()) = range;
-        //     delayMicroseconds(10);
-        //     *(pwmPtr() + PWM1_RANGE<int>()) = range;
-        //     delayMicroseconds(10);
+        //     // Resize to accomodate the total pin count
+        //     // Set pins by default to unused
+        //     deviceRegistry_.resize(std::max(device.pinBase() + device.numPins() + 64, deviceRegistry_.size()), 0);
+
+        //     // Add the used pins to the pin count
+        //     for (size_t i = device.pinBase(); i < device.pinBase() + device.numPins(); i++)
+        //     {
+        //         deviceRegistry_[i + 64] = deviceRegistry_[i + 64] + 1;
+        //     }
+
+        //     // Size appropriately - don't add more than needed
+        //     const size_t newSize = pinStart_.size() + 1;
+        //     pinStart_.resize(newSize);
+        //     pinEnd_.resize(newSize);
+        //     devNames_.resize(newSize);
+        //     devicePtrs_.resize(newSize);
+
+        //     // // Add device to end
+        //     pinStart_[newSize - 1] = device.pinBase() + 64;
+        //     pinEnd_[newSize - 1] = device.pinMax() + 64;
+        //     devNames_[newSize - 1] = device.deviceName();
+        //     devicePtrs_[newSize - 1] = std::make_unique<deviceType>(device);
         // }
 
-        // inline void pwmToneWrite(const int pin, const int freq)
+        // inline void printDeviceRegistry() const
         // {
-        //     // FailOnModel5();
+        //     std::cout << "========================" << std::endl;
+        //     std::cout << "WiringPi device registry" << std::endl;
+        //     std::cout << "========================" << std::endl;
+        //     std::cout << "Total registered pins: " << deviceRegistry_.size() << std::endl;
 
-        //     // setupCheck("pwmToneWrite");
-
-        //     if (freq == 0)
+        //     // Validate the pin registry
+        //     if (validateDeviceRegistry())
         //     {
-        //         pwmWrite(pin, 0);
-        //     } // Off
+        //         std::cout << "Device registry valid" << std::endl;
+        //     }
         //     else
         //     {
-        //         int range = 600000 / freq;
-        //         pwmSetRange(range);
-        //         pwmWrite(pin, freq / 2);
+        //         std::cout << "Device registry invalid" << std::endl;
         //     }
+
+        //     // Print the device registry pins:
+        //     std::cout << "Device pin layout:" << std::endl;
+        //     std::cout << "{ ";
+        //     for (size_t i = 0; i < deviceRegistry_.size(); i++)
+        //     {
+        //         if (((i % 8) == 0) && (i > 0))
+        //         {
+        //             std::cout << "} " << i - 8 << " -> " << i - 1 << std::endl;
+        //             std::cout << "{ ";
+        //         }
+        //         std::cout << deviceRegistry_[i] << " ";
+        //     }
+        //     std::cout << "} " << deviceRegistry_.size() - 8 << " -> " << deviceRegistry_.size() - 1 << std::endl;
+
+        //     // Print the device names and their assigned pins
+        //     std::cout << "Offboard devices:" << std::endl;
+        //     for (size_t i = 64; i < devNames_.size(); i++)
+        //     {
+        //         if (pinStart_[i] == pinEnd_[i])
+        //         {
+        //             std::cout << devNames_[i] << " registered on pin " << pinStart_[i] << std::endl;
+        //         }
+        //         else
+        //         {
+        //             std::cout << devNames_[i] << " registered on pins " << pinStart_[i] << " -> " << pinEnd_[i] << std::endl;
+        //         }
+        //     }
+        // }
+
+        // inline bool validateDeviceRegistry() const
+        // {
+        //     // Check for pin overlap
+        //     for (size_t i = 0; i < deviceRegistry_.size(); i++)
+        //     {
+        //         if (deviceRegistry_[i] > 1)
+        //         {
+        //             // Return false if overlap
+        //             return false;
+        //         }
+        //     }
+        //     // Return true if no overlap
+        //     return true;
+        // }
+
+        // inline const std::vector<std::string> &devNames() const
+        // {
+        //     return devNames_;
         // }
 
     private:
@@ -348,17 +303,20 @@ namespace WiringPi
         static constexpr const int piWarranty_ = PI_WARRANTY<int>();
 
         // Registry of devices
-        std::vector<pin_t> pinRegistry_;
-        std::vector<std::string> devNames_;
-        std::vector<size_t> pinStart_;
-        std::vector<size_t> pinEnd_;
-        std::vector<std::unique_ptr<WiringPi::wiringPiNode>> devicePtrs_;
+        // static constinit std::array<WiringPi::onboardPin, 40> onboardPins_ = pinRegistryI();
+        WiringPi::onboardPins pinRegistry_;
+        // std::vector<pin_t> deviceRegistry_;
+        // std::vector<std::string> devNames_;
+        // std::vector<size_t> pinStart_;
+        // std::vector<size_t> pinEnd_;
+        // std::vector<std::unique_ptr<WiringPi::wiringPiNode>> devicePtrs_;
 
         // Setup info
         static constexpr const int wiringPiSetuped_ = static_cast<int>(true);
         const int wiringPiDebug_;
         const int wiringPiReturnCodes_;
-        static constexpr const int wiringPiMode_ = getMode(wpiMode, piModel_);
+        // static constexpr const int wiringPiMode_ = getMode(wpiMode, piModel_);
+        static constexpr const int wiringPiMode_ = WPI_MODE_GPIO();
 
         int checkDevMem()
         {
@@ -367,22 +325,43 @@ namespace WiringPi
             return fd;
         }
 
-        // Offset to the GPIO Clear and Set registers for each GPIO pin
-        // This is equivalent to the gpioToGPCLR and gpioToGPSET tables
-        // Value passed to this function should be deviceNo + (64 * !value)
-        // Returns 10 -> 11 for digital value LOW, 7 -> 8 for digital value HIGH
-        inline constexpr gpio_t gpioCLRSET(const pin_t i) const
+        // Offset to the Pull Up Down Clock regsiter
+        // This is equivalent to the gpioToPUDCLK table
+        // Returns 38 on pins 0 -> 31, 39 on pins 32 -> 63
+        inline constexpr gpio_t gpioToPUDCLK(const gpio_t i)
         {
-            return 7 + (i / 64) + (i / 32);
+            return 38 + (i / 32);
         }
 
-        // Offset to the GPIO Input level registers for each GPIO pin
-        // This is equivalent to the gpioToGPLEV table
-        // Returns 13 on pins 0 -> 31, 14 on pins 32 -> 63
-        inline constexpr gpio_t gpioToGPLEV(const pin_t i) const
+        // Map a BCM_GPIO pin to its function selection control port. (GPFSEL 0-5)
+        // Groups of 10 - 3 bits per Function - 30 bits per port
+        constexpr size_t gpioToGPFSEL(const size_t i) const
         {
-            return 13 + (i / 32);
+            return i / 10;
         }
+
+        // Define the shift up for the 3 bits per pin in each GPFSEL port
+        constexpr size_t gpioToShift(const size_t i) const
+        {
+            return 3 * (i % 10);
+        }
+
+        // Helper function to set bits to output or input
+        // constexpr size_t bitSetI(const gpio_t *gpioPtr, const size_t pinMode, const size_t deviceNo) const
+        // {
+        //     const int64_t fSel = static_cast<int64_t>(gpioToGPFSEL(deviceNo));
+        //     const int64_t shift = static_cast<int64_t>(gpioToShift(deviceNo));
+
+        //     const int64_t bitSet = (*(dynamic_cast<const int64_t *>(gpioPtr) + fSel) & ~(7 << shift));
+
+        //     if (pinMode == OUTPUT<size_t>())
+        //     {
+        //         std::cout << "Pin mode is output" << std::endl;
+        //         // bitSet = (*(gpioPtr + fSel) & ~(7 << shift)) | (1 << shift);
+        //     }
+
+        //     return static_cast<size_t>(bitSet);
+        // }
 
         // Pin conversion tables
         static constexpr const pinTable pinToGpio_ = pinToGpioI(gpioLayout_);
@@ -392,9 +371,14 @@ namespace WiringPi
         // System mode pin table cannot be constexpr
         const pinTable sysFds_ = sysFdsI(wiringPiMode_);
 
-        const int piGpioBase_;
+        static constexpr const int piGpioBase_ = piGpioBase(piModel_);
         static constexpr const int piGpioPupOffset_ = piGpioPupOffset<int>(piModel_);
-        const int usingGpioMem_;
+        static constexpr const bool usingGpioMem_ = USING_GPIOMEM<bool>();
+        static constexpr const int GPIO_PADS = piGpioBase_ + 0x00100000;
+        static constexpr const int GPIO_CLOCK_BASE = piGpioBase_ + 0x00101000;
+        static constexpr const int GPIO_BASE = piGpioBase_ + 0x00200000;
+        static constexpr const int GPIO_TIMER = piGpioBase_ + 0x0000B000;
+        static constexpr const int GPIO_PWM = piGpioBase_ + 0x0020C000;
 
         // Private methods for initialising const member variables
 
@@ -426,85 +410,6 @@ namespace WiringPi
             return true;
         }
 
-        // Initialise the base address of the GPIO memory mapped hardware IO
-        inline int piGpioBase(const int model)
-        {
-            int i = 0;
-            // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0
-            switch (model)
-            {
-            case PI_MODEL_A():
-            case PI_MODEL_B():
-            case PI_MODEL_AP():
-            case PI_MODEL_BP():
-            case PI_ALPHA():
-            case PI_MODEL_CM():
-            case PI_MODEL_ZERO():
-            case PI_MODEL_ZERO_W():
-                i = GPIO_PERI_BASE_OLD<int>();
-                break;
-            case PI_MODEL_4B():
-            case PI_MODEL_400():
-            case PI_MODEL_CM4():
-                i = GPIO_PERI_BASE_2711<int>();
-                break;
-            default:
-                i = GPIO_PERI_BASE_2835<int>();
-                break;
-            }
-
-            int fd;
-            if ((fd = open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC)) < 0)
-            {
-                if ((fd = open("/dev/gpiomem", O_RDWR | O_SYNC | O_CLOEXEC)) >= 0) // We're using gpiomem
-                {
-                    i = 0;
-                    // usingGpioMem = true;
-                }
-                else
-                {
-                    // return failure(
-                    //     WPI_ALMOST,
-                    //     "wiringPiSetup: Unable to open /dev/mem or /dev/gpiomem: %s.\n"
-                    //     "  Aborting your program because if it can not access the GPIO\n"
-                    //     "  hardware then it most certianly won't work\n"
-                    //     "  Try running with sudo?\n",
-                    //     strerror(errno));
-                }
-            }
-
-            return i;
-        }
-
-        inline int usingGpioMem()
-        {
-            int fd;
-            if ((fd = open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC)) < 0)
-            {
-                if ((fd = open("/dev/gpiomem", O_RDWR | O_SYNC | O_CLOEXEC)) >= 0) // We're using gpiomem
-                {
-                    return static_cast<int>(true);
-                }
-                else
-                {
-                    failure(
-                        WPI_ALMOST<int>(),
-                        "wiringPiSetup: Unable to open /dev/mem or /dev/gpiomem: %s.\n"
-                        "  Aborting your program because if it can not access the GPIO\n"
-                        "  hardware then it most certianly won't work\n"
-                        "  Try running with sudo?\n",
-                        strerror(errno));
-                }
-            }
-            return static_cast<int>(false);
-        }
-
-        const int GPIO_PADS;
-        const int GPIO_CLOCK_BASE;
-        const int GPIO_BASE;
-        const int GPIO_TIMER;
-        const int GPIO_PWM;
-
         // Map individual hardware components
         template <typename T0, typename T1>
         T0 *mapHardware(const T1 offset)
@@ -521,15 +426,15 @@ namespace WiringPi
         }
 
         // Probably should not be using raw pointers
-        gpio_t *gpio;
-        pwm_t *pwm;
-        const clk_t *clk;
-        const pads_t *pads;
-        const timer_t *timer;
-        const timer_t *timerIrqRaw;
+        volatile gpio_t *gpio;
+        volatile pwm_t *pwm;
+        const volatile clk_t *clk;
+        const volatile pads_t *pads;
+        const volatile timer_t *timer;
+        const volatile timer_t *timerIrqRaw;
 
         const time_t epochMilli_;
-        time_t initialiseEpochMilli()
+        time_t initialiseEpochMilli() const
         {
             struct timespec ts;
 
@@ -542,7 +447,7 @@ namespace WiringPi
         }
 
         const time_t epochMicro_;
-        time_t initialiseEpochMicro()
+        time_t initialiseEpochMicro() const
         {
             struct timespec ts;
 
@@ -555,8 +460,8 @@ namespace WiringPi
         }
 
         static constexpr const char *version_ = VERSION();
-        static constexpr const int versionMajor_ = VERSION_MAJOR<int>();
-        static constexpr const int versionMinor_ = VERSION_MINOR<int>();
+        static constexpr const int versionMajor_ = VERSION_MAJOR();
+        static constexpr const int versionMinor_ = VERSION_MINOR();
     };
 }
 
