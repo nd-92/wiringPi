@@ -15,16 +15,11 @@ namespace WiringPi
     typedef uint32_t timer_t;
     typedef std::array<pin_t, 64> pinTable;
 
-    // Suppress unused parameter warnings - not used yet
-    // #define UNU __attribute__((unused))
-
     // Mask for the bottom 64 pins which belong to the Raspberry Pi
     // The others are available for the other devices
-
     template <typename T>
     [[nodiscard]] inline consteval T PI_GPIO_MASK()
     {
-        // return (0xFFFFFFC0);
         return static_cast<T>(0xFFFFFFC0);
     }
 
@@ -256,16 +251,13 @@ namespace WiringPi
     [[nodiscard]] inline consteval T PAGE_SIZE()
     {
         return 4 * 1024;
-        // return sizeof(size_t) * 1024;
     }
     template <typename T>
     [[nodiscard]] inline consteval T BLOCK_SIZE()
     {
         return 4 * 1024;
-        // return sizeof(size_t) * 1024;
     }
 
-    // piGpioBase:
     // The base address of the GPIO memory mapped hardware IO
     template <typename T>
     [[nodiscard]] inline consteval T GPIO_PERI_BASE_OLD()
@@ -283,7 +275,7 @@ namespace WiringPi
         return static_cast<T>(0xFE000000);
     }
 
-    // GPPUD: pin pull up/down register
+    // Pin pull up/down register
     // Pin pull-up/down for pins 15 : 0
     // Pin pull-up/down for pins 31 : 16
     // Pin pull-up/down for pins 47 : 32
@@ -315,7 +307,6 @@ namespace WiringPi
     }
 
     // Pull up/down/none
-
     template <typename T>
     [[nodiscard]] inline consteval T PUD_OFF()
     {

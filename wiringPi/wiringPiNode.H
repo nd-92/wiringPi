@@ -18,76 +18,65 @@ namespace WiringPi
         ~wiringPiNode() {};
 
         // Sets the mode of a pin to be input, output or PWM output
-        virtual inline void pinMode() const
-        {
-        }
+        // virtual inline void pinMode() const
+        // {
+        // }
 
-        // Control the internal pull - up / down resistors on a GPIO pin
-        virtual inline void pullUpDnControl() const
-        {
-        }
-        virtual inline void pullUpDnControl(
-            [[maybe_unused]] gpio_t volatile *gpioPtr,
-            [[maybe_unused]] const gpio_t value,
-            [[maybe_unused]] const int piGpioPupOffset)
-        {
-            // std::cout << "Called dummy " << (*gpioPtr + offsetValue + value + static_cast<gpio_t>(piGpioPupOffset)) << std::endl;
-        }
+        // // Control the internal pull - up / down resistors on a GPIO pin
+        // virtual inline void pullUpDnControl() const
+        // {
+        // }
+        // virtual inline void pullUpDnControl(
+        //     [[maybe_unused]] gpio_t volatile *gpioPtr,
+        //     [[maybe_unused]] const gpio_t value,
+        //     [[maybe_unused]] const int piGpioPupOffset) const
+        // {
+        //     // std::cout << "Called dummy " << (*gpioPtr + offsetValue + value + static_cast<gpio_t>(piGpioPupOffset)) << std::endl;
+        // }
 
         // Read the value of a given Pin, returning HIGH or LOW
         // Overloaded to accept ptrs to onboard gpio pins
-        [[nodiscard]] virtual inline gpio_t digitalRead() const
+        [[nodiscard]] virtual inline gpio_t digitalRead() const volatile
         {
             return 0;
         }
-        [[nodiscard]] virtual inline gpio_t digitalRead(
-            [[maybe_unused]] const volatile pin_t *gpioPtr,
-            [[maybe_unused]] const pin_t gpioToGPLEV) const
+        [[nodiscard]] virtual inline gpio_t digitalRead([[maybe_unused]] const volatile pin_t *gpioPtr, [[maybe_unused]] const pin_t gpioToGPLEV) const volatile
         {
             return 0;
-            // return 0 * (*(gpioPtr + gpioToGPLEV) & (1 << (static_cast<pin_t>(pinBase_) & 31)));
         }
 
         // Set an output bit
         // Overloaded to accept ptrs to onboard gpio pins
-        virtual inline void digitalWrite(const gpio_t value)
+        virtual inline void digitalWrite([[maybe_unused]] const gpio_t value) const
         {
-            std::cout << deviceName() << " writing value " << value << std::endl;
         }
-        virtual inline void digitalWrite(volatile gpio_t *gpioPtr, const gpio_t offsetValue)
+        virtual inline void digitalWrite([[maybe_unused]] volatile gpio_t *gpioPtr, [[maybe_unused]] const gpio_t offsetValue) const volatile
         {
-            // *(gpioPtr + (0 * offsetValue)) = 1 << (pinBase_ & 31);
-            std::cout << deviceName() << " writing value " << offsetValue << std::endl;
         }
 
         // Set an output pwm value
-        virtual inline void pwmWrite(const pwm_t value) const
-        {
-            std::cout << deviceName() << " writing pwm value " << value << std::endl;
-        }
-        virtual inline void pwmWrite(pwm_t *pwmPtr, const int offsetValue, const int value)
-        {
-            std::cout << deviceName() << " writing pwm value " << value << std::endl;
-            *(pwmPtr + (0 * offsetValue)) = 0 * value;
-            // std::cout << deviceName() << " writing value " << offsetValue << std::endl;
-        }
+        // virtual inline void pwmWrite([[maybe_unused]] const pwm_t value) const
+        // {
+        // }
+        // virtual inline void pwmWrite([[maybe_unused]] pwm_t *pwmPtr, [[maybe_unused]] const int offsetValue, [[maybe_unused]] const int value) const volatile
+        // {
+        // }
 
         // Read the analog value of a given Pin
-        [[nodiscard]] virtual inline int analogRead() const
-        {
-            return 0;
-        }
+        // [[nodiscard]] virtual inline int analogRead() const
+        // {
+        //     return 0;
+        // }
 
-        // Write the analog value to the given Pin.
-        virtual inline void analogWrite(const int value) const
-        {
-            std::cout << "Writing analog value " << value << " on pin " << pinBase_ << std::endl;
-        }
+        // // Write the analog value to the given Pin.
+        // virtual inline void analogWrite([[maybe_unused]] const int value) const
+        // {
+        // }
 
-        // Set an output PWM value
-        virtual inline void pwmWrite() const
-        {
-        }
+        // // Set an output PWM value
+        // virtual inline void pwmWrite() const
+        // {
+        // }
 
         // Return the device name
         [[nodiscard]] virtual inline consteval std::string_view deviceName() const

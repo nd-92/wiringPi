@@ -10,28 +10,6 @@ namespace WiringPi
     // Check WPI mode
     [[nodiscard]] inline consteval int getMode(const int mode, const int model)
     {
-        // T wpiMode = WPI_MODE_UNINITIALISED<T>();
-        // if ((model == PI_MODEL_CM<T>()) || (model == PI_MODEL_CM3<T>()) || (model == PI_MODEL_CM3P<T>()))
-        // {
-        //     wpiMode = WPI_MODE_GPIO<T>();
-        // }
-        // else
-        // {
-        //     wpiMode = WPI_MODE_PINS<T>();
-        // }
-
-        // if (mode == WPI_MODE_GPIO<T>())
-        // {
-        //     wpiMode = WPI_MODE_GPIO<T>();
-        // }
-
-        // if (mode == WPI_MODE_PHYS<T>())
-        // {
-        //     wpiMode = WPI_MODE_PHYS<T>();
-        // }
-
-        // return wpiMode;
-
         if ((model == PI_MODEL_CM()) || (model == PI_MODEL_CM3()) || (model == PI_MODEL_CM3P()))
         {
             return WPI_MODE_GPIO();

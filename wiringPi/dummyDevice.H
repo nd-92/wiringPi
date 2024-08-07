@@ -1,8 +1,6 @@
 #ifndef __WIRING_PI_DUMMY_DEVICE_H
 #define __WIRING_PI_DUMMY_DEVICE_H
 
-// #include "wiringPiNode.H"
-
 // Dummy device occupying 8 pins by default
 
 namespace WiringPi
@@ -11,18 +9,14 @@ namespace WiringPi
     {
     public:
         [[nodiscard]] inline constexpr dummyDevice(
-            const pin_t pinBaseVal,
-            const pin_t pinMode)
-            : pinBase_(pinBaseVal)
-        {
-            // Set the mode of the pin
-            pinMode_ = pinMode;
-        };
+            const pin_t pinMode,
+            const pin_t pinBase)
+            : pinMode_(pinMode),
+              pinBase_(pinBase) {};
 
-        [[nodiscard]] inline gpio_t digitalRead() const
+        [[nodiscard]] inline consteval gpio_t digitalRead() const
         {
-            // std::cout << deviceName() << " digitalRead returning LOW" << std::endl;
-            return LOW<gpio_t>();
+            return 0;
         }
 
         [[nodiscard]] inline consteval std::string_view deviceName() const
@@ -30,23 +24,23 @@ namespace WiringPi
             return "dummyDevice";
         }
 
-        [[nodiscard]] inline constexpr pin_t pinBase() const
+        [[nodiscard]] inline consteval pin_t pinBase() const
         {
             return pinBase_;
         }
 
-        [[nodiscard]] inline constexpr pin_t numPins() const
+        [[nodiscard]] inline consteval pin_t numPins() const
         {
             return numPins_;
         }
 
-        [[nodiscard]] inline constexpr pin_t pinMax() const
+        [[nodiscard]] inline consteval pin_t pinMax() const
         {
             return pinMax_;
         }
 
     private:
-        pin_t pinMode_;
+        const pin_t pinMode_;
         const pin_t pinBase_;
         const pin_t numPins_ = 8;
         const pin_t pinMax_ = pinBase_ + numPins_ - 1;

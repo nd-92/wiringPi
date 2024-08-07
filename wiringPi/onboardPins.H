@@ -1,10 +1,7 @@
 #ifndef __WIRING_PI_onboardPins_H
 #define __WIRING_PI_onboardPins_H
 
-// #include "wiringPiIncludes.H"
-// #include "wiringPiDefines.H"
 #include "wiringPi.H"
-// // #include "wiringPiNode.H"
 
 // GPIO device occupying 1 pin
 // Default constructor allows setting of mode
@@ -12,35 +9,6 @@
 
 namespace WiringPi
 {
-    [[nodiscard]] inline consteval std::array<gpio_t, 40> pinModeI()
-    {
-        return std::array<gpio_t, 40>{
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  //
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  //
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  //
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; //
-    }
-
-    [[nodiscard]] inline consteval std::array<gpio_t, 40> pullRegI()
-    {
-        std::array<gpio_t, 40> arr;
-        for (pin_t i = 0; i < 40; i++)
-        {
-            arr[i] = GPPUPPDN0<gpio_t>() + (i >> 4);
-        }
-        return arr;
-    }
-
-    [[nodiscard]] inline consteval std::array<gpio_t, 40> pullShiftI()
-    {
-        std::array<gpio_t, 40> arr;
-        for (pin_t i = 0; i < 40; i++)
-        {
-            arr[i] = (i & 0xf) << 1;
-        }
-        return arr;
-    }
-
     class onboardPins
     {
     public:
@@ -63,7 +31,7 @@ namespace WiringPi
             return 7 + (i / 64) + (i / 32);
         }
 
-        [[nodiscard]] inline gpio_t digitalRead(const volatile gpio_t *gpioPtr, const pin_t pinNumber) const
+        [[nodiscard]] inline gpio_t digitalRead(const volatile gpio_t *gpioPtr, const pin_t pinNumber) const volatile
         {
             if ((*(gpioPtr + gpioToGPLEV(pinNumber)) & (1 << (pinNumber & 31))) != 0)
             {
@@ -75,66 +43,14 @@ namespace WiringPi
             }
         }
 
-        inline void digitalWrite(volatile gpio_t *gpioPtr, const pin_t pinNumber, const gpio_t value) const
+        inline void digitalWrite(volatile gpio_t *gpioPtr, const pin_t pinNumber, const gpio_t value) const volatile
         {
             *(gpioPtr + gpioCLRSET(pinNumber + (64 * !value))) = 1 << (pinNumber & 31);
         }
 
-        // inline void pwmWrite(gpio_t *pwmPtr, const gpio_t offsetValue, const gpio_t value)
-        // {
-        //     *(pwmPtr + offsetValue) = value;
-        // }
-
-        // // TEMPLATE THIS FOR PIGPIOPUPOFFSET -> GET RID OF BRANCH
-        // inline void pullUpDnControl(gpio_t *gpioPtr, const gpio_t value, const int piGpioPupOffset)
-        // {
-        //     std::cout << "piGpioPupOffset = " << piGpioPupOffset << std::endl;
-        //     if (piGpioPupOffset == GPPUPPDN0<int>())
-        //     {
-        //         // Pi 4B pull up/down method
-        //         // static constexpr const gpio_t pullreg = GPPUPPDN0<gpio_t>() + (pinBase_ >> 4);
-        //         // static constexpr const gpio_t pullshift = (pinBase_ & 0xf) << 1;
-        //         gpio_t pull;
-
-        //         switch (value)
-        //         {
-        //         case PUD_OFF<gpio_t>():
-        //             pull = 0;
-        //             break;
-        //         case PUD_UP<gpio_t>():
-        //             pull = 1;
-        //             break;
-        //         case PUD_DOWN<gpio_t>():
-        //             pull = 2;
-        //             break;
-        //         default:
-        //             return; /* An illegal value */
-        //         }
-
-        //         gpio_t pullbits = *(gpioPtr + pullReg_);
-        //         pullbits &= pullbitsModuloVal_;
-        //         pullbits |= (pull << pullShift_);
-        //         //*(gpioPtr + pullReg_) = pullbits;
-        //         std::cout << "pullBits = " << pullbits << std::endl;
-        //     }
-        //     else
-        //     {
-        //         // legacy pull up/down method
-        //         // *(gpioPtr + GPPUD<gpio_t>()) = value & 3;
-        //         // delayMicroseconds(5);
-        //         // *(gpioPtr + offsetValue) = 1 << (pinBase_ & 31);
-        //         // delayMicroseconds(5);
-
-        //         // *(gpioPtr + GPPUD<gpio_t>()) = 0;
-        //         // delayMicroseconds(5);
-        //         // *(gpioPtr + offsetValue) = 0;
-        //         // delayMicroseconds(5);
-        //     }
-        // }
-
         [[nodiscard]] inline consteval std::string_view deviceName() const
         {
-            return "GPIO";
+            return "Onboard pins";
         }
 
     private:

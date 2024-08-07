@@ -1,8 +1,6 @@
 #ifndef __WIRING_PI_NULL_DEVICE_H
 #define __WIRING_PI_NULL_DEVICE_H
 
-// #include "wiringPiNode.H"
-
 // Null device occupying 1 pin by default
 
 namespace WiringPi
