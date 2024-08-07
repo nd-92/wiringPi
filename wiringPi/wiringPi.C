@@ -1,51 +1,36 @@
 #include "wiringPi.H"
-#include "dummyDevice.H"
+// #include "dummyDevice.H"
+// #include <cmath>
 
 using namespace WiringPi;
 
 int main(void)
 {
-
-    // wiringPiSetupGpio();
-
-    // std::cout << "retVal = " << retVal << std::endl;
-
-    // pullUpDnControl(2, 1);
-    // for (int i = 1; i < 41; i++)
-    // {
-    //     pinMode(i, INPUT<int>());
-    // }
-
     wiringPi wPi;
 
-    std::cout << wPi.micros() << " microseconds" << std::endl;
-
-    for (size_t i = 0; i < 40; i++)
-    {
-        static_cast<void>(wPi.digitalReadOnboard(i));
-    }
-
-    for (size_t i = 0; i < 40; i++)
-    {
-        wPi.digitalWriteOnboard(i, 0);
-    }
-
-    std::cout << wPi.micros() << " microseconds" << std::endl;
-
-    std::cout << wPi.onboardNames() << std::endl;
-
-    // wPi.addDevice(dummyDevice(0, 0));
-
-    // wPi.addDevice(dummyDevice(8, 0));
-
-    // wPi.printPinRegistry();
-
-    // for (size_t i = 1; i < 41; i++)
+    // for (pin_t pin = 0; pin < 32; pin++)
     // {
-    //     wPi.pullUpDnControlOnboard(i, 1);
+    //     const gpio_t j = wPi.digitalReadOnboard(pin);
+    //     std::cout << "digitalReadOnboard returned " << j << " from pin " << wPi.pinMap()[pin] << std::endl;
     // }
 
-    // wPi.pullUpDnControlOnboard(2, 1);
+    // for (pin_t pin = 0; pin < 32; pin++)
+    // {
+    //     wPi.digitalWriteOnboard(pin, 0);
+    //     std::cout << "digitalWriteOnboard wrote " << 0 << " to pin " << wPi.pinMap()[pin] << std::endl;
+    // }
+
+    for (pin_t pin = 0; pin < 32; pin++)
+    {
+        wPi.digitalWriteOnboard(pin, 1);
+        std::cout << "digitalWriteOnboard wrote " << 1 << " to pin " << wPi.pinMap()[pin] << std::endl;
+    }
+
+    for (pin_t pin = 0; pin < 32; pin++)
+    {
+        const gpio_t j = wPi.digitalReadOnboard(pin);
+        std::cout << "digitalReadOnboard returned " << j << " from pin " << wPi.pinMap()[pin] << std::endl;
+    }
 
     return 0;
 }

@@ -7,14 +7,12 @@ namespace WiringPi
 {
 
     // Data type of pins
-    // typedef unsigned int pin_t;
-    typedef size_t pin_t;
-    // typedef unsigned int gpio_t;
-    typedef size_t gpio_t;
-    typedef size_t pwm_t;
-    typedef size_t clk_t;
-    typedef size_t pads_t;
-    typedef size_t timer_t;
+    typedef uint32_t pin_t;
+    typedef uint32_t gpio_t;
+    typedef uint32_t pwm_t;
+    typedef uint32_t clk_t;
+    typedef uint32_t pads_t;
+    typedef uint32_t timer_t;
     typedef std::array<pin_t, 64> pinTable;
 
     // Suppress unused parameter warnings - not used yet
@@ -258,11 +256,13 @@ namespace WiringPi
     [[nodiscard]] inline consteval T PAGE_SIZE()
     {
         return 4 * 1024;
+        // return sizeof(size_t) * 1024;
     }
     template <typename T>
     [[nodiscard]] inline consteval T BLOCK_SIZE()
     {
         return 4 * 1024;
+        // return sizeof(size_t) * 1024;
     }
 
     // piGpioBase:

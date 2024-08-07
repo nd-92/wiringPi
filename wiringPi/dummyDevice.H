@@ -1,7 +1,7 @@
 #ifndef __WIRING_PI_DUMMY_DEVICE_H
 #define __WIRING_PI_DUMMY_DEVICE_H
 
-#include "wiringPiNode.H"
+// #include "wiringPiNode.H"
 
 // Dummy device occupying 8 pins by default
 
@@ -11,8 +11,8 @@ namespace WiringPi
     {
     public:
         [[nodiscard]] inline constexpr dummyDevice(
-            const size_t pinBaseVal,
-            const size_t pinMode)
+            const pin_t pinBaseVal,
+            const pin_t pinMode)
             : pinBase_(pinBaseVal)
         {
             // Set the mode of the pin
@@ -30,26 +30,26 @@ namespace WiringPi
             return "dummyDevice";
         }
 
-        [[nodiscard]] inline constexpr size_t pinBase() const
+        [[nodiscard]] inline constexpr pin_t pinBase() const
         {
             return pinBase_;
         }
 
-        [[nodiscard]] inline constexpr size_t numPins() const
+        [[nodiscard]] inline constexpr pin_t numPins() const
         {
             return numPins_;
         }
 
-        [[nodiscard]] inline constexpr size_t pinMax() const
+        [[nodiscard]] inline constexpr pin_t pinMax() const
         {
             return pinMax_;
         }
 
     private:
-        size_t pinMode_;
-        const size_t pinBase_;
-        const size_t numPins_ = 8;
-        const size_t pinMax_ = pinBase_ + numPins_ - 1;
+        pin_t pinMode_;
+        const pin_t pinBase_;
+        const pin_t numPins_ = 8;
+        const pin_t pinMax_ = pinBase_ + numPins_ - 1;
     };
 }
 

@@ -5,9 +5,9 @@
 #include "wiringPiDefines.H"
 #include "wiringPiTemplateMacros.H"
 #include "wiringPiPinTables.H"
-#include "wiringPiNode.H"
+// #include "wiringPiNode.H"
 #include "onboardPins.H"
-#include "nullDevice.H"
+// #include "nullDevice.H"
 
 namespace WiringPi
 {
@@ -39,10 +39,9 @@ namespace WiringPi
         ~wiringPi() {};
 
         // Read an input bit
-        [[nodiscard]] inline gpio_t digitalReadOnboard(const pin_t pinNumber) const
+        [[nodiscard]] inline gpio_t digitalReadOnboard(const pin_t pinNumber)
         {
-            // std::cout << "Called wiringPi digitalRead on onboard device number " << deviceNo << std::endl;
-            return pinRegistry_.digitalRead(gpioConstPtr(), pinNumber);
+            return pinRegistry_.digitalRead(gpioPtr(), pinMap_[pinNumber]);
         }
         // inline gpio_t digitalReadOffboard(const size_t deviceNo) const
         // {
@@ -53,7 +52,7 @@ namespace WiringPi
         // Write an output bit
         inline void digitalWriteOnboard(const pin_t pinNumber, const gpio_t value)
         {
-            pinRegistry_.digitalWrite(gpioPtr(), pinNumber, value);
+            pinRegistry_.digitalWrite(gpioPtr(), pinMap_[pinNumber], value);
         }
         // inline void digitalWriteOffboard(const size_t deviceNo, const gpio_t value)
         // {
@@ -88,19 +87,9 @@ namespace WiringPi
         //     devicePtrs_[deviceNo + 64]->analogWrite(value);
         // }
 
-        [[nodiscard]] inline constexpr const pinTable &gpioToPwmPort() const
+        [[nodiscard]] inline constexpr const pinTable &pinMap() const
         {
-            return gpioToPwmPort_;
-        }
-
-        [[nodiscard]] inline constexpr const pinTable &pinToGpio() const
-        {
-            return pinToGpio_;
-        }
-
-        [[nodiscard]] inline constexpr const pinTable &physToGpio() const
-        {
-            return physToGpio_;
+            return pinMap_;
         }
 
         [[nodiscard]] inline constexpr const pinTable &sysFds() const
@@ -131,30 +120,26 @@ namespace WiringPi
             return wiringPiMode_;
         }
 
-        [[nodiscard]] inline constexpr const volatile gpio_t *gpioConstPtr() const
-        {
-            return gpio;
-        }
-        [[nodiscard]] inline constexpr volatile gpio_t *gpioPtr()
+        [[nodiscard]] inline volatile gpio_t *gpioPtr()
         {
             return gpio;
         }
 
-        [[nodiscard]] inline constexpr const volatile pwm_t *pwmConstPtr() const
-        {
-            return pwm;
-        }
-        [[nodiscard]] inline constexpr volatile pwm_t *pwmPtr()
-        {
-            return pwm;
-        }
+        // [[nodiscard]] inline constexpr const volatile pwm_t *pwmConstPtr() const
+        // {
+        //     return pwm;
+        // }
+        // [[nodiscard]] inline constexpr volatile pwm_t *pwmPtr()
+        // {
+        //     return pwm;
+        // }
 
         [[nodiscard]] inline consteval std::string_view onboardNames() const
         {
             return pinRegistry_.deviceName();
         }
 
-    private:
+        // private:
         // Basic info
         static constexpr const int piModel_ = PI_MODEL<int>();
         static constexpr const int gpioLayout_ = GPIO_LAYOUT<int>();
@@ -164,20 +149,14 @@ namespace WiringPi
         static constexpr const int piWarranty_ = PI_WARRANTY<int>();
 
         // Registry of devices
-        static constinit onboardPins pinRegistry_;
+        static constexpr const WiringPi::onboardPins pinRegistry_ = onboardPins();
 
         // Setup info
         static constexpr const int wiringPiSetuped_ = static_cast<int>(true);
         const int wiringPiDebug_;
         const int wiringPiReturnCodes_;
-        static constexpr const int wiringPiMode_ = WPI_MODE_GPIO();
-
-        [[nodiscard]] inline int checkDevMem()
-        {
-            int fd = open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC);
-            fd = open("/dev/gpiomem", O_RDWR | O_SYNC | O_CLOEXEC);
-            return fd;
-        }
+        // static constexpr const int wiringPiMode_ = WPI_MODE_GPIO();
+        static constexpr const int wiringPiMode_ = WPI_MODE_PINS();
 
         // Offset to the Pull Up Down Clock regsiter
         // This is equivalent to the gpioToPUDCLK table
@@ -189,13 +168,13 @@ namespace WiringPi
 
         // Map a BCM_GPIO pin to its function selection control port. (GPFSEL 0-5)
         // Groups of 10 - 3 bits per Function - 30 bits per port
-        [[nodiscard]] inline constexpr size_t gpioToGPFSEL(const size_t i) const
+        [[nodiscard]] inline constexpr pin_t gpioToGPFSEL(const pin_t i) const
         {
             return i / 10;
         }
 
         // Define the shift up for the 3 bits per pin in each GPFSEL port
-        [[nodiscard]] inline constexpr size_t gpioToShift(const size_t i) const
+        [[nodiscard]] inline constexpr pin_t gpioToShift(const pin_t i) const
         {
             return 3 * (i % 10);
         }
@@ -217,22 +196,20 @@ namespace WiringPi
         //     return static_cast<size_t>(bitSet);
         // }
 
-        // Pin conversion tables
-        static constexpr const pinTable pinToGpio_ = pinToGpioI(gpioLayout_);
-        static constexpr const pinTable physToGpio_ = physToGpioI(gpioLayout_);
-        static constexpr const pinTable gpioToPwmPort_ = gpioToPwmPortI();
+        // Pin conversion table
+        static constexpr const pinTable pinMap_ = pinMapI(wiringPiMode_, gpioLayout_);
 
         // System mode pin table cannot be constexpr
         const pinTable sysFds_ = sysFdsI(wiringPiMode_);
 
-        static constexpr const int piGpioBase_ = piGpioBase(piModel_);
-        static constexpr const int piGpioPupOffset_ = piGpioPupOffset<int>(piModel_);
+        static constexpr const pin_t piGpioBase_ = piGpioBase(piModel_);
+        static constexpr pin_t piGpioPupOffset_ = piGpioPupOffset<int>(piModel_);
         static constexpr const bool usingGpioMem_ = USING_GPIOMEM<bool>();
-        static constexpr const int GPIO_PADS = piGpioBase_ + 0x00100000;
-        static constexpr const int GPIO_CLOCK_BASE = piGpioBase_ + 0x00101000;
-        static constexpr const int GPIO_BASE = piGpioBase_ + 0x00200000;
-        static constexpr const int GPIO_TIMER = piGpioBase_ + 0x0000B000;
-        static constexpr const int GPIO_PWM = piGpioBase_ + 0x0020C000;
+        static constexpr pin_t GPIO_PADS = piGpioBase_ + 0x00100000;
+        static constexpr pin_t GPIO_CLOCK_BASE = piGpioBase_ + 0x00101000;
+        static constexpr pin_t GPIO_BASE = piGpioBase_ + 0x00200000;
+        static constexpr pin_t GPIO_TIMER = piGpioBase_ + 0x0000B000;
+        static constexpr pin_t GPIO_PWM = piGpioBase_ + 0x0020C000;
 
         // Private methods for initialising const member variables
 
@@ -251,7 +228,7 @@ namespace WiringPi
         }
 
         // Check if using return codes
-        [[nodiscard]] inline int isReturnCodes()
+        [[nodiscard]] inline int isReturnCodes() const
         {
             // if (getenv(ENV_CODES()) != NULL)
             // {
@@ -264,28 +241,52 @@ namespace WiringPi
             return true;
         }
 
-        // Map individual hardware components
-        template <typename T0, typename T1>
-        [[nodiscard]] volatile T0 *mapHardware(const T1 offset)
+        const int fd_ = checkDevMem();
+        [[nodiscard]] inline int checkDevMem() const
         {
-            return static_cast<T0 *>(mmap(0, BLOCK_SIZE<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, checkDevMem(), static_cast<__off_t>(offset)));
+            int fd;
+            constexpr const char *gpiomemGlobal = "/dev/mem";
+            constexpr const char *gpiomemModule = "/dev/gpiomem";
+
+            if (gpiomemGlobal == NULL || (fd = open(gpiomemGlobal, O_RDWR | O_SYNC | O_CLOEXEC)) < 0)
+            {
+                std::cout << "wiringPi: No access to " << gpiomemGlobal << ": try " << gpiomemModule << std::endl;
+                if (!(gpiomemModule && (fd = open(gpiomemModule, O_RDWR | O_SYNC | O_CLOEXEC)) >= 0))
+                {
+                    return failure(false, "wiringPiSetup: Unable to open %s or %s: %s.\n"
+                                          "  Aborting your program because if it can not access the GPIO\n"
+                                          "  hardware then it most certianly won't work\n"
+                                          "  Try running with sudo?\n",
+                                   gpiomemGlobal, gpiomemModule, strerror(errno));
+                }
+            }
+
+            std::cout << "wiringPi: access to " << (usingGpioMem_ ? gpiomemModule : gpiomemGlobal) << " succeded (" << fd << ")" << std::endl;
+            return fd;
         }
 
-        [[nodiscard]] const timer_t *mapTimer(const int offset)
+        // Map individual hardware components
+        template <typename T0, typename T1>
+        [[nodiscard]] volatile T0 *mapHardware(const T1 offset) const
         {
-            timer_t *ptr = static_cast<timer_t *>(mmap(0, BLOCK_SIZE<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, checkDevMem(), static_cast<__off_t>(offset)));
+            return static_cast<volatile T0 *>(mmap(0, BLOCK_SIZE<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, fd_, static_cast<__off_t>(offset)));
+        }
+
+        [[nodiscard]] volatile timer_t *mapTimer(const int offset) const
+        {
+            volatile timer_t *volatile ptr = static_cast<volatile timer_t *>(mmap(0, BLOCK_SIZE<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, fd_, static_cast<__off_t>(offset)));
             *(ptr + TIMER_CONTROL<timer_t>()) = 0x0000280;
             *(ptr + TIMER_PRE_DIV<timer_t>()) = 0x00000F9;
             return ptr;
         }
 
         // Probably should not be using raw pointers
-        volatile gpio_t *gpio;
-        volatile pwm_t *pwm;
-        const volatile clk_t *clk;
-        const volatile pads_t *pads;
-        const volatile timer_t *timer;
-        const volatile timer_t *timerIrqRaw;
+        volatile timer_t *volatile gpio;
+        volatile timer_t *volatile pwm;
+        volatile timer_t *volatile clk;
+        volatile timer_t *volatile pads;
+        volatile timer_t *volatile timer;
+        volatile timer_t *volatile timerIrqRaw;
 
         const time_t epochMilli_;
         [[nodiscard]] inline time_t initialiseEpochMilli() const

@@ -82,6 +82,62 @@ namespace WiringPi
         }
     }
 
+    [[nodiscard]] inline consteval const pinTable gpioToGpio(const int layout)
+    {
+        if (layout == 1) // A, B, Rev 1, 1.1
+        {
+            return pinTable{
+                0, 1, 2, 3, 4, 5, 6, 7,                                                                                                                                                                 //
+                8, 9, 10, 11, 12, 13, 14, 15,                                                                                                                                                           //
+                16, gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(),                    //
+                gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), //
+                gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), //
+                gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), //
+                gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), //
+                gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>()};
+        }
+        else // A2, B2, A+, B+, CM, Pi2, Pi3, Zero, Zero W, Zero 2 W
+        {
+            return pinTable{
+                0, 1, 2, 3, 4, 5, 6, 7,                                                                                                                                                                 //
+                8, 9, 10, 11, 12, 13, 14, 15,                                                                                                                                                           //
+                16, 17, 18, 19, 20, 21, 22, 23,                                                                                                                                                         //
+                24, 25, 26, 27, 28, 29, 30, 31,                                                                                                                                                         //
+                gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), //
+                gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), //
+                gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), //
+                gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>()};
+        }
+    }
+
+    [[nodiscard]] inline consteval const pinTable pinMapI(const int mode, const int layout)
+    {
+        if (mode == WPI_MODE_PINS())
+        {
+            return pinToGpioI(layout);
+        }
+
+        if (mode == WPI_MODE_GPIO())
+        {
+            return gpioToGpio(layout);
+        }
+
+        if (mode == WPI_MODE_PHYS())
+        {
+            return physToGpioI(layout);
+        }
+
+        return pinTable{
+            gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), //
+            gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), //
+            gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), //
+            gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), //
+            gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), //
+            gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), //
+            gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), //
+            gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>()};
+    }
+
     [[nodiscard]] inline consteval const pinTable gpioToGPLEVI()
     {
         return pinTable{
@@ -109,9 +165,9 @@ namespace WiringPi
                 gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), //
                 gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), //
                 gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>(), gpioMinusOne<pin_t>()};
-            for (size_t pin = 0; pin < 64; ++pin)
+            for (pin_t pin = 0; pin < 64; ++pin)
             {
-                sprintf(fName, "/sys/class/gpio/gpio%lu/value", pin);
+                sprintf(fName, "/sys/class/gpio/gpio%u/value", pin);
                 arr[pin] = static_cast<pin_t>(open(fName, O_RDWR));
             }
             return arr;
@@ -130,47 +186,6 @@ namespace WiringPi
         }
     }
 
-    // consteval const std::array<pin_t, 128> gpioCLRSETI()
-    // {
-    //     return std::array<pin_t, 128>{
-    //         10, 10, 10, 10, 10, 10, 10, 10, //
-    //         10, 10, 10, 10, 10, 10, 10, 10, //
-    //         10, 10, 10, 10, 10, 10, 10, 10, //
-    //         10, 10, 10, 10, 10, 10, 10, 10, //
-    //         11, 11, 11, 11, 11, 11, 11, 11, //
-    //         11, 11, 11, 11, 11, 11, 11, 11, //
-    //         11, 11, 11, 11, 11, 11, 11, 11, //
-    //         11, 11, 11, 11, 11, 11, 11, 11, //
-    //         7, 7, 7, 7, 7, 7, 7, 7,         //
-    //         7, 7, 7, 7, 7, 7, 7, 7,         //
-    //         7, 7, 7, 7, 7, 7, 7, 7,         //
-    //         7, 7, 7, 7, 7, 7, 7, 7,         //
-    //         8, 8, 8, 8, 8, 8, 8, 8,         //
-    //         8, 8, 8, 8, 8, 8, 8, 8,         //
-    //         8, 8, 8, 8, 8, 8, 8, 8,         //
-    //         8, 8, 8, 8, 8, 8, 8, 8};
-    // }
-
-    // consteval const std::array<pin_t, 128> gpioSETCLRI()
-    // {
-    //     return std::array<pin_t, 128>{
-    //         7, 7, 7, 7, 7, 7, 7, 7,         //
-    //         7, 7, 7, 7, 7, 7, 7, 7,         //
-    //         7, 7, 7, 7, 7, 7, 7, 7,         //
-    //         7, 7, 7, 7, 7, 7, 7, 7,         //
-    //         8, 8, 8, 8, 8, 8, 8, 8,         //
-    //         8, 8, 8, 8, 8, 8, 8, 8,         //
-    //         8, 8, 8, 8, 8, 8, 8, 8,         //
-    //         8, 8, 8, 8, 8, 8, 8, 8,         //
-    //         10, 10, 10, 10, 10, 10, 10, 10, //
-    //         10, 10, 10, 10, 10, 10, 10, 10, //
-    //         10, 10, 10, 10, 10, 10, 10, 10, //
-    //         10, 10, 10, 10, 10, 10, 10, 10, //
-    //         11, 11, 11, 11, 11, 11, 11, 11, //
-    //         11, 11, 11, 11, 11, 11, 11, 11, //
-    //         11, 11, 11, 11, 11, 11, 11, 11, //
-    //         11, 11, 11, 11, 11, 11, 11, 11};
-    // }
 }
 
 #endif

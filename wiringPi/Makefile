@@ -13,8 +13,6 @@ WFLAGS = -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wformat-securi
 -Wbuiltin-macro-redefined -Wcast-align -Wdiv-by-zero -Wdouble-promotion -Wfloat-equal -Wint-to-pointer-cast -Wlogical-op -Woverflow \
 -Wpointer-arith -Wredundant-decls -Wshadow -Wsign-promo -Wwrite-strings -Wimplicit-fallthrough=5 -Wstringop-overflow=4 -Wstrict-aliasing=3
 
-#INCLUDE	= -I.
-#DEFS = -D_GNU_SOURCE
 CXXFLAGS = $(OPTFLAGS) $(CXXSTANDARD) $(MFLAGS) $(WFLAGS) $(INCLUDE) $(DEFS) -pipe -fPIC $(EXTRA_CFLAGS)
 #LIBS = -lm -lpthread -lrt -lcrypt
 

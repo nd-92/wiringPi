@@ -27,7 +27,7 @@ namespace WiringPi
         {
         }
         virtual inline void pullUpDnControl(
-            [[maybe_unused]] volatile gpio_t *gpioPtr,
+            [[maybe_unused]] gpio_t volatile *gpioPtr,
             [[maybe_unused]] const gpio_t value,
             [[maybe_unused]] const int piGpioPupOffset)
         {
@@ -41,7 +41,7 @@ namespace WiringPi
             return 0;
         }
         [[nodiscard]] virtual inline gpio_t digitalRead(
-            [[maybe_unused]] const pin_t *gpioPtr,
+            [[maybe_unused]] const volatile pin_t *gpioPtr,
             [[maybe_unused]] const pin_t gpioToGPLEV) const
         {
             return 0;
@@ -54,10 +54,10 @@ namespace WiringPi
         {
             std::cout << deviceName() << " writing value " << value << std::endl;
         }
-        virtual inline void digitalWrite(gpio_t *gpioPtr, const gpio_t offsetValue)
+        virtual inline void digitalWrite(volatile gpio_t *gpioPtr, const gpio_t offsetValue)
         {
-            *(gpioPtr + (0 * offsetValue)) = 1 << (pinBase_ & 31);
-            // std::cout << deviceName() << " writing value " << offsetValue << std::endl;
+            // *(gpioPtr + (0 * offsetValue)) = 1 << (pinBase_ & 31);
+            std::cout << deviceName() << " writing value " << offsetValue << std::endl;
         }
 
         // Set an output pwm value
@@ -95,17 +95,17 @@ namespace WiringPi
             return "wiringPiNode";
         }
 
-        [[nodiscard]] virtual inline constexpr size_t pinBase() const
+        [[nodiscard]] virtual inline constexpr pin_t pinBase() const
         {
             return pinBase_;
         }
 
-        [[nodiscard]] virtual inline constexpr size_t numPins() const
+        [[nodiscard]] virtual inline constexpr pin_t numPins() const
         {
             return numPins_;
         }
 
-        [[nodiscard]] virtual inline constexpr size_t pinMax() const
+        [[nodiscard]] virtual inline constexpr pin_t pinMax() const
         {
             return pinMax_;
         }
@@ -155,10 +155,10 @@ namespace WiringPi
         }
 
     private:
-        static constexpr const size_t pinMode_ = 0;
-        static constexpr const size_t pinBase_ = 0;
-        static constexpr const size_t numPins_ = 0;
-        static constexpr const size_t pinMax_ = 0;
+        static constexpr const pin_t pinMode_ = 0;
+        static constexpr const pin_t pinBase_ = 0;
+        static constexpr const pin_t numPins_ = 0;
+        static constexpr const pin_t pinMax_ = 0;
     };
 }
 
