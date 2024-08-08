@@ -112,30 +112,26 @@ namespace WiringPi
 
     [[nodiscard]] inline consteval const pinTable pinMapI(const int mode, const int layout)
     {
-        if (mode == WPI_MODE_PINS())
+
+        switch (mode)
         {
+        case WPI_MODE_PINS():
             return pinToGpioI(layout);
-        }
-
-        if (mode == WPI_MODE_GPIO())
-        {
+        case WPI_MODE_GPIO():
             return gpioToGpio(layout);
-        }
-
-        if (mode == WPI_MODE_PHYS())
-        {
+        case WPI_MODE_PHYS():
             return physToGpioI(layout);
+        default:
+            return pinTable{
+                nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+                nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+                nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+                nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+                nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+                nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+                nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+                nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>()};
         }
-
-        return pinTable{
-            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
-            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
-            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
-            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
-            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
-            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
-            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
-            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>()};
     }
 
     [[nodiscard]] inline consteval const pinTable gpioToGPLEVI()
@@ -215,6 +211,31 @@ namespace WiringPi
         return arr;
     }
 
+    [[nodiscard]] inline consteval const pinTable gpioToGPFSEL()
+    {
+        return pinTable{
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 3, 3,
+            3, 3, 3, 3, 3, 3, 3, 3,
+            4, 4, 4, 4, 4, 4, 4, 4,
+            4, 4, 5, 5, 5, 5, 5, 5,
+            5, 5, 5, 5, nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>()};
+    }
+
+    [[nodiscard]] inline consteval const pinTable gpioToShift()
+    {
+        return pinTable{
+            0, 3, 6, 9, 12, 15, 18, 21,
+            24, 27, 0, 3, 6, 9, 12, 15,
+            18, 21, 24, 27, 0, 3, 6, 9,
+            12, 15, 18, 21, 24, 27, 0, 3,
+            6, 9, 12, 15, 18, 21, 24, 27,
+            0, 3, 6, 9, 12, 15, 18, 21,
+            24, 27, 0, 3, 6, 9, 12, 15,
+            18, 21, 24, 27, nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>()};
+    }
 }
 
 #endif

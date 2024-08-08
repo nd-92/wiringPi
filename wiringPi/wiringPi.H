@@ -49,6 +49,17 @@ namespace WiringPi
             pinRegistry_.digitalWrite(gpioPtr(), pinMap_[pinNumber], value);
         }
 
+        // Sets the mode of a pin to be input, output or PWM output
+        inline void pinModeOnboard(const pin_t pinNumber, const gpio_t mode) const
+        {
+            pinRegistry_.pinMode(
+                gpioPtr(),
+                // pinMap_[pinNumber],
+                mode,
+                gpioToGPFSEL_[pinNumber],
+                gpioToShift_[pinNumber]);
+        }
+
         [[nodiscard]] inline consteval const pinTable &pinMap() const
         {
             return pinMap_;
@@ -115,16 +126,10 @@ namespace WiringPi
 
         // Map a BCM_GPIO pin to its function selection control port. (GPFSEL 0-5)
         // Groups of 10 - 3 bits per Function - 30 bits per port
-        [[nodiscard]] inline consteval pin_t gpioToGPFSEL(const pin_t i) const
-        {
-            return i / 10;
-        }
+        static constexpr const pinTable gpioToGPFSEL_ = gpioToGPFSEL();
 
         // Define the shift up for the 3 bits per pin in each GPFSEL port
-        [[nodiscard]] inline consteval pin_t gpioToShift(const pin_t i) const
-        {
-            return 3 * (i % 10);
-        }
+        static constexpr const pinTable gpioToShift_ = gpioToShift();
 
         // Pin conversion table
         static constexpr const pinTable pinMap_ = pinMapI(wiringPiMode_, pi_.gpioLayout());

@@ -73,6 +73,11 @@ namespace WiringPi
     {
         return 6;
     }
+    template <typename T>
+    [[nodiscard]] inline consteval T PWM_OFF()
+    {
+        return 7;
+    }
 
     // Return values
     template <typename T>

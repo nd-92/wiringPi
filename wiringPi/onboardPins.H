@@ -31,6 +31,7 @@ namespace WiringPi
             return 7 + (i / 64) + (i / 32);
         }
 
+        // Read the value of a given pin, returns either HIGH or LOW
         [[nodiscard]] inline gpio_t digitalRead(const volatile gpio_t *gpioPtr, const pin_t pinNumber) const volatile
         {
             if ((*(gpioPtr + gpioToGPLEV(pinNumber)) & (1 << (pinNumber & 31))) != 0)
@@ -43,14 +44,33 @@ namespace WiringPi
             }
         }
 
+        // Set an output bit on a given pin
         inline void digitalWrite(volatile gpio_t *gpioPtr, const pin_t pinNumber, const gpio_t value) const volatile
         {
             *(gpioPtr + gpioCLRSET(pinNumber + (64 * !value))) = 1 << (pinNumber & 31);
         }
 
+        // Returns the name of the device
         [[nodiscard]] inline consteval std::string_view deviceName() const
         {
             return "Onboard pins";
+        }
+
+        // Sets the mode of a pin to be input, output or PWM output
+        inline void pinMode(
+            volatile gpio_t *gpioPtr,
+            const gpio_t mode,
+            const pin_t fSel,
+            const pin_t shift) const
+        {
+            if (mode == INPUT<gpio_t>() || mode == PWM_OFF<gpio_t>())
+            {
+                *(gpioPtr + fSel) = (*(gpioPtr + fSel) & static_cast<gpio_t>(~(7 << shift)));
+            }
+            else if (mode == OUTPUT<gpio_t>())
+            {
+                *(gpioPtr + fSel) = (*(gpioPtr + fSel) & static_cast<gpio_t>(~(7 << shift))) | (1 << shift);
+            }
         }
 
     private:
