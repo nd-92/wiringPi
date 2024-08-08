@@ -8,21 +8,23 @@ int main(void)
 
     for (pin_t pin = 0; pin < 32; pin++)
     {
-        wPi.pinModeOnboard(pin, OUTPUT<int>());
-        // wPi.pinModeOnboard(pin, INPUT<int>());
+        wPi.pinModeOnboard(pin, INPUT<gpio_t>());
     }
 
-    // for (pin_t pin = 0; pin < 32; pin++)
-    // {
-    //     const gpio_t j = wPi.digitalReadOnboard(pin);
-    //     std::cout << "digitalReadOnboard returned " << j << " from pin " << wPi.pinMap()[pin] << std::endl;
-    // }
+    for (pin_t pin = 0; pin < 32; pin++)
+    {
+        std::cout << "Pin " << pin << " mode: " << wPi.pinModeMap()[pin] << std::endl;
+    }
 
-    // for (pin_t pin = 0; pin < 32; pin++)
-    // {
-    //     wPi.digitalWriteOnboard(pin, 0);
-    //     std::cout << "digitalWriteOnboard wrote " << 0 << " to pin " << wPi.pinMap()[pin] << std::endl;
-    // }
+    for (pin_t pin = 0; pin < 32; pin++)
+    {
+        wPi.pinModeOnboard(pin, OUTPUT<gpio_t>());
+    }
+
+    for (pin_t pin = 0; pin < 32; pin++)
+    {
+        std::cout << "Pin " << pin << " mode: " << wPi.pinModeMap()[pin] << std::endl;
+    }
 
     return 0;
 }

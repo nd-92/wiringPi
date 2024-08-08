@@ -14,6 +14,7 @@ namespace WiringPi
     typedef uint32_t pads_t;
     typedef uint32_t timer_t;
     typedef std::array<pin_t, 64> pinTable;
+    typedef std::array<gpio_t, 64> gpioTable;
 
     // Mask for the bottom 64 pins which belong to the Raspberry Pi
     // The others are available for the other devices

@@ -35,7 +35,13 @@ namespace WiringPi
             assert((timer != MAP_FAILED));
         }
 
-        ~wiringPi() {};
+        ~wiringPi()
+        {
+            for (pin_t pin = 0; pin < 32; pin++)
+            {
+                pinModeOnboard(pin, INPUT<gpio_t>());
+            }
+        };
 
         // Read an input bit
         [[nodiscard]] inline gpio_t digitalReadOnboard(const pin_t pinNumber) const volatile
@@ -50,19 +56,21 @@ namespace WiringPi
         }
 
         // Sets the mode of a pin to be input, output or PWM output
-        inline void pinModeOnboard(const pin_t pinNumber, const gpio_t mode) const
+        inline void pinModeOnboard(const pin_t pinNumber, const gpio_t mode)
         {
-            pinRegistry_.pinMode(
-                gpioPtr(),
-                // pinMap_[pinNumber],
-                mode,
-                gpioToGPFSEL_[pinNumber],
-                gpioToShift_[pinNumber]);
+            pinRegistry_.pinMode(gpioPtr(), pinNumber, mode, gpioToGPFSEL_[pinNumber], gpioToShift_[pinNumber]);
         }
 
+        // Returns the map of pins
         [[nodiscard]] inline consteval const pinTable &pinMap() const
         {
             return pinMap_;
+        }
+
+        // Returns the map of pin modes
+        [[nodiscard]] inline constexpr const pinTable &pinModeMap() const
+        {
+            return pinRegistry_.pinModeMap();
         }
 
         [[nodiscard]] inline consteval const pinTable &sysFds() const
@@ -108,7 +116,7 @@ namespace WiringPi
         static constexpr const WiringPi::piHardware pi_ = piHardware();
 
         // Registry of onboard pins
-        static constexpr const WiringPi::onboardPins pinRegistry_ = onboardPins();
+        WiringPi::onboardPins pinRegistry_ = onboardPins();
 
         // Setup info
         static constexpr const int wiringPiSetuped_ = static_cast<int>(true);

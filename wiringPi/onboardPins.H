@@ -59,9 +59,10 @@ namespace WiringPi
         // Sets the mode of a pin to be input, output or PWM output
         inline void pinMode(
             volatile gpio_t *gpioPtr,
+            const pin_t pinNumber,
             const gpio_t mode,
             const pin_t fSel,
-            const pin_t shift) const
+            const pin_t shift)
         {
             if (mode == INPUT<gpio_t>() || mode == PWM_OFF<gpio_t>())
             {
@@ -71,12 +72,19 @@ namespace WiringPi
             {
                 *(gpioPtr + fSel) = (*(gpioPtr + fSel) & static_cast<gpio_t>(~(7 << shift))) | (1 << shift);
             }
+            pinMode_[pinNumber] = mode;
+        }
+
+        // Returns the map of pin modes
+        [[nodiscard]] inline constexpr const pinTable &pinModeMap() const
+        {
+            return pinMode_;
         }
 
     private:
-        static constexpr const std::array<pin_t, 40> pinMode_ = pinModeI();
-        static constexpr const std::array<gpio_t, 40> pullReg_ = pullRegI();
-        static constexpr const std::array<gpio_t, 40> pullShift_ = pullShiftI();
+        gpioTable pinMode_ = pinModeI();
+        static constexpr const gpioTable pullReg_ = pullRegI();
+        static constexpr const gpioTable pullShift_ = pullShiftI();
     };
 }
 #endif

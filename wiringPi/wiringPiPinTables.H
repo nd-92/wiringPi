@@ -182,29 +182,49 @@ namespace WiringPi
         }
     }
 
-    [[nodiscard]] inline consteval std::array<gpio_t, 40> pinModeI()
+    [[nodiscard]] inline constexpr gpioTable pinModeI()
     {
-        return std::array<gpio_t, 40>{
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        return gpioTable{
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0};
     }
 
-    [[nodiscard]] inline consteval std::array<gpio_t, 40> pullRegI()
+    [[nodiscard]] inline consteval gpioTable pullRegI()
     {
-        std::array<gpio_t, 40> arr;
-        for (pin_t i = 0; i < 40; i++)
+        gpioTable arr{
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0};
+        for (pin_t i = 0; i < 64; i++)
         {
             arr[i] = GPPUPPDN0<gpio_t>() + (i >> 4);
         }
         return arr;
     }
 
-    [[nodiscard]] inline consteval std::array<gpio_t, 40> pullShiftI()
+    [[nodiscard]] inline consteval gpioTable pullShiftI()
     {
-        std::array<gpio_t, 40> arr;
-        for (pin_t i = 0; i < 40; i++)
+        gpioTable arr{
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0};
+        for (pin_t i = 0; i < 64; i++)
         {
             arr[i] = (i & 0xf) << 1;
         }
