@@ -96,7 +96,7 @@ namespace WiringPi
         [[nodiscard]] inline gpio_t digitalReadOnboard() const volatile
         {
             static_assert(pi_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
-            return pinRegistry_.digitalRead(gpioPtr(), pinMap_[pinNumber]);
+            return pinRegistry_.digitalRead<pinMap_[pinNumber]>(gpioPtr());
         }
 
         // Write an output bit
@@ -104,7 +104,7 @@ namespace WiringPi
         inline void digitalWriteOnboard(const gpio_t value) const volatile
         {
             static_assert(pi_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
-            pinRegistry_.digitalWrite(gpioPtr(), pinMap_[pinNumber], value);
+            pinRegistry_.digitalWrite<pinMap_[pinNumber]>(gpioPtr(), value);
         }
 
         // Sets the mode of a pin to be input, output or PWM output
@@ -113,6 +113,20 @@ namespace WiringPi
         {
             static_assert(pi_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
             pinRegistry_.pinMode(gpioPtr(), pinNumber, mode, gpioToGPFSEL_[pinNumber], gpioToShift_[pinNumber]);
+        }
+
+        // Reset pins to INPUT
+        inline void resetPins()
+        {
+            resetAllPins();
+        }
+
+        // Control the internal pull-up/down resistors on a GPIO pin
+        template <const pin_t pinNumber>
+        inline void pullUpDnControlOnboard(const gpio_t pud) volatile
+        {
+            static_assert(pi_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
+            pinRegistry_.pullUpDnControl(gpioPtr(), pinMap_[pinNumber], pud);
         }
 
         // Returns the map of pins
@@ -175,13 +189,13 @@ namespace WiringPi
         // Pi hardware info
         static constexpr const piHardware pi_ = piHardware();
 
-        void resetPins(std::integral_constant<pin_t, pi_.numPins()>) {}
+        void resetAllPins(std::integral_constant<pin_t, pi_.numPins()>) {}
 
         template <pin_t index = 0>
-        void resetPins(std::integral_constant<pin_t, index> = std::integral_constant<pin_t, 0>())
+        void resetAllPins(std::integral_constant<pin_t, index> = std::integral_constant<pin_t, 0>())
         {
             pinModeOnboard<index>(INPUT<gpio_t>());
-            resetPins(std::integral_constant<pin_t, index + 1>());
+            resetAllPins(std::integral_constant<pin_t, index + 1>());
         }
 
         // Registry of onboard pins
@@ -196,10 +210,10 @@ namespace WiringPi
         // Offset to the Pull Up Down Clock regsiter
         // This is equivalent to the gpioToPUDCLK table
         // Returns 38 on pins 0 -> 31, 39 on pins 32 -> 63
-        [[nodiscard]] inline consteval gpio_t gpioToPUDCLK(const gpio_t i) const
-        {
-            return 38 + (i / 32);
-        }
+        // [[nodiscard]] inline consteval gpio_t gpioToPUDCLK(const gpio_t i) const
+        // {
+        //     return 38 + (i / 32);
+        // }
 
         // Map a BCM_GPIO pin to its function selection control port. (GPFSEL 0-5)
         // Groups of 10 - 3 bits per Function - 30 bits per port

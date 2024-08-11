@@ -109,39 +109,39 @@ namespace WiringPi
             nanosleep(&sleeper, &dummy);
         }
 
-        inline void delayMicrosecondsHard(const time_t howLong) const
-        {
-            struct timeval tNow, tLong, tEnd;
+        // inline void delayMicrosecondsHard(const time_t howLong) const
+        // {
+        //     struct timeval tNow, tLong, tEnd;
 
-            gettimeofday(&tNow, NULL);
-            tLong.tv_sec = howLong / 1000000;
-            tLong.tv_usec = howLong % 1000000;
-            timeradd(&tNow, &tLong, &tEnd);
+        //     gettimeofday(&tNow, NULL);
+        //     tLong.tv_sec = howLong / 1000000;
+        //     tLong.tv_usec = howLong % 1000000;
+        //     timeradd(&tNow, &tLong, &tEnd);
 
-            while (timercmp(&tNow, &tEnd, <))
-            {
-                gettimeofday(&tNow, NULL);
-            }
-        }
+        //     while (timercmp(&tNow, &tEnd, <))
+        //     {
+        //         gettimeofday(&tNow, NULL);
+        //     }
+        // }
 
-        inline void delayMicroseconds(const time_t howLong) const
-        {
-            struct timespec sleeper;
-            if (howLong == 0)
-            {
-                return;
-            }
-            else if (howLong < 100)
-            {
-                delayMicrosecondsHard(howLong);
-            }
-            else
-            {
-                sleeper.tv_sec = (howLong / 1000000);
-                sleeper.tv_nsec = (howLong % 1000000) * 1000L;
-                nanosleep(&sleeper, NULL);
-            }
-        }
+        // inline void delayMicroseconds(const time_t howLong) const
+        // {
+        //     struct timespec sleeper;
+        //     if (howLong == 0)
+        //     {
+        //         return;
+        //     }
+        //     else if (howLong < 100)
+        //     {
+        //         delayMicrosecondsHard(howLong);
+        //     }
+        //     else
+        //     {
+        //         sleeper.tv_sec = (howLong / 1000000);
+        //         sleeper.tv_nsec = (howLong % 1000000) * 1000L;
+        //         nanosleep(&sleeper, NULL);
+        //     }
+        // }
 
     private:
         static constexpr const pin_t pinMode_ = 0;

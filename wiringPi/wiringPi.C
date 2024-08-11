@@ -2,15 +2,57 @@
 
 using namespace WiringPi;
 
+double getWallTime()
+{
+    struct timeval time;
+    if (gettimeofday(&time, NULL))
+    {
+        return 0;
+    }
+    else
+    {
+        return static_cast<double>(time.tv_sec) + static_cast<double>(time.tv_usec) * .000001;
+    }
+}
+
 int main(void)
 {
     // wiringPi<WPI_MODE_PINS()> Pi;
 
-    wiringPi<WPI_MODE_GPIO()> Pi;
+    // const double i = getWallTime();
+
+    wiringPi<WPI_MODE_PINS()> Pi;
+
+    const double i = getWallTime();
+    // size_t counter = 0;
+    //  while (counter < 10000000)
+    // for (size_t counter = 0; counter < 10000000; counter++)
+    // {
+    //     Pi.resetPins();
+    // }
+
+    for (pin_t pin = 0; pin < 1000; pin++)
+    {
+        std::cout << Pi.digitalReadOnboard<3>() << std::endl;
+    }
+
+    const double j = getWallTime();
+
+    std::cout << "Time = " << j - i << std ::endl;
 
     // Pi.readAll();
 
-    Pi.pinModeOnboard<31>(OUTPUT<gpio_t>());
+    // Pi.pinModeOnboard<31>(OUTPUT<gpio_t>());
+
+    // const double i_ = getWallTime();
+
+    // Pi.pullUpDnControlOnboard<31>(PUD_OFF<int>());
+
+    // const double j_ = getWallTime();
+
+    // std::cout << "Time = " << j - i << std ::endl;
+
+    // Pi.pullUpDnControlOnboard<30>(PUD_OFF<int>());
 
     // constexpr pin_t pinNumber = 40;
 
