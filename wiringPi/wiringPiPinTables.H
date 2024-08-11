@@ -26,8 +26,10 @@ namespace WiringPi
             0, 0, 0, 0, 0, 0, 0, 0};
     }
 
-    [[nodiscard]] inline consteval const pinTable pinToGpioI(const int layout)
+    template <const int layout>
+    [[nodiscard]] inline consteval const pinTable pinToGpioI()
     {
+        static_assert((layout == 1 || layout == 2));
         if (layout == 1) // A, B, Rev 1, 1.1
         {
             return pinTable{
@@ -54,8 +56,24 @@ namespace WiringPi
         }
     }
 
-    [[nodiscard]] inline consteval const pinTable physToGpioI(const int layout)
+    template <const int layout>
+    [[nodiscard]] inline consteval pin_t numPhysicalPins()
     {
+        static_assert((layout == 1 || layout == 2));
+        if (layout == 1)
+        {
+            return 17;
+        }
+        else
+        {
+            return 32;
+        }
+    }
+
+    template <const int layout>
+    [[nodiscard]] inline consteval const pinTable physToGpioI()
+    {
+        static_assert((layout == 1 || layout == 2));
         if (layout == 1) // A, B, Rev 1, 1.1
         {
             return pinTable{
@@ -82,8 +100,10 @@ namespace WiringPi
         }
     }
 
-    [[nodiscard]] inline consteval const pinTable gpioToGpio(const int layout)
+    template <const int layout>
+    [[nodiscard]] inline consteval const pinTable gpioToGpio()
     {
+        static_assert((layout == 1 || layout == 2));
         if (layout == 1) // A, B, Rev 1, 1.1
         {
             return pinTable{
@@ -123,16 +143,18 @@ namespace WiringPi
             nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>()};
     }
 
-    [[nodiscard]] inline consteval const pinTable pinMapI(const int mode, const int layout)
+    template <const int layout>
+    [[nodiscard]] inline consteval const pinTable pinMapI(const int mode)
     {
+        static_assert((layout == 1 || layout == 2));
         switch (mode)
         {
         case WPI_MODE_PINS():
-            return pinToGpioI(layout);
+            return pinToGpioI<layout>();
         case WPI_MODE_GPIO():
-            return gpioToGpio(layout);
+            return gpioToGpio<layout>();
         case WPI_MODE_PHYS():
-            return physToGpioI(layout);
+            return physToGpioI<layout>();
         default:
             return pinTable{
                 nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),

@@ -85,6 +85,13 @@ namespace WiringPi
             return modelString_;
         }
 
+        // Check if pin is onboard
+        // Returns true only if less than 32
+        [[nodiscard]] inline consteval bool isOnboard(const pin_t pinNumber) const
+        {
+            return pinNumber < numPhysicalPins_;
+        }
+
     private:
         // Pi hardware info
         static constexpr const int piModel_ = PI_MODEL<int>();
@@ -102,6 +109,7 @@ namespace WiringPi
         static constexpr const pin_t GPIO_TIMER_ = piGpioBase_ + 0x0000B000;
         static constexpr const pin_t GPIO_PWM_ = piGpioBase_ + 0x0020C000;
         static constexpr const std::string_view modelString_ = piModelStrings()[PI_MODEL<size_t>()];
+        static constexpr const pin_t numPhysicalPins_ = numPhysicalPins<GPIO_LAYOUT<int>()>();
     };
 }
 

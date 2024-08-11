@@ -17,17 +17,8 @@ namespace WiringPi
         quit.store(true);
     }
 
-    // Check if pin is onboard
-    // Returns true only if less than 32
-    // This needs to be declared outside of the class to be a constant expression
-    // template <const pin_t pinNumber>
-    [[nodiscard]] inline consteval bool isOnboard(const pin_t pinNumber)
-    {
-        return pinNumber < 32;
-    }
-
     // Templated, but at present only works correctly in GPIO mode
-    // template <int wpiMode>
+    template <int wiringPiMode>
     class wiringPi
     {
     public:
@@ -75,7 +66,6 @@ namespace WiringPi
         void resetPins(std::integral_constant<pin_t, index> = std::integral_constant<pin_t, 0>())
         {
             pinModeOnboard<index>(INPUT<gpio_t>());
-            // std::cout << "Reset pin " << index << std ::endl;
             resetPins(std::integral_constant<pin_t, index + 1>());
         }
 
@@ -138,7 +128,7 @@ namespace WiringPi
         template <const pin_t pinNumber>
         [[nodiscard]] inline gpio_t digitalReadOnboard() const volatile
         {
-            static_assert(isOnboard(pinMap_[pinNumber]), "Finished properly");
+            static_assert(pi_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
             return pinRegistry_.digitalRead(gpioPtr(), pinMap_[pinNumber]);
         }
 
@@ -146,15 +136,17 @@ namespace WiringPi
         template <const pin_t pinNumber>
         inline void digitalWriteOnboard(const gpio_t value) const volatile
         {
-            static_assert(isOnboard(pinMap_[pinNumber]), "Finished properly");
+            static_assert(pi_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
             pinRegistry_.digitalWrite(gpioPtr(), pinMap_[pinNumber], value);
         }
 
         // Sets the mode of a pin to be input, output or PWM output
         template <const pin_t pinNumber>
         inline void pinModeOnboard(const gpio_t mode)
+        // void pinModeOnboard(const gpio_t mode)
         {
-            static_assert(isOnboard(pinMap_[pinNumber]), "Finished properly");
+            static_assert(pi_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
+            // std::cout << "BCM pin: " << pinMap_[pinNumber] << " mode " << mode << std::endl;
             pinRegistry_.pinMode(gpioPtr(), pinNumber, mode, gpioToGPFSEL_[pinNumber], gpioToShift_[pinNumber]);
         }
 
@@ -225,12 +217,12 @@ namespace WiringPi
         // static constexpr const int wiringPiSetuped_ = static_cast<int>(true);
         // const int wiringPiDebug_;
         // const int wiringPiReturnCodes_;
-        static constexpr const int wiringPiMode_ = WPI_MODE_PINS();
+        static constexpr const int wiringPiMode_ = wiringPiMode;
 
         // Offset to the Pull Up Down Clock regsiter
         // This is equivalent to the gpioToPUDCLK table
         // Returns 38 on pins 0 -> 31, 39 on pins 32 -> 63
-        [[nodiscard]] inline consteval gpio_t gpioToPUDCLK(const gpio_t i)
+        [[nodiscard]] inline consteval gpio_t gpioToPUDCLK(const gpio_t i) const
         {
             return 38 + (i / 32);
         }
@@ -243,8 +235,8 @@ namespace WiringPi
         static constexpr const pinTable gpioToShift_ = gpioToShift();
 
         // Pin conversion table
-        static constexpr const pinTable pinMap_ = pinMapI(wiringPiMode_, pi_.gpioLayout());
-        static constexpr const pinTable physToGpio_ = physToGpioI(pi_.gpioLayout());
+        static constexpr const pinTable pinMap_ = pinMapI<pi_.gpioLayout()>(wiringPiMode_);
+        // static constexpr const pinTable physToGpio_ = physToGpioI<pi_.gpioLayout()>();
 
         // Physical pin names
         static constexpr const nameTable physNames_ = physNamesI();
@@ -322,10 +314,10 @@ namespace WiringPi
         }
 
         // Hardware pointers
-        volatile timer_t *volatile gpio;
-        volatile timer_t *volatile pwm;
-        volatile timer_t *volatile clk;
-        volatile timer_t *volatile pads;
+        volatile gpio_t *volatile gpio;
+        volatile pwm_t *volatile pwm;
+        volatile clk_t *volatile clk;
+        volatile pads_t *volatile pads;
         volatile timer_t *volatile timer;
         volatile timer_t *volatile timerIrqRaw;
 
