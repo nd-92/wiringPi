@@ -8,6 +8,7 @@
 #include "wiringPiNode.H"
 #include "onboardPins.H"
 #include "piHardwareInfo.H"
+#include "piMemory.H"
 #include "wiringPiNode.H"
 
 namespace WiringPi
@@ -19,17 +20,45 @@ namespace WiringPi
         quit.store(true);
     }
 
+    struct memorySpec
+    {
+        const int fd;
+        const bool usingGpioMem;
+    };
+
+    memorySpec readDeviceMemory()
+    {
+        int fd_;
+        bool usingGpioMem_ = false;
+
+        const char *gpiomemGlobal = "/dev/mem";
+        const char *gpiomemModule = "/dev/gpiomem";
+
+        if (gpiomemGlobal == NULL || (fd_ = open(gpiomemGlobal, O_RDWR | O_SYNC | O_CLOEXEC)) < 0)
+        {
+            if (gpiomemModule && (fd_ = open(gpiomemModule, O_RDWR | O_SYNC | O_CLOEXEC)) >= 0) // We're using gpiomem
+            {
+                usingGpioMem_ = true;
+            }
+        }
+
+        // memorySpec devMem{fd_, usingGpioMem_};
+        return memorySpec{fd_, usingGpioMem_};
+    }
+
     // Templated, but at present only works correctly in GPIO mode
-    template <int wiringPiMode>
+    template <const int wiringPiMode>
     class wiringPi
     {
     public:
         [[nodiscard]] inline wiringPi()
-            : gpio(mapHardware<gpio_t>(pi_.GPIO_BASE())),
-              pwm(mapHardware<pwm_t>(pi_.GPIO_PWM())),
-              clk(mapHardware<clk_t>(pi_.GPIO_CLOCK_BASE())),
-              pads(mapHardware<pads_t>(pi_.GPIO_PADS())),
-              timer(mapTimer(pi_.GPIO_TIMER())),
+            : devMem(readDeviceMemory()),
+              piMemory_(piMemory<pi_.model()>(devMem.usingGpioMem)),
+              gpio(mapHardware<gpio_t>(piMemory_.GPIO_BASE())),
+              pwm(mapHardware<pwm_t>(piMemory_.GPIO_PWM())),
+              clk(mapHardware<clk_t>(piMemory_.GPIO_CLOCK_BASE())),
+              pads(mapHardware<pads_t>(piMemory_.GPIO_PADS())),
+              timer(mapTimer(piMemory_.GPIO_TIMER())),
               timerIrqRaw(timer + TIMER_IRQ_RAW<timer_t>()),
               epochMilli_(initialiseEpochMilli()),
               epochMicro_(initialiseEpochMicro())
@@ -40,6 +69,12 @@ namespace WiringPi
             assert((clk != MAP_FAILED));
             assert((pads != MAP_FAILED));
             assert((timer != MAP_FAILED));
+
+            // Check for non-GPIO mode on certain models
+            static_assert(!(pi_.model() == PI_MODEL_CM<int>() && wiringPiMode != WPI_MODE_GPIO()), "Only WPI_MODE_GPIO available on PI_MODEL_CM");
+            static_assert(!(pi_.model() == PI_MODEL_CM3<int>() && wiringPiMode != WPI_MODE_GPIO()), "Only WPI_MODE_GPIO available on PI_MODEL_CM3");
+            static_assert(!(pi_.model() == PI_MODEL_CM3P<int>() && wiringPiMode != WPI_MODE_GPIO()), "Only WPI_MODE_GPIO available on PI_MODEL_CM3P");
+
             // Make sure cleanup is performed on interrupt, terminate, hangup or segfault
             struct sigaction sa;
             memset(&sa, 0, sizeof(sa));
@@ -115,18 +150,23 @@ namespace WiringPi
             pinRegistry_.pinMode<pinMap_[pinNumber]>(gpioPtr(), mode, gpioToGPFSEL_[pinNumber], gpioToShift_[pinNumber]);
         }
 
-        // Reset pins to INPUT
-        inline void resetPins()
-        {
-            resetAllPins();
-        }
-
         // Control the internal pull-up/down resistors on a GPIO pin
         template <const pin_t pinNumber>
-        inline void pullUpDnControlOnboard(const gpio_t pud) const volatile
+        inline void pullUpDnControlOnboard(const gpio_t pud) const
         {
             static_assert(pi_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
             pinRegistry_.pullUpDnControl<pinMap_[pinNumber], pi_.gpioPupOffset()>(gpioPtr(), pud);
+        }
+
+        // Set an output PWM value
+        template <const pin_t pinNumber>
+        inline void pwmWriteOnboard(const pwm_t value)
+        {
+            static_assert(pi_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
+            static_assert(wiringPiMode_ == WPI_MODE_GPIO(), "wiringPi not initialised in GPIO mode: pwmWriteOnboard cannot be called");
+            assert((piMemory_.gpioBase() == 0) && "GPIO base address must be 0: pwmWriteOnboard cannot be called");
+            assert((!devMem.usingGpioMem) && "Application is using GPIO memory. Unable to do this when using /dev/gpiomem. Try sudo?");
+            pinRegistry_.pwmWrite<pinMap_[pinNumber]>(pwmPtr(), value);
         }
 
         // Returns the map of pins
@@ -170,23 +210,39 @@ namespace WiringPi
             return gpio;
         }
 
+        [[nodiscard]] inline volatile pwm_t *pwmPtr() const volatile
+        {
+            return pwm;
+        }
+
         [[nodiscard]] inline consteval const std::string_view onboardNames() const
         {
             return pinRegistry_.deviceName();
         }
 
-        // [[nodiscard]] inline consteval const nameTable physNames() const
-        [[nodiscard]] inline constexpr const nameTable physNames() const
+        [[nodiscard]] inline consteval const nameTable physNames() const
         {
             return physNames_;
         }
 
+        // Reset pins to INPUT
+        inline void resetPins()
+        {
+            resetAllPins();
+        }
+
     private:
+        // Check access to device memory
+        const struct memorySpec devMem;
+
         // Pi hardware info
         static constexpr const piHardware pi_ = piHardware();
 
-        void resetAllPins(std::integral_constant<pin_t, pi_.numPins()>) {}
+        // Pi memory addresses
+        const piMemory<pi_.model()> piMemory_;
 
+        // Reset all the pins to input mode
+        void resetAllPins(std::integral_constant<pin_t, pi_.numPins()>) {}
         template <pin_t index = 0>
         void resetAllPins(std::integral_constant<pin_t, index> = std::integral_constant<pin_t, 0>())
         {
@@ -219,40 +275,42 @@ namespace WiringPi
         // System mode pin table cannot be constexpr
         const pinTable sysFds_ = sysFdsI(wiringPiMode_);
 
-        // Check access to device memory
-        const int fd_ = checkDevMem();
-        [[nodiscard]] inline int checkDevMem() const
-        {
-            int fd;
-            constexpr const char *gpiomemGlobal = "/dev/mem";
-            constexpr const char *gpiomemModule = "/dev/gpiomem";
-            if (gpiomemGlobal == NULL || (fd = open(gpiomemGlobal, O_RDWR | O_SYNC | O_CLOEXEC)) < 0)
-            {
-                std::cout << "wiringPi: No access to /dev/mem: try /dev/gpiomem" << std::endl;
-                if (!(gpiomemModule && (fd = open(gpiomemModule, O_RDWR | O_SYNC | O_CLOEXEC)) >= 0))
-                {
-                    return failure(false, "wiringPiSetup: Unable to open %s or %s: %s.\n"
-                                          "  Aborting your program because if it can not access the GPIO\n"
-                                          "  hardware then it most certianly won't work\n"
-                                          "  Try running with sudo?\n",
-                                   gpiomemGlobal, gpiomemModule, strerror(errno));
-                }
-            }
-            std::cout << "wiringPi: access to " << (pi_.usingGpioMem() ? gpiomemModule : gpiomemGlobal) << " succeded (" << fd << ")" << std::endl;
-            return fd;
-        }
+        // // Check access to device memory
+        // const struct memorySpec devMem = readDeviceMemory();
+
+        // const int fd_ = checkDevMem();
+        // [[nodiscard]] inline int checkDevMem() const
+        // {
+        //     int fd;
+        //     constexpr const char *gpiomemGlobal = "/dev/mem";
+        //     constexpr const char *gpiomemModule = "/dev/gpiomem";
+        //     if (gpiomemGlobal == NULL || (fd = open(gpiomemGlobal, O_RDWR | O_SYNC | O_CLOEXEC)) < 0)
+        //     {
+        //         std::cout << "wiringPi: No access to /dev/mem: try /dev/gpiomem" << std::endl;
+        //         if (!(gpiomemModule && (fd = open(gpiomemModule, O_RDWR | O_SYNC | O_CLOEXEC)) >= 0))
+        //         {
+        //             return failure(false, "wiringPiSetup: Unable to open %s or %s: %s.\n"
+        //                                   "  Aborting your program because if it can not access the GPIO\n"
+        //                                   "  hardware then it most certianly won't work\n"
+        //                                   "  Try running with sudo?\n",
+        //                            gpiomemGlobal, gpiomemModule, strerror(errno));
+        //         }
+        //     }
+        //     std::cout << "wiringPi: access to " << (pi_.usingGpioMem() ? gpiomemModule : gpiomemGlobal) << " succeded (" << fd << ")" << std::endl;
+        //     return fd;
+        // }
 
         // Map individual hardware components
         template <typename T0, typename T1>
         [[nodiscard]] volatile T0 *mapHardware(const T1 offset) const
         {
-            return static_cast<volatile T0 *>(mmap(0, BLOCK_SIZE<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, fd_, static_cast<__off_t>(offset)));
+            return static_cast<volatile T0 *>(mmap(0, BLOCK_SIZE<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, devMem.fd, static_cast<__off_t>(offset)));
         }
 
         // Map timer
-        [[nodiscard]] volatile timer_t *mapTimer(const int offset) const
+        [[nodiscard]] volatile timer_t *mapTimer(const gpio_t offset) const
         {
-            volatile timer_t *volatile ptr = static_cast<volatile timer_t *>(mmap(0, BLOCK_SIZE<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, fd_, static_cast<__off_t>(offset)));
+            volatile timer_t *volatile ptr = static_cast<volatile timer_t *>(mmap(0, BLOCK_SIZE<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, devMem.fd, static_cast<__off_t>(offset)));
             *(ptr + TIMER_CONTROL<timer_t>()) = 0x0000280;
             *(ptr + TIMER_PRE_DIV<timer_t>()) = 0x00000F9;
             return ptr;

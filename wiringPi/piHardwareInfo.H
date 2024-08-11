@@ -40,46 +40,6 @@ namespace WiringPi
             return piWarranty_;
         }
 
-        [[nodiscard]] inline consteval pin_t gpioBase() const
-        {
-            return piGpioBase_;
-        }
-
-        [[nodiscard]] inline consteval pin_t gpioPupOffset() const
-        {
-            return piGpioPupOffset_;
-        }
-
-        [[nodiscard]] inline consteval bool usingGpioMem() const
-        {
-            return usingGpioMem_;
-        }
-
-        [[nodiscard]] inline consteval pin_t GPIO_PADS() const
-        {
-            return GPIO_PADS_;
-        }
-
-        [[nodiscard]] inline consteval pin_t GPIO_CLOCK_BASE() const
-        {
-            return GPIO_CLOCK_BASE_;
-        }
-
-        [[nodiscard]] inline consteval pin_t GPIO_BASE() const
-        {
-            return GPIO_BASE_;
-        }
-
-        [[nodiscard]] inline consteval pin_t GPIO_TIMER() const
-        {
-            return GPIO_TIMER_;
-        }
-
-        [[nodiscard]] inline consteval pin_t GPIO_PWM() const
-        {
-            return GPIO_PWM_;
-        }
-
         [[nodiscard]] inline consteval std::string_view modelString() const
         {
             return modelString_;
@@ -97,6 +57,11 @@ namespace WiringPi
             return numPhysicalPins_;
         }
 
+        [[nodiscard]] inline consteval pin_t gpioPupOffset() const
+        {
+            return piGpioPupOffset_;
+        }
+
     private:
         // Pi hardware info
         static constexpr const int piModel_ = PI_MODEL<int>();
@@ -105,14 +70,7 @@ namespace WiringPi
         static constexpr const int piMem_ = PI_MEM<int>();
         static constexpr const int piMaker_ = PI_MAKER<int>();
         static constexpr const int piWarranty_ = PI_WARRANTY<int>();
-        static constexpr const pin_t piGpioBase_ = piGpioBase(piModel_);
-        static constexpr const pin_t piGpioPupOffset_ = piGpioPupOffset<int>(piModel_);
-        static constexpr const bool usingGpioMem_ = USING_GPIOMEM<bool>();
-        static constexpr const pin_t GPIO_PADS_ = piGpioBase_ + 0x00100000;
-        static constexpr const pin_t GPIO_CLOCK_BASE_ = piGpioBase_ + 0x00101000;
-        static constexpr const pin_t GPIO_BASE_ = piGpioBase_ + 0x00200000;
-        static constexpr const pin_t GPIO_TIMER_ = piGpioBase_ + 0x0000B000;
-        static constexpr const pin_t GPIO_PWM_ = piGpioBase_ + 0x0020C000;
+        static constexpr const pin_t piGpioPupOffset_ = piGpioPupOffset(piModel_);
         static constexpr const std::string_view modelString_ = piModelStrings()[PI_MODEL<size_t>()];
         static constexpr const pin_t numPhysicalPins_ = numPhysicalPins<GPIO_LAYOUT<int>()>();
     };

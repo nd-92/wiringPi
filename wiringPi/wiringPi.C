@@ -21,7 +21,7 @@ int main(void)
 
     // const double i = getWallTime();
 
-    wiringPi<WPI_MODE_PINS()> Pi;
+    wiringPi<WPI_MODE_GPIO()> Pi;
 
     // const double i = getWallTime();
     // // size_t counter = 0;
@@ -47,6 +47,10 @@ int main(void)
     // const double i_ = getWallTime();
 
     Pi.pullUpDnControlOnboard<31>(PUD_OFF<int>());
+
+    Pi.pwmWriteOnboard<31>(1);
+
+    // std::cout << toWrite << std::endl;
 
     // const double j_ = getWallTime();
 

@@ -230,42 +230,6 @@ namespace WiringPi
             0, 0, 0, 0, 0, 0, 0, 0};
     }
 
-    // [[nodiscard]] inline consteval gpioTable pullRegI()
-    // {
-    //     gpioTable arr{
-    //         0, 0, 0, 0, 0, 0, 0, 0,
-    //         0, 0, 0, 0, 0, 0, 0, 0,
-    //         0, 0, 0, 0, 0, 0, 0, 0,
-    //         0, 0, 0, 0, 0, 0, 0, 0,
-    //         0, 0, 0, 0, 0, 0, 0, 0,
-    //         0, 0, 0, 0, 0, 0, 0, 0,
-    //         0, 0, 0, 0, 0, 0, 0, 0,
-    //         0, 0, 0, 0, 0, 0, 0, 0};
-    //     for (pin_t i = 0; i < 64; i++)
-    //     {
-    //         arr[i] = GPPUPPDN0<gpio_t>() + (i >> 4);
-    //     }
-    //     return arr;
-    // }
-
-    // [[nodiscard]] inline consteval gpioTable pullShiftI()
-    // {
-    //     gpioTable arr{
-    //         0, 0, 0, 0, 0, 0, 0, 0,
-    //         0, 0, 0, 0, 0, 0, 0, 0,
-    //         0, 0, 0, 0, 0, 0, 0, 0,
-    //         0, 0, 0, 0, 0, 0, 0, 0,
-    //         0, 0, 0, 0, 0, 0, 0, 0,
-    //         0, 0, 0, 0, 0, 0, 0, 0,
-    //         0, 0, 0, 0, 0, 0, 0, 0,
-    //         0, 0, 0, 0, 0, 0, 0, 0};
-    //     for (pin_t i = 0; i < 64; i++)
-    //     {
-    //         arr[i] = (i & 0xf) << 1;
-    //     }
-    //     return arr;
-    // }
-
     [[nodiscard]] inline consteval const pinTable gpioToGPFSEL()
     {
         return pinTable{

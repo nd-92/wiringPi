@@ -83,8 +83,9 @@ namespace WiringPi
             pinMode_[pinNumber] = mode;
         }
 
+        // Control the internal pull-up/down resistors on a GPIO pin
         template <const pin_t pinNumber, const gpio_t offset>
-        void pullUpDnControl(volatile gpio_t *gpioPtr, const gpio_t pud) const volatile
+        inline void pullUpDnControl(volatile gpio_t *gpioPtr, const gpio_t pud) const volatile
         {
             if constexpr (offset == GPPUPPDN0<gpio_t>())
             {
@@ -92,7 +93,6 @@ namespace WiringPi
                 pin_t pullBits = *(gpioPtr + pullReg(pinNumber));
                 pullBits &= static_cast<gpio_t>(~(3 << pullShift(pinNumber)));
                 pullBits |= (pud << pullShift(pinNumber));
-                std::cout << "pullBits = " << pullBits << std::endl;
                 *(gpioPtr + pullReg(pinNumber)) = pullBits;
             }
             else
@@ -106,6 +106,13 @@ namespace WiringPi
                 *(gpioPtr + gpioToPUDCLK(pinNumber)) = 0;
                 delayMicroseconds(5);
             }
+        }
+
+        // Set an output PWM value
+        template <const pin_t pinNumber>
+        inline void pwmWrite(volatile gpio_t *pwmPtr, const gpio_t value) const volatile
+        {
+            *(pwmPtr + gpioToPwmPort_[pinNumber]) = value;
         }
 
         // Returns the map of pin modes
@@ -122,6 +129,7 @@ namespace WiringPi
 
     private:
         gpioTable pinMode_ = pinModeI();
+        static constexpr const gpioTable gpioToPwmPort_ = gpioToPwmPortI();
         // static constexpr const gpioTable pullReg_ = pullRegI();
         // static constexpr const gpioTable pullShift_ = pullShiftI();
     };

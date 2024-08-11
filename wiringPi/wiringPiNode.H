@@ -9,7 +9,7 @@
 
 namespace WiringPi
 {
-    // template <size_t pinBaseVal, size_t numPinsVal>
+    // template <const size_t pinBaseVal, size_t numPinsVal>
     class wiringPiNode
     {
     public:
@@ -17,67 +17,35 @@ namespace WiringPi
 
         // ~wiringPiNode() {};
 
-        // Sets the mode of a pin to be input, output or PWM output
-        // virtual inline void pinMode() const
-        // {
-        // }
-
-        // // Control the internal pull - up / down resistors on a GPIO pin
-        // virtual inline void pullUpDnControl() const
-        // {
-        // }
-        // virtual inline void pullUpDnControl(
-        //     [[maybe_unused]] gpio_t volatile *gpioPtr,
-        //     [[maybe_unused]] const gpio_t value,
-        //     [[maybe_unused]] const int piGpioPupOffset) const
-        // {
-        //     // std::cout << "Called dummy " << (*gpioPtr + offsetValue + value + static_cast<gpio_t>(piGpioPupOffset)) << std::endl;
-        // }
-
-        // Read the value of a given Pin, returning HIGH or LOW
-        // Overloaded to accept ptrs to onboard gpio pins
-        // [[nodiscard]] virtual inline gpio_t digitalRead() const volatile
-        // {
-        //     return 0;
-        // }
+        // Read the value of a given pin, returns either HIGH or LOW
         [[nodiscard]] virtual inline gpio_t digitalRead([[maybe_unused]] const volatile gpio_t *gpioPtr) const volatile
         {
             return 0;
         }
 
         // Set an output bit
-        // Overloaded to accept ptrs to onboard gpio pins
-        // virtual inline void digitalWrite([[maybe_unused]] const gpio_t value) const
-        // {
-        // }
         virtual inline void digitalWrite([[maybe_unused]] volatile gpio_t *gpioPtr, [[maybe_unused]] const gpio_t value) const volatile
-        // virtual inline void digitalWrite([[maybe_unused]] volatile gpio_t *gpioPtr, [[maybe_unused]] const gpio_t offsetValue) const volatile
         {
+            return;
         }
 
-        // Set an output pwm value
-        // virtual inline void pwmWrite([[maybe_unused]] const pwm_t value) const
-        // {
-        // }
-        // virtual inline void pwmWrite([[maybe_unused]] pwm_t *pwmPtr, [[maybe_unused]] const int offsetValue, [[maybe_unused]] const int value) const volatile
-        // {
-        // }
+        // Sets the mode of a pin to be input, output or PWM output
+        inline void pinMode([[maybe_unused]] volatile gpio_t *gpioPtr, [[maybe_unused]] const gpio_t mode, [[maybe_unused]] const pin_t fSel, [[maybe_unused]] const pin_t shift)
+        {
+            return;
+        }
 
-        // Read the analog value of a given Pin
-        // [[nodiscard]] virtual inline int analogRead() const
-        // {
-        //     return 0;
-        // }
+        // Control the internal pull-up/down resistors on a GPIO pin
+        virtual inline void pullUpDnControl([[maybe_unused]] const volatile gpio_t *gpioPtr, [[maybe_unused]] const gpio_t value) const volatile
+        {
+            return;
+        }
 
-        // // Write the analog value to the given Pin.
-        // virtual inline void analogWrite([[maybe_unused]] const int value) const
-        // {
-        // }
-
-        // // Set an output PWM value
-        // virtual inline void pwmWrite() const
-        // {
-        // }
+        // Set an output PWM value
+        inline void pwmWrite([[maybe_unused]] volatile gpio_t *pwmPtr, [[maybe_unused]] const gpio_t value) const volatile
+        {
+            return;
+        }
 
         // Return the device name
         [[nodiscard]] virtual inline consteval std::string_view deviceName() const
@@ -110,7 +78,7 @@ namespace WiringPi
             nanosleep(&sleeper, &dummy);
         }
 
-        inline void delayMicrosecondsHard(const time_t howLong) const volatile
+        void delayMicrosecondsHard(const time_t howLong) const volatile
         {
             struct timeval tNow, tLong, tEnd;
 
@@ -125,7 +93,7 @@ namespace WiringPi
             }
         }
 
-        inline void delayMicroseconds(const time_t howLong) const volatile
+        void delayMicroseconds(const time_t howLong) const volatile
         {
             struct timespec sleeper;
             if (howLong == 0)

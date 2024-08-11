@@ -21,63 +21,125 @@ namespace WiringPi
     }
 
     // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0
-    template <typename T>
-    [[nodiscard]] inline consteval T piGpioPupOffset(const int model)
+    // template <typename T>
+    [[nodiscard]] inline consteval uint32_t piGpioPupOffset(const int model)
     {
-        T i = 0;
         switch (model)
         {
         case PI_MODEL_A<int>():
-        case PI_MODEL_B<int>():
-        case PI_MODEL_AP<int>():
-        case PI_MODEL_BP<int>():
-        case PI_MODEL_ALPHA<int>():
-        case PI_MODEL_CM<int>():
-        case PI_MODEL_ZERO<int>():
-        case PI_MODEL_ZERO_W<int>():
-            i = GPPUD<T>();
-            break;
-        case PI_MODEL_4B<int>():
-        case PI_MODEL_400<int>():
-        case PI_MODEL_CM4<int>():
-            i = GPPUPPDN0<T>();
-            break;
-        default:
-            i = GPPUD<T>();
-            break;
+        {
+            return 0;
         }
-
-        return i;
+        case PI_MODEL_B<int>():
+        {
+            return 0;
+        }
+        case PI_MODEL_AP<int>():
+        {
+            return 0;
+        }
+        case PI_MODEL_BP<int>():
+        {
+            return 0;
+        }
+        case PI_MODEL_ALPHA<int>():
+        {
+            return 0;
+        }
+        case PI_MODEL_CM<int>():
+        {
+            return 0;
+        }
+        case PI_MODEL_ZERO<int>():
+        {
+            return 0;
+        }
+        case PI_MODEL_ZERO_W<int>():
+        {
+            return GPPUD<uint32_t>();
+        }
+        case PI_MODEL_4B<int>():
+        {
+            return 0;
+        }
+        case PI_MODEL_400<int>():
+        {
+            return 0;
+        }
+        case PI_MODEL_CM4<int>():
+        {
+            return GPPUPPDN0<uint32_t>();
+        }
+        default:
+        {
+            return GPPUD<uint32_t>();
+        }
+        }
     }
 
     // Initialise the base address of the GPIO memory mapped hardware IO
-    [[nodiscard]] inline consteval int piGpioBase(const int model)
+    // template <typename T>
+    [[nodiscard]] inline constexpr uint32_t piGpioBase(const int model, const bool usingGpioMem)
+    // [[nodiscard]] inline uint32_t piGpioBase(const int model, const bool usingGpioMem)
     {
-        int i = 0;
+        uint32_t i = 0;
         // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0
         switch (model)
         {
         case PI_MODEL_A<int>():
-        case PI_MODEL_B<int>():
-        case PI_MODEL_AP<int>():
-        case PI_MODEL_BP<int>():
-        case PI_MODEL_ALPHA<int>():
-        case PI_MODEL_CM<int>():
-        case PI_MODEL_ZERO<int>():
-        case PI_MODEL_ZERO_W<int>():
-            i = GPIO_PERI_BASE_OLD<int>();
-            break;
-        case PI_MODEL_4B<int>():
-        case PI_MODEL_400<int>():
-        case PI_MODEL_CM4<int>():
-            i = GPIO_PERI_BASE_2711<int>();
-            break;
-        default:
-            i = GPIO_PERI_BASE_2835<int>();
+        {
             break;
         }
+        case PI_MODEL_B<int>():
+        {
+            break;
+        }
+        case PI_MODEL_AP<int>():
+        {
+            break;
+        }
+        case PI_MODEL_BP<int>():
+        {
+            break;
+        }
+        case PI_MODEL_ALPHA<int>():
+        {
+            break;
+        }
+        case PI_MODEL_CM<int>():
+        {
+            break;
+        }
+        case PI_MODEL_ZERO<int>():
+        {
+            break;
+        }
+        case PI_MODEL_ZERO_W<int>():
+        {
+            i = GPIO_PERI_BASE_OLD<uint32_t>();
+            break;
+        }
+        case PI_MODEL_4B<int>():
+        {
+            break;
+        }
+        case PI_MODEL_400<int>():
+        {
+            break;
+        }
+        case PI_MODEL_CM4<int>():
+        {
+            i = GPIO_PERI_BASE_2711<uint32_t>();
+            break;
+        }
+        default:
+        {
+            i = GPIO_PERI_BASE_2835<uint32_t>();
+            break;
+        }
+        }
 
-        if (USING_GPIOMEM<bool>() == true)
+        if (usingGpioMem)
         {
             i = 0;
         }

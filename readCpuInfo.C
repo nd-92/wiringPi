@@ -576,21 +576,12 @@ int main()
         }
     }
 
-    bool usingGpioMem = false;
-    constexpr const char *gpiomem_global = "/dev/mem";
-    constexpr const char *gpiomem_BCM = "/dev/gpiomem";
-    constexpr const char *gpiomemGlobal = gpiomem_global;
-    constexpr const char *gpiomemModule = gpiomem_BCM;
-    int fd;
-
-    if ((fd = open(gpiomemGlobal, O_RDWR | O_SYNC | O_CLOEXEC)) < 0)
-    {
-
-        if ((fd = open(gpiomemModule, O_RDWR | O_SYNC | O_CLOEXEC)) >= 0) // We're using gpiomem
-        {
-            usingGpioMem = true;
-        }
-    }
+    // bool usingGpioMem = false;
+    // constexpr const char *gpiomem_global = "/dev/mem";
+    // constexpr const char *gpiomem_BCM = "/dev/gpiomem";
+    // constexpr const char *gpiomemGlobal = gpiomem_global;
+    // constexpr const char *gpiomemModule = gpiomem_BCM;
+    // int fd;
 
     std::ofstream MyFile("piInfo.H");
 
@@ -641,13 +632,6 @@ int main()
     MyFile << "    [[nodiscard]] inline consteval T PI_WARRANTY()" << std::endl;
     MyFile << "    {" << std::endl;
     MyFile << "        return " << warranty << ";" << std::endl;
-    MyFile << "    }" << std::endl;
-    MyFile << std::endl;
-
-    MyFile << "    template <typename T>" << std::endl;
-    MyFile << "    [[nodiscard]] inline consteval T USING_GPIOMEM()" << std::endl;
-    MyFile << "    {" << std::endl;
-    MyFile << "        return " << usingGpioMem << ";" << std::endl;
     MyFile << "    }" << std::endl;
     MyFile << std::endl;
 
