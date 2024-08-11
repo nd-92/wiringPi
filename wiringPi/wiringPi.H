@@ -54,7 +54,7 @@ namespace WiringPi
 
         ~wiringPi()
         {
-            // Statically checked loop to reset pin modes to input
+            // Statically ranged loop to reset pin modes to input
             resetPins();
             std::cout << std::endl;
             std::cout << "All pins successfully reset to input on exit" << std::endl;
@@ -62,15 +62,6 @@ namespace WiringPi
             std::cout << "wiringPi exited cleanly" << std::endl;
             std::cout << std::endl;
         };
-
-        void resetPins(std::integral_constant<pin_t, 32>) {}
-
-        template <pin_t index = 0>
-        void resetPins(std::integral_constant<pin_t, index> = std::integral_constant<pin_t, 0>())
-        {
-            pinModeOnboard<index>(INPUT<gpio_t>());
-            resetPins(std::integral_constant<pin_t, index + 1>());
-        }
 
         inline void readAll() const
         {
@@ -183,6 +174,15 @@ namespace WiringPi
     private:
         // Pi hardware info
         static constexpr const piHardware pi_ = piHardware();
+
+        void resetPins(std::integral_constant<pin_t, pi_.numPins()>) {}
+
+        template <pin_t index = 0>
+        void resetPins(std::integral_constant<pin_t, index> = std::integral_constant<pin_t, 0>())
+        {
+            pinModeOnboard<index>(INPUT<gpio_t>());
+            resetPins(std::integral_constant<pin_t, index + 1>());
+        }
 
         // Registry of onboard pins
         onboardPins pinRegistry_ = onboardPins();

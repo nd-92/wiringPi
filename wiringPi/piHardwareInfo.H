@@ -92,6 +92,11 @@ namespace WiringPi
             return pinNumber < numPhysicalPins_;
         }
 
+        [[nodiscard]] inline consteval pin_t numPins() const
+        {
+            return numPhysicalPins_;
+        }
+
     private:
         // Pi hardware info
         static constexpr const int piModel_ = PI_MODEL<int>();
