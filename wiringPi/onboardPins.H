@@ -14,6 +14,9 @@ namespace WiringPi
         return (1 << (pinNumber & 31));
     }
 
+    // Offset to the Pull Up Down Clock regsiter
+    // This is equivalent to the gpioToPUDCLK table
+    // Returns 38 on pins 0 -> 31, 39 on pins 32 -> 63
     [[nodiscard]] inline consteval gpio_t gpioToPUDCLK(const gpio_t i)
     {
         return 38 + (i / 32);
@@ -24,7 +27,7 @@ namespace WiringPi
     // Returns 13 on pins 0 -> 31, 14 on pins 32 -> 63
     [[nodiscard]] inline consteval gpio_t gpioToGPLEV(const pin_t i)
     {
-        return 13 + (i / 32);
+        return (13 + (i / 32));
     }
 
     // Offset to the GPIO Clear and Set registers for each GPIO pin
@@ -33,10 +36,20 @@ namespace WiringPi
     // Returns 10 -> 11 for digital value LOW, 7 -> 8 for digital value HIGH
     [[nodiscard]] inline consteval gpio_t gpioCLRSET(const pin_t i)
     {
-        return 7 + (i / 64) + (i / 32);
+        return (7 + (i / 64) + (i / 32));
     }
 
-    class onboardPins
+    [[nodiscard]] inline consteval gpio_t pullReg(const pin_t i)
+    {
+        return (GPPUPPDN0<gpio_t>() + (i >> 4));
+    }
+
+    [[nodiscard]] inline consteval gpio_t pullShift(const pin_t i)
+    {
+        return ((i & 0xf) << 1);
+    }
+
+    class onboardPins : public wiringPiNode
     {
     public:
         [[nodiscard]] inline constexpr onboardPins() {};
@@ -56,7 +69,8 @@ namespace WiringPi
         }
 
         // Sets the mode of a pin to be input, output or PWM output
-        inline void pinMode(volatile gpio_t *gpioPtr, const pin_t pinNumber, const gpio_t mode, const pin_t fSel, const pin_t shift)
+        template <const pin_t pinNumber>
+        inline void pinMode(volatile gpio_t *gpioPtr, const gpio_t mode, const pin_t fSel, const pin_t shift)
         {
             if (mode == INPUT<gpio_t>() || mode == PWM_OFF<gpio_t>())
             {
@@ -67,6 +81,31 @@ namespace WiringPi
                 *(gpioPtr + fSel) = (*(gpioPtr + fSel) & static_cast<gpio_t>(~(7 << shift))) | (1 << shift);
             }
             pinMode_[pinNumber] = mode;
+        }
+
+        template <const pin_t pinNumber, const gpio_t offset>
+        void pullUpDnControl(volatile gpio_t *gpioPtr, const gpio_t pud) const volatile
+        {
+            if constexpr (offset == GPPUPPDN0<gpio_t>())
+            {
+                // Pi 4B pull up/down method
+                pin_t pullBits = *(gpioPtr + pullReg(pinNumber));
+                pullBits &= static_cast<gpio_t>(~(3 << pullShift(pinNumber)));
+                pullBits |= (pud << pullShift(pinNumber));
+                std::cout << "pullBits = " << pullBits << std::endl;
+                *(gpioPtr + pullReg(pinNumber)) = pullBits;
+            }
+            else
+            {
+                *(gpioPtr + GPPUD<gpio_t>()) = pud & 3;
+                delayMicroseconds(5);
+                *(gpioPtr + gpioToPUDCLK(pinNumber)) = digitalReadModulo(pinNumber);
+                delayMicroseconds(5);
+                *(gpioPtr + GPPUD<gpio_t>()) = 0;
+                delayMicroseconds(5);
+                *(gpioPtr + gpioToPUDCLK(pinNumber)) = 0;
+                delayMicroseconds(5);
+            }
         }
 
         // Returns the map of pin modes
@@ -81,21 +120,10 @@ namespace WiringPi
             return "Onboard pins";
         }
 
-        // Control the internal pull-up/down resistors on a GPIO pin
-        void pullUpDnControl(volatile gpio_t *gpioPtr, const pin_t pinNumber, const gpio_t pud) const volatile
-        {
-            // Pi 4B pull up/down method
-            pin_t pullBits = *(gpioPtr + pullReg_[pinNumber]);
-            pullBits &= static_cast<gpio_t>(~(3 << pullShift_[pinNumber]));
-            pullBits |= (pud << pullShift_[pinNumber]);
-            std::cout << "pullBits = " << pullBits << std::endl;
-            *(gpioPtr + pullReg_[pinNumber]) = pullBits;
-        }
-
     private:
         gpioTable pinMode_ = pinModeI();
-        static constexpr const gpioTable pullReg_ = pullRegI();
-        static constexpr const gpioTable pullShift_ = pullShiftI();
+        // static constexpr const gpioTable pullReg_ = pullRegI();
+        // static constexpr const gpioTable pullShift_ = pullShiftI();
     };
 }
 #endif

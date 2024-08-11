@@ -5,8 +5,10 @@
 #include "wiringPiDefines.H"
 #include "wiringPiTemplateMacros.H"
 #include "wiringPiPinTables.H"
+#include "wiringPiNode.H"
 #include "onboardPins.H"
 #include "piHardwareInfo.H"
+#include "wiringPiNode.H"
 
 namespace WiringPi
 {
@@ -38,7 +40,6 @@ namespace WiringPi
             assert((clk != MAP_FAILED));
             assert((pads != MAP_FAILED));
             assert((timer != MAP_FAILED));
-
             // Make sure cleanup is performed on interrupt, terminate, hangup or segfault
             struct sigaction sa;
             memset(&sa, 0, sizeof(sa));
@@ -48,7 +49,6 @@ namespace WiringPi
             sigaction(SIGTERM, &sa, NULL);
             sigaction(SIGHUP, &sa, NULL);
             sigaction(SIGSEGV, &sa, NULL);
-
             std::cout << "WiringPi initialised on mode " << wiringPiModes()[wiringPiMode_] << std::endl;
         }
 
@@ -112,7 +112,7 @@ namespace WiringPi
         inline void pinModeOnboard(const gpio_t mode)
         {
             static_assert(pi_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
-            pinRegistry_.pinMode(gpioPtr(), pinNumber, mode, gpioToGPFSEL_[pinNumber], gpioToShift_[pinNumber]);
+            pinRegistry_.pinMode<pinMap_[pinNumber]>(gpioPtr(), mode, gpioToGPFSEL_[pinNumber], gpioToShift_[pinNumber]);
         }
 
         // Reset pins to INPUT
@@ -123,10 +123,10 @@ namespace WiringPi
 
         // Control the internal pull-up/down resistors on a GPIO pin
         template <const pin_t pinNumber>
-        inline void pullUpDnControlOnboard(const gpio_t pud) volatile
+        inline void pullUpDnControlOnboard(const gpio_t pud) const volatile
         {
             static_assert(pi_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
-            pinRegistry_.pullUpDnControl(gpioPtr(), pinMap_[pinNumber], pud);
+            pinRegistry_.pullUpDnControl<pinMap_[pinNumber], pi_.gpioPupOffset()>(gpioPtr(), pud);
         }
 
         // Returns the map of pins
@@ -149,18 +149,14 @@ namespace WiringPi
         [[nodiscard]] inline time_t micros() const
         {
             struct timespec ts;
-
             clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
-
             return (ts.tv_sec * 1000000L) + (ts.tv_nsec / 1000L) - epochMicro();
         }
 
         [[nodiscard]] inline time_t millis() const
         {
             struct timespec ts;
-
             clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
-
             return (ts.tv_sec * 1000L) + (ts.tv_nsec / 1000000L) - epochMilli();
         }
 
@@ -207,14 +203,6 @@ namespace WiringPi
         // const int wiringPiReturnCodes_;
         static constexpr const int wiringPiMode_ = wiringPiMode;
 
-        // Offset to the Pull Up Down Clock regsiter
-        // This is equivalent to the gpioToPUDCLK table
-        // Returns 38 on pins 0 -> 31, 39 on pins 32 -> 63
-        // [[nodiscard]] inline consteval gpio_t gpioToPUDCLK(const gpio_t i) const
-        // {
-        //     return 38 + (i / 32);
-        // }
-
         // Map a BCM_GPIO pin to its function selection control port. (GPFSEL 0-5)
         // Groups of 10 - 3 bits per Function - 30 bits per port
         static constexpr const pinTable gpioToGPFSEL_ = gpioToGPFSEL();
@@ -238,7 +226,6 @@ namespace WiringPi
             int fd;
             constexpr const char *gpiomemGlobal = "/dev/mem";
             constexpr const char *gpiomemModule = "/dev/gpiomem";
-
             if (gpiomemGlobal == NULL || (fd = open(gpiomemGlobal, O_RDWR | O_SYNC | O_CLOEXEC)) < 0)
             {
                 std::cout << "wiringPi: No access to /dev/mem: try /dev/gpiomem" << std::endl;
@@ -251,7 +238,6 @@ namespace WiringPi
                                    gpiomemGlobal, gpiomemModule, strerror(errno));
                 }
             }
-
             std::cout << "wiringPi: access to " << (pi_.usingGpioMem() ? gpiomemModule : gpiomemGlobal) << " succeded (" << fd << ")" << std::endl;
             return fd;
         }
@@ -294,14 +280,12 @@ namespace WiringPi
         [[nodiscard]] inline time_t initialiseEpochMilli() const
         {
             struct timespec ts;
-
             clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
             return (ts.tv_sec * 1000) + (ts.tv_nsec / 1000000L);
         }
         [[nodiscard]] inline time_t initialiseEpochMicro() const
         {
             struct timespec ts;
-
             clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
             return (ts.tv_sec * 1000000) + (ts.tv_nsec / 1000L);
         }

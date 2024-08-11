@@ -23,22 +23,22 @@ int main(void)
 
     wiringPi<WPI_MODE_PINS()> Pi;
 
-    const double i = getWallTime();
-    // size_t counter = 0;
-    //  while (counter < 10000000)
-    // for (size_t counter = 0; counter < 10000000; counter++)
+    // const double i = getWallTime();
+    // // size_t counter = 0;
+    // //  while (counter < 10000000)
+    // // for (size_t counter = 0; counter < 10000000; counter++)
+    // // {
+    // //     Pi.resetPins();
+    // // }
+
+    // for (pin_t pin = 0; pin < 1000; pin++)
     // {
-    //     Pi.resetPins();
+    //     std::cout << Pi.digitalReadOnboard<3>() << std::endl;
     // }
 
-    for (pin_t pin = 0; pin < 1000; pin++)
-    {
-        std::cout << Pi.digitalReadOnboard<3>() << std::endl;
-    }
+    // const double j = getWallTime();
 
-    const double j = getWallTime();
-
-    std::cout << "Time = " << j - i << std ::endl;
+    // std::cout << "Time = " << j - i << std ::endl;
 
     // Pi.readAll();
 
@@ -46,7 +46,7 @@ int main(void)
 
     // const double i_ = getWallTime();
 
-    // Pi.pullUpDnControlOnboard<31>(PUD_OFF<int>());
+    Pi.pullUpDnControlOnboard<31>(PUD_OFF<int>());
 
     // const double j_ = getWallTime();
 

@@ -13,9 +13,9 @@ namespace WiringPi
     class wiringPiNode
     {
     public:
-        constexpr inline wiringPiNode() {};
+        [[nodiscard]] inline constexpr wiringPiNode() {};
 
-        ~wiringPiNode() {};
+        // ~wiringPiNode() {};
 
         // Sets the mode of a pin to be input, output or PWM output
         // virtual inline void pinMode() const
@@ -36,21 +36,22 @@ namespace WiringPi
 
         // Read the value of a given Pin, returning HIGH or LOW
         // Overloaded to accept ptrs to onboard gpio pins
-        [[nodiscard]] virtual inline gpio_t digitalRead() const volatile
-        {
-            return 0;
-        }
-        [[nodiscard]] virtual inline gpio_t digitalRead([[maybe_unused]] const volatile pin_t *gpioPtr, [[maybe_unused]] const pin_t gpioToGPLEV) const volatile
+        // [[nodiscard]] virtual inline gpio_t digitalRead() const volatile
+        // {
+        //     return 0;
+        // }
+        [[nodiscard]] virtual inline gpio_t digitalRead([[maybe_unused]] const volatile gpio_t *gpioPtr) const volatile
         {
             return 0;
         }
 
         // Set an output bit
         // Overloaded to accept ptrs to onboard gpio pins
-        virtual inline void digitalWrite([[maybe_unused]] const gpio_t value) const
-        {
-        }
-        virtual inline void digitalWrite([[maybe_unused]] volatile gpio_t *gpioPtr, [[maybe_unused]] const gpio_t offsetValue) const volatile
+        // virtual inline void digitalWrite([[maybe_unused]] const gpio_t value) const
+        // {
+        // }
+        virtual inline void digitalWrite([[maybe_unused]] volatile gpio_t *gpioPtr, [[maybe_unused]] const gpio_t value) const volatile
+        // virtual inline void digitalWrite([[maybe_unused]] volatile gpio_t *gpioPtr, [[maybe_unused]] const gpio_t offsetValue) const volatile
         {
         }
 
@@ -84,20 +85,20 @@ namespace WiringPi
             return "wiringPiNode";
         }
 
-        [[nodiscard]] virtual inline constexpr pin_t pinBase() const
-        {
-            return pinBase_;
-        }
+        // [[nodiscard]] virtual inline constexpr pin_t pinBase() const
+        // {
+        //     return pinBase_;
+        // }
 
-        [[nodiscard]] virtual inline constexpr pin_t numPins() const
-        {
-            return numPins_;
-        }
+        // [[nodiscard]] virtual inline constexpr pin_t numPins() const
+        // {
+        //     return numPins_;
+        // }
 
-        [[nodiscard]] virtual inline constexpr pin_t pinMax() const
-        {
-            return pinMax_;
-        }
+        // [[nodiscard]] virtual inline constexpr pin_t pinMax() const
+        // {
+        //     return pinMax_;
+        // }
 
         inline void delay(const time_t howLong) const
         {
@@ -109,45 +110,45 @@ namespace WiringPi
             nanosleep(&sleeper, &dummy);
         }
 
-        // inline void delayMicrosecondsHard(const time_t howLong) const
-        // {
-        //     struct timeval tNow, tLong, tEnd;
+        inline void delayMicrosecondsHard(const time_t howLong) const volatile
+        {
+            struct timeval tNow, tLong, tEnd;
 
-        //     gettimeofday(&tNow, NULL);
-        //     tLong.tv_sec = howLong / 1000000;
-        //     tLong.tv_usec = howLong % 1000000;
-        //     timeradd(&tNow, &tLong, &tEnd);
+            gettimeofday(&tNow, NULL);
+            tLong.tv_sec = howLong / 1000000;
+            tLong.tv_usec = howLong % 1000000;
+            timeradd(&tNow, &tLong, &tEnd);
 
-        //     while (timercmp(&tNow, &tEnd, <))
-        //     {
-        //         gettimeofday(&tNow, NULL);
-        //     }
-        // }
+            while (timercmp(&tNow, &tEnd, <))
+            {
+                gettimeofday(&tNow, NULL);
+            }
+        }
 
-        // inline void delayMicroseconds(const time_t howLong) const
-        // {
-        //     struct timespec sleeper;
-        //     if (howLong == 0)
-        //     {
-        //         return;
-        //     }
-        //     else if (howLong < 100)
-        //     {
-        //         delayMicrosecondsHard(howLong);
-        //     }
-        //     else
-        //     {
-        //         sleeper.tv_sec = (howLong / 1000000);
-        //         sleeper.tv_nsec = (howLong % 1000000) * 1000L;
-        //         nanosleep(&sleeper, NULL);
-        //     }
-        // }
+        inline void delayMicroseconds(const time_t howLong) const volatile
+        {
+            struct timespec sleeper;
+            if (howLong == 0)
+            {
+                return;
+            }
+            else if (howLong < 100)
+            {
+                delayMicrosecondsHard(howLong);
+            }
+            else
+            {
+                sleeper.tv_sec = (howLong / 1000000);
+                sleeper.tv_nsec = (howLong % 1000000) * 1000L;
+                nanosleep(&sleeper, NULL);
+            }
+        }
 
     private:
-        static constexpr const pin_t pinMode_ = 0;
-        static constexpr const pin_t pinBase_ = 0;
-        static constexpr const pin_t numPins_ = 0;
-        static constexpr const pin_t pinMax_ = 0;
+        // static constexpr const pin_t pinMode_ = 0;
+        // static constexpr const pin_t pinBase_ = 0;
+        // static constexpr const pin_t numPins_ = 0;
+        // static constexpr const pin_t pinMax_ = 0;
     };
 }
 
