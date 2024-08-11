@@ -56,8 +56,11 @@ namespace WiringPi
         {
             // Statically checked loop to reset pin modes to input
             resetPins();
-
-            std::cout << "\nwiringPi exited cleanly" << std::endl;
+            std::cout << std::endl;
+            std::cout << "All pins successfully reset to input on exit" << std::endl;
+            std::cout << std::endl;
+            std::cout << "wiringPi exited cleanly" << std::endl;
+            std::cout << std::endl;
         };
 
         void resetPins(std::integral_constant<pin_t, 32>) {}
@@ -68,33 +71,6 @@ namespace WiringPi
             pinModeOnboard<index>(INPUT<gpio_t>());
             resetPins(std::integral_constant<pin_t, index + 1>());
         }
-
-        // inline void readAll() const
-        // {
-        //     std::cout << " +------+-----+---+--Model " << pi_.modelString() << "--+---+-----+------+ " << std::endl;
-        //     std::cout << " | MODE | wPi | V | pin || pin | V | wPi | MODE | " << std::endl;
-        //     std::cout << " +------+-----+---+-----++-----+---+-----+------+ " << std::endl;
-
-        //     for (pin_t i = 0; i < 32; i += 2)
-        //     {
-        //         std::cout << " |";
-        //         std::cout << modeStrings()[pinModeMap()[i]];
-        //         std::cout << "| " << pinString(pinMap_[i]);
-        //         std::cout << "| " << digitalReadOnboard(i) << " |";
-        //         std::cout << pinString(i);
-        //         std::cout << " || ";
-        //         std::cout << pinString(i + 1);
-        //         std::cout << "| " << digitalReadOnboard(i + 1) << " |";
-        //         std::cout << pinString(pinMap_[i + 1]);
-        //         std::cout << " |";
-        //         std::cout << modeStrings()[pinModeMap()[i + 1]] << "|";
-        //         std::cout << std::endl;
-        //     }
-
-        //     std::cout << " +------+-----+---+--Model " << pi_.modelString() << "--+---+-----+------+ " << std::endl;
-        //     std::cout << " | MODE | wPi | V | pin || pin | V | wPi | MODE | " << std::endl;
-        //     std::cout << " +------+-----+---+-----++-----+---+-----+------+ " << std::endl;
-        // }
 
         inline void readAll() const
         {
@@ -143,10 +119,8 @@ namespace WiringPi
         // Sets the mode of a pin to be input, output or PWM output
         template <const pin_t pinNumber>
         inline void pinModeOnboard(const gpio_t mode)
-        // void pinModeOnboard(const gpio_t mode)
         {
             static_assert(pi_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
-            // std::cout << "BCM pin: " << pinMap_[pinNumber] << " mode " << mode << std::endl;
             pinRegistry_.pinMode(gpioPtr(), pinNumber, mode, gpioToGPFSEL_[pinNumber], gpioToShift_[pinNumber]);
         }
 
@@ -235,42 +209,13 @@ namespace WiringPi
         static constexpr const pinTable gpioToShift_ = gpioToShift();
 
         // Pin conversion table
-        static constexpr const pinTable pinMap_ = pinMapI<pi_.gpioLayout()>(wiringPiMode_);
-        // static constexpr const pinTable physToGpio_ = physToGpioI<pi_.gpioLayout()>();
+        static constexpr const pinTable pinMap_ = pinMapI<pi_.gpioLayout(), wiringPiMode_>();
 
         // Physical pin names
         static constexpr const nameTable physNames_ = physNamesI();
 
         // System mode pin table cannot be constexpr
         const pinTable sysFds_ = sysFdsI(wiringPiMode_);
-
-        // Check if using debug environment
-        // [[nodiscard]] inline int isDebug()
-        // {
-        // if (getenv(ENV_DEBUG()) != NULL)
-        // {
-        //     return static_cast<int>(true);
-        // }
-        // else
-        // {
-        //     return static_cast<int>(false);
-        // }
-        // return true;
-        // }
-
-        // Check if using return codes
-        // [[nodiscard]] inline int isReturnCodes() const
-        // {
-        // if (getenv(ENV_CODES()) != NULL)
-        // {
-        //     return static_cast<int>(true);
-        // }
-        // else
-        // {
-        //     return static_cast<int>(false);
-        // }
-        // return true;
-        // }
 
         // Check access to device memory
         const int fd_ = checkDevMem();

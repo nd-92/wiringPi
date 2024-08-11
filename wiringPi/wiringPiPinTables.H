@@ -143,10 +143,11 @@ namespace WiringPi
             nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>()};
     }
 
-    template <const int layout>
-    [[nodiscard]] inline consteval const pinTable pinMapI(const int mode)
+    template <const int layout, const int mode>
+    [[nodiscard]] inline consteval const pinTable pinMapI()
     {
         static_assert((layout == 1 || layout == 2));
+        static_assert((mode == WPI_MODE_PINS() || mode == WPI_MODE_GPIO() || mode == WPI_MODE_PHYS()));
         switch (mode)
         {
         case WPI_MODE_PINS():
