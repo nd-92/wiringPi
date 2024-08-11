@@ -2,33 +2,34 @@
 #define __WIRING_PI_INCLUDES_H
 
 // Header includes
-#include <iostream>
-#include <vector>
+#include <algorithm>
 #include <array>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include <asm/ioctl.h>
+#include <atomic>
+#include <cassert>
 #include <ctype.h>
-#include <poll.h>
-#include <unistd.h>
 #include <errno.h>
-#include <string.h>
-#include <time.h>
 #include <fcntl.h>
+#include <iostream>
+#include <memory>
+#include <poll.h>
 #include <pthread.h>
-#include <sys/time.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
+#include <string.h>
+#include <string_view>
+#include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <sys/wait.h>
-#include <sys/ioctl.h>
-#include <asm/ioctl.h>
-#include <string>
-#include <memory>
+#include <time.h>
+#include <unistd.h>
 #include <utility>
-#include <algorithm>
-#include <cassert>
-#include <string_view>
+#include <vector>
 
 #endif

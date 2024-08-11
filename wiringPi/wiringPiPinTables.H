@@ -110,9 +110,21 @@ namespace WiringPi
         }
     }
 
+    [[nodiscard]] inline consteval const pinTable physToWpiI()
+    {
+        return pinTable{
+            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), 8, nullPin<pin_t>(), 9, nullPin<pin_t>(), 7,
+            15, nullPin<pin_t>(), 16, 0, 1, 2, nullPin<pin_t>(), 3,
+            4, nullPin<pin_t>(), 5, 12, nullPin<pin_t>(), 13, 6, 14,
+            10, nullPin<pin_t>(), 11, 30, 31, 21, nullPin<pin_t>(), 22,
+            26, 23, nullPin<pin_t>(), 24, 27, 25, 28, nullPin<pin_t>(),
+            29, nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), 17, 18, 19, 20, nullPin<pin_t>(),
+            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>()};
+    }
+
     [[nodiscard]] inline consteval const pinTable pinMapI(const int mode, const int layout)
     {
-
         switch (mode)
         {
         case WPI_MODE_PINS():
@@ -255,6 +267,19 @@ namespace WiringPi
             0, 3, 6, 9, 12, 15, 18, 21,
             24, 27, 0, 3, 6, 9, 12, 15,
             18, 21, 24, 27, nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>()};
+    }
+
+    [[nodiscard]] inline consteval const nameTable physNamesI()
+    {
+        return nameTable{
+            "       ", "   3.3v", "5v     ", "  SDA.1", "5v     ", "  SCL.1", "0v     ", "GPIO. 7",
+            "TxD    ", "     0v", "RxD    ", "GPIO. 0", "GPIO. 1", "GPIO. 2", "0v     ", "GPIO. 3",
+            "GPIO. 4", "   3.3v", "GPIO. 5", "   MOSI", "0v     ", "   MISO", "GPIO. 6", "   SCLK",
+            "CE0    ", "     0v", "CE1    ", "  SDA.0", "SCL.0  ", "GPIO.21", "0v     ", "GPIO.22",
+            "GPIO.26", "GPIO.23", "0v     ", "GPIO.24", "GPIO.27", "GPIO.25", "GPIO.28", "     0v",
+            "GPIO.29", "       ", "       ", "       ", "       ", "       ", "       ", "       ",
+            "       ", "       ", "       ", "GPIO.17", "GPIO.18", "GPIO.19", "GPIO.20", "       ",
+            "       ", "       ", "       ", "       ", "       ", "       ", "       ", "       "};
     }
 }
 

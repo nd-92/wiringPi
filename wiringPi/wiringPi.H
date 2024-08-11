@@ -10,15 +10,29 @@
 
 namespace WiringPi
 {
+    static constinit std::atomic<bool> quit(false);
+
+    void signalHandler(int)
+    {
+        quit.store(true);
+    }
+
+    // Check if pin is onboard
+    // Returns true only if less than 32
+    // This needs to be declared outside of the class to be a constant expression
+    // template <const pin_t pinNumber>
+    [[nodiscard]] inline consteval bool isOnboard(const pin_t pinNumber)
+    {
+        return pinNumber < 32;
+    }
+
     // Templated, but at present only works correctly in GPIO mode
     // template <int wpiMode>
     class wiringPi
     {
     public:
         [[nodiscard]] inline wiringPi()
-            : wiringPiDebug_(isDebug()),
-              wiringPiReturnCodes_(isReturnCodes()),
-              gpio(mapHardware<gpio_t>(pi_.GPIO_BASE())),
+            : gpio(mapHardware<gpio_t>(pi_.GPIO_BASE())),
               pwm(mapHardware<pwm_t>(pi_.GPIO_PWM())),
               clk(mapHardware<clk_t>(pi_.GPIO_CLOCK_BASE())),
               pads(mapHardware<pads_t>(pi_.GPIO_PADS())),
@@ -33,31 +47,114 @@ namespace WiringPi
             assert((clk != MAP_FAILED));
             assert((pads != MAP_FAILED));
             assert((timer != MAP_FAILED));
+
+            // Make sure cleanup is performed on interrupt, terminate, hangup or segfault
+            struct sigaction sa;
+            memset(&sa, 0, sizeof(sa));
+            sa.sa_handler = signalHandler;
+            sigfillset(&sa.sa_mask);
+            sigaction(SIGINT, &sa, NULL);
+            sigaction(SIGTERM, &sa, NULL);
+            sigaction(SIGHUP, &sa, NULL);
+            sigaction(SIGSEGV, &sa, NULL);
+
+            std::cout << "WiringPi initialised on mode " << wiringPiModes()[wiringPiMode_] << std::endl;
         }
 
         ~wiringPi()
         {
-            for (pin_t pin = 0; pin < 32; pin++)
-            {
-                pinModeOnboard(pin, INPUT<gpio_t>());
-            }
+            // Statically checked loop to reset pin modes to input
+            resetPins();
+
+            std::cout << "\nwiringPi exited cleanly" << std::endl;
         };
 
-        // Read an input bit
-        [[nodiscard]] inline gpio_t digitalReadOnboard(const pin_t pinNumber) const volatile
+        void resetPins(std::integral_constant<pin_t, 32>) {}
+
+        template <pin_t index = 0>
+        void resetPins(std::integral_constant<pin_t, index> = std::integral_constant<pin_t, 0>())
         {
+            pinModeOnboard<index>(INPUT<gpio_t>());
+            // std::cout << "Reset pin " << index << std ::endl;
+            resetPins(std::integral_constant<pin_t, index + 1>());
+        }
+
+        // inline void readAll() const
+        // {
+        //     std::cout << " +------+-----+---+--Model " << pi_.modelString() << "--+---+-----+------+ " << std::endl;
+        //     std::cout << " | MODE | wPi | V | pin || pin | V | wPi | MODE | " << std::endl;
+        //     std::cout << " +------+-----+---+-----++-----+---+-----+------+ " << std::endl;
+
+        //     for (pin_t i = 0; i < 32; i += 2)
+        //     {
+        //         std::cout << " |";
+        //         std::cout << modeStrings()[pinModeMap()[i]];
+        //         std::cout << "| " << pinString(pinMap_[i]);
+        //         std::cout << "| " << digitalReadOnboard(i) << " |";
+        //         std::cout << pinString(i);
+        //         std::cout << " || ";
+        //         std::cout << pinString(i + 1);
+        //         std::cout << "| " << digitalReadOnboard(i + 1) << " |";
+        //         std::cout << pinString(pinMap_[i + 1]);
+        //         std::cout << " |";
+        //         std::cout << modeStrings()[pinModeMap()[i + 1]] << "|";
+        //         std::cout << std::endl;
+        //     }
+
+        //     std::cout << " +------+-----+---+--Model " << pi_.modelString() << "--+---+-----+------+ " << std::endl;
+        //     std::cout << " | MODE | wPi | V | pin || pin | V | wPi | MODE | " << std::endl;
+        //     std::cout << " +------+-----+---+-----++-----+---+-----+------+ " << std::endl;
+        // }
+
+        inline void readAll() const
+        {
+            for (pin_t i = 0; i < 32; i++)
+            {
+                std::cout << "Pin " << i << ", mode " << modeStrings()[pinModeMap()[i]] << std::endl;
+            }
+        }
+
+        const std::string pinString(const pin_t i) const
+        {
+            if (i == nullPin<pin_t>())
+            {
+                return "    ";
+            }
+            if (i > 9)
+            {
+                return " " + std::to_string(i) + " ";
+            }
+            return "  " + std::to_string(i) + " ";
+        }
+
+        // Program kill switch
+        // Safer replacement for while(1)
+        [[nodiscard]] inline bool run() const
+        {
+            return !(quit.load());
+        }
+
+        // Read an input bit
+        template <const pin_t pinNumber>
+        [[nodiscard]] inline gpio_t digitalReadOnboard() const volatile
+        {
+            static_assert(isOnboard(pinMap_[pinNumber]), "Finished properly");
             return pinRegistry_.digitalRead(gpioPtr(), pinMap_[pinNumber]);
         }
 
         // Write an output bit
-        inline void digitalWriteOnboard(const pin_t pinNumber, const gpio_t value) const volatile
+        template <const pin_t pinNumber>
+        inline void digitalWriteOnboard(const gpio_t value) const volatile
         {
+            static_assert(isOnboard(pinMap_[pinNumber]), "Finished properly");
             pinRegistry_.digitalWrite(gpioPtr(), pinMap_[pinNumber], value);
         }
 
         // Sets the mode of a pin to be input, output or PWM output
-        inline void pinModeOnboard(const pin_t pinNumber, const gpio_t mode)
+        template <const pin_t pinNumber>
+        inline void pinModeOnboard(const gpio_t mode)
         {
+            static_assert(isOnboard(pinMap_[pinNumber]), "Finished properly");
             pinRegistry_.pinMode(gpioPtr(), pinNumber, mode, gpioToGPFSEL_[pinNumber], gpioToShift_[pinNumber]);
         }
 
@@ -106,22 +203,28 @@ namespace WiringPi
             return gpio;
         }
 
-        [[nodiscard]] inline consteval std::string_view onboardNames() const
+        [[nodiscard]] inline consteval const std::string_view onboardNames() const
         {
             return pinRegistry_.deviceName();
         }
 
+        // [[nodiscard]] inline consteval const nameTable physNames() const
+        [[nodiscard]] inline constexpr const nameTable physNames() const
+        {
+            return physNames_;
+        }
+
     private:
         // Pi hardware info
-        static constexpr const WiringPi::piHardware pi_ = piHardware();
+        static constexpr const piHardware pi_ = piHardware();
 
         // Registry of onboard pins
-        WiringPi::onboardPins pinRegistry_ = onboardPins();
+        onboardPins pinRegistry_ = onboardPins();
 
         // Setup info
-        static constexpr const int wiringPiSetuped_ = static_cast<int>(true);
-        const int wiringPiDebug_;
-        const int wiringPiReturnCodes_;
+        // static constexpr const int wiringPiSetuped_ = static_cast<int>(true);
+        // const int wiringPiDebug_;
+        // const int wiringPiReturnCodes_;
         static constexpr const int wiringPiMode_ = WPI_MODE_PINS();
 
         // Offset to the Pull Up Down Clock regsiter
@@ -141,37 +244,41 @@ namespace WiringPi
 
         // Pin conversion table
         static constexpr const pinTable pinMap_ = pinMapI(wiringPiMode_, pi_.gpioLayout());
+        static constexpr const pinTable physToGpio_ = physToGpioI(pi_.gpioLayout());
+
+        // Physical pin names
+        static constexpr const nameTable physNames_ = physNamesI();
 
         // System mode pin table cannot be constexpr
         const pinTable sysFds_ = sysFdsI(wiringPiMode_);
 
         // Check if using debug environment
-        [[nodiscard]] inline int isDebug()
-        {
-            // if (getenv(ENV_DEBUG()) != NULL)
-            // {
-            //     return static_cast<int>(true);
-            // }
-            // else
-            // {
-            //     return static_cast<int>(false);
-            // }
-            return true;
-        }
+        // [[nodiscard]] inline int isDebug()
+        // {
+        // if (getenv(ENV_DEBUG()) != NULL)
+        // {
+        //     return static_cast<int>(true);
+        // }
+        // else
+        // {
+        //     return static_cast<int>(false);
+        // }
+        // return true;
+        // }
 
         // Check if using return codes
-        [[nodiscard]] inline int isReturnCodes() const
-        {
-            // if (getenv(ENV_CODES()) != NULL)
-            // {
-            //     return static_cast<int>(true);
-            // }
-            // else
-            // {
-            //     return static_cast<int>(false);
-            // }
-            return true;
-        }
+        // [[nodiscard]] inline int isReturnCodes() const
+        // {
+        // if (getenv(ENV_CODES()) != NULL)
+        // {
+        //     return static_cast<int>(true);
+        // }
+        // else
+        // {
+        //     return static_cast<int>(false);
+        // }
+        // return true;
+        // }
 
         // Check access to device memory
         const int fd_ = checkDevMem();
@@ -183,7 +290,7 @@ namespace WiringPi
 
             if (gpiomemGlobal == NULL || (fd = open(gpiomemGlobal, O_RDWR | O_SYNC | O_CLOEXEC)) < 0)
             {
-                std::cout << "wiringPi: No access to " << gpiomemGlobal << ": try " << gpiomemModule << std::endl;
+                std::cout << "wiringPi: No access to /dev/mem: try /dev/gpiomem" << std::endl;
                 if (!(gpiomemModule && (fd = open(gpiomemModule, O_RDWR | O_SYNC | O_CLOEXEC)) >= 0))
                 {
                     return failure(false, "wiringPiSetup: Unable to open %s or %s: %s.\n"

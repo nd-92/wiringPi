@@ -10,7 +10,7 @@ namespace WiringPi
     // Check WPI mode
     [[nodiscard]] inline consteval int getMode(const int mode, const int model)
     {
-        if ((model == PI_MODEL_CM()) || (model == PI_MODEL_CM3()) || (model == PI_MODEL_CM3P()))
+        if ((model == PI_MODEL_CM<int>()) || (model == PI_MODEL_CM3<int>()) || (model == PI_MODEL_CM3P<int>()))
         {
             return WPI_MODE_GPIO();
         }
@@ -27,19 +27,19 @@ namespace WiringPi
         T i = 0;
         switch (model)
         {
-        case PI_MODEL_A():
-        case PI_MODEL_B():
-        case PI_MODEL_AP():
-        case PI_MODEL_BP():
-        case PI_ALPHA():
-        case PI_MODEL_CM():
-        case PI_MODEL_ZERO():
-        case PI_MODEL_ZERO_W():
+        case PI_MODEL_A<int>():
+        case PI_MODEL_B<int>():
+        case PI_MODEL_AP<int>():
+        case PI_MODEL_BP<int>():
+        case PI_MODEL_ALPHA<int>():
+        case PI_MODEL_CM<int>():
+        case PI_MODEL_ZERO<int>():
+        case PI_MODEL_ZERO_W<int>():
             i = GPPUD<T>();
             break;
-        case PI_MODEL_4B():
-        case PI_MODEL_400():
-        case PI_MODEL_CM4():
+        case PI_MODEL_4B<int>():
+        case PI_MODEL_400<int>():
+        case PI_MODEL_CM4<int>():
             i = GPPUPPDN0<T>();
             break;
         default:
@@ -57,19 +57,19 @@ namespace WiringPi
         // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0
         switch (model)
         {
-        case PI_MODEL_A():
-        case PI_MODEL_B():
-        case PI_MODEL_AP():
-        case PI_MODEL_BP():
-        case PI_ALPHA():
-        case PI_MODEL_CM():
-        case PI_MODEL_ZERO():
-        case PI_MODEL_ZERO_W():
+        case PI_MODEL_A<int>():
+        case PI_MODEL_B<int>():
+        case PI_MODEL_AP<int>():
+        case PI_MODEL_BP<int>():
+        case PI_MODEL_ALPHA<int>():
+        case PI_MODEL_CM<int>():
+        case PI_MODEL_ZERO<int>():
+        case PI_MODEL_ZERO_W<int>():
             i = GPIO_PERI_BASE_OLD<int>();
             break;
-        case PI_MODEL_4B():
-        case PI_MODEL_400():
-        case PI_MODEL_CM4():
+        case PI_MODEL_4B<int>():
+        case PI_MODEL_400<int>():
+        case PI_MODEL_CM4<int>():
             i = GPIO_PERI_BASE_2711<int>();
             break;
         default:

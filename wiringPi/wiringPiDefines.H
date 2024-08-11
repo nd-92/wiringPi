@@ -15,6 +15,7 @@ namespace WiringPi
     typedef uint32_t timer_t;
     typedef std::array<pin_t, 64> pinTable;
     typedef std::array<gpio_t, 64> gpioTable;
+    typedef std::array<std::string_view, 64> nameTable;
 
     // Mask for the bottom 64 pins which belong to the Raspberry Pi
     // The others are available for the other devices
@@ -79,6 +80,30 @@ namespace WiringPi
     {
         return 7;
     }
+    [[nodiscard]] inline consteval std::array<std::string_view, 8> pinModes()
+    {
+        return std::array<std::string_view, 8>{
+            "IN",
+            "OUT",
+            "PWM_OUTPUT",
+            "GPIO_CLOCK",
+            "SOFT_PWM_OUTPUT",
+            "SOFT_TONE_OUTPUT",
+            "PWM_TONE_OUTPUT",
+            "PWM_OFF"};
+    }
+    [[nodiscard]] inline consteval std::array<std::string_view, 8> modeStrings()
+    {
+        return std::array<std::string_view, 8>{
+            "  IN  ",
+            "  OUT ",
+            "PWM_OUTPUT",
+            "GPIO_CLOCK",
+            "SOFT_PWM_OUTPUT",
+            "SOFT_TONE_OUTPUT",
+            "PWM_TONE_OUTPUT",
+            "PWM_OFF"};
+    }
 
     // Return values
     template <typename T>
@@ -117,83 +142,148 @@ namespace WiringPi
     {
         return -1;
     }
+    [[nodiscard]] inline consteval std::array<std::string_view, 6> wiringPiModes()
+    {
+        return std::array<std::string_view, 6>{
+            "PINS",
+            "GPIO",
+            "GPIO_SYS",
+            "PHYS",
+            "PIFACE",
+            "UNINITIALISED"};
+    }
 
     // Pi models
-    [[nodiscard]] inline consteval int PI_MODEL_A()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_A()
     {
         return 0;
     }
-    [[nodiscard]] inline consteval int PI_MODEL_B()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_B()
     {
         return 1;
     }
-    [[nodiscard]] inline consteval int PI_MODEL_AP()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_AP()
     {
         return 2;
     }
-    [[nodiscard]] inline consteval int PI_MODEL_BP()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_BP()
     {
         return 3;
     }
-    [[nodiscard]] inline consteval int PI_MODEL_2()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_2()
     {
         return 4;
     }
-    [[nodiscard]] inline consteval int PI_ALPHA()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_ALPHA()
     {
         return 5;
     }
-    [[nodiscard]] inline consteval int PI_MODEL_CM()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_CM()
     {
         return 6;
     }
-    [[nodiscard]] inline consteval int PI_MODEL_07()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_07()
     {
         return 7;
     }
-    [[nodiscard]] inline consteval int PI_MODEL_3B()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_3B()
     {
         return 8;
     }
-    [[nodiscard]] inline consteval int PI_MODEL_ZERO()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_ZERO()
     {
         return 9;
     }
-    [[nodiscard]] inline consteval int PI_MODEL_CM3()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_CM3()
     {
         return 10;
     }
-    [[nodiscard]] inline consteval int PI_MODEL_ZERO_W()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_ZERO_W()
     {
         return 12;
     }
-    [[nodiscard]] inline consteval int PI_MODEL_3BP()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_3BP()
     {
         return 13;
     }
-    [[nodiscard]] inline consteval int PI_MODEL_3AP()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_3AP()
     {
         return 14;
     }
-    [[nodiscard]] inline consteval int PI_MODEL_CM3P()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_CM3P()
     {
         return 16;
     }
-    [[nodiscard]] inline consteval int PI_MODEL_4B()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_4B()
     {
         return 17;
     }
-    [[nodiscard]] inline consteval int PI_MODEL_ZERO_2W()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_ZERO_2W()
     {
         return 18;
     }
-    [[nodiscard]] inline consteval int PI_MODEL_400()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_400()
     {
         return 19;
     }
-    [[nodiscard]] inline consteval int PI_MODEL_CM4()
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_CM4()
     {
         return 20;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_CM4S()
+    {
+        return 21;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PI_MODEL_5()
+    {
+        return 23;
+    }
+
+    [[nodiscard]] inline consteval std::array<std::string_view, 21> piModelStrings()
+    {
+        return std::array<std::string_view, 21>{
+            "A",
+            "B",
+            "AP",
+            "BP",
+            "2",
+            "ALPHA",
+            "CM",
+            "07",
+            "3B",
+            "ZERO",
+            "CM3",
+            "",
+            "ZERO_W",
+            "3BP",
+            "3AP",
+            "",
+            "CM3P",
+            "4B",
+            "ZERO_2W",
+            "400",
+            "CM4"};
     }
 
     // Pi versions
