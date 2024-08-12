@@ -1,5 +1,13 @@
-#ifndef __WIRING_PI_INCLUDES_H
-#define __WIRING_PI_INCLUDES_H
+// ======================================================================== //
+//                                                                          //
+// wiringPiIncludes.H                                                       //
+//                                                                          //
+// ======================================================================== //
+// Header includes necessary for the library                                //
+// ======================================================================== //
+
+#ifndef __WIRING_PI_wiringPiIncludes_H
+#define __WIRING_PI_wiringPiIncludes_H
 
 // Header includes
 #include <algorithm>

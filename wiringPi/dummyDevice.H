@@ -1,7 +1,13 @@
-#ifndef __WIRING_PI_DUMMY_DEVICE_H
-#define __WIRING_PI_DUMMY_DEVICE_H
+// ======================================================================== //
+//                                                                          //
+// nullDevice.H                                                             //
+//                                                                          //
+// ======================================================================== //
+// Dummy device occupying 8 pins by default                                 //
+// ======================================================================== //
 
-// Dummy device occupying 8 pins by default
+#ifndef __WIRING_PI_dummyDevice_H
+#define __WIRING_PI_dummyDevice_H
 
 namespace WiringPi
 {

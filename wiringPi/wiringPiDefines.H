@@ -1,5 +1,13 @@
-#ifndef __WIRING_PI_DEFINES_H
-#define __WIRING_PI_DEFINES_H
+// ======================================================================== //
+//                                                                          //
+// wiringPiDefines.H                                                        //
+//                                                                          //
+// ======================================================================== //
+// Useful typedefs, constants, etc used throughout the source code          //
+// ======================================================================== //
+
+#ifndef __WIRING_PI_wiringPiDefines_H
+#define __WIRING_PI_wiringPiDefines_H
 
 #include "wiringPiIncludes.H"
 

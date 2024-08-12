@@ -1,7 +1,13 @@
-#ifndef __WIRING_PI_NULL_DEVICE_H
-#define __WIRING_PI_NULL_DEVICE_H
+// ======================================================================== //
+//                                                                          //
+// nullDevice.H                                                             //
+//                                                                          //
+// ======================================================================== //
+// Null device occupying 1 pin by default                                   //
+// ======================================================================== //
 
-// Null device occupying 1 pin by default
+#ifndef __WIRING_PI_nullDevice_H
+#define __WIRING_PI_nullDevice_H
 
 namespace WiringPi
 {

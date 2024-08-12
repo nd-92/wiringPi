@@ -4,6 +4,7 @@
 // ************************************************************ //
 
 // Header includes
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -25,6 +26,7 @@
 #include <sys/wait.h>
 #include <sys/ioctl.h>
 #include <asm/ioctl.h>
+#include <cassert>
 
 #define WPI_MODE_PINS 0
 #define WPI_MODE_GPIO 1
@@ -113,9 +115,8 @@ int piGpioLayout(void)
     char line[120];
     char *c;
     static int gpioLayout = -1;
-    // constexpr int gpioLayout = -1;
 
-    if (gpioLayout != -1) // No point checking twice
+    if (gpioLayout != -1)
     {
         return gpioLayout;
     }
@@ -125,10 +126,6 @@ int piGpioLayout(void)
         piGpioLayoutOops("Unable to open /proc/cpuinfo");
     }
 
-    // Start by looking for the Architecture to make sure we're really running
-    //	on a Pi. I'm getting fed-up with people whinging at me because
-    //	they can't get it to work on weirdFruitPi boards...
-
     while (fgets(line, 120, cpuFd) != NULL)
     {
         if (strncmp(line, "Hardware", 8) == 0)
@@ -136,46 +133,6 @@ int piGpioLayout(void)
             break;
         }
     }
-
-    // if (strncmp(line, "Hardware", 8) != 0)
-    //{
-    //     piGpioLayoutOops("No \"Hardware\" line");
-    // }
-
-    // if (wiringPiDebug)
-    {
-        // printf("piGpioLayout: Hardware: %s\n", line);
-    }
-
-    // See if it's BCM2708 or BCM2709 or the new BCM2835.
-
-    // OK. As of Kernel 4.8,  we have BCM2835 only, regardless of model.
-    //	However I still want to check because it will trap the cheapskates and rip-
-    //	off merchants who want to use wiringPi on non-Raspberry Pi platforms - which
-    //	I do not support so don't email me your bleating whinges about anything
-    //	other than a genuine Raspberry Pi.
-
-    // Actually... That has caused me more than 10,000 emails so-far. Mosty by
-    //	people who think they know better by creating a statically linked
-    //	version that will not run with a new 4.9 kernel. I utterly hate and
-    //	despise those people.
-    //
-    //	I also get bleats from people running other than Raspbian with another
-    //	distros compiled kernel rather than a foundation compiled kernel, so
-    //	this might actually help them. It might not - I only have the capacity
-    //	to support Raspbian.
-    //
-    //	However, I've decided to leave this check out and rely purely on the
-    //	Revision: line for now. It will not work on a non-pi hardware or weird
-    //	kernels that don't give you a suitable revision line.
-
-    // So - we're Probably on a Raspberry Pi. Check the revision field for the real
-    //	hardware type
-    //	In-future, I ought to use the device tree as there are now Pi entries in
-    //	/proc/device-tree/ ...
-    //	but I'll leave that for the next revision. Or the next.
-
-    // Isolate the Revision line
 
     rewind(cpuFd);
     while (fgets(line, 120, cpuFd) != NULL)
@@ -266,6 +223,23 @@ int piGpioLayout(void)
     return gpioLayout;
 }
 
+std::string generateHeaderTimeString()
+{
+    const auto end = std::chrono::system_clock::now();
+    const std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    const std::string generatedString = "// Header generated on " + std::string(strtok(std::ctime(&end_time), "\n"));
+    const std::string lineString = "// ======================================================================== //";
+    const size_t toPad = lineString.length() - generatedString.length();
+
+    std::string padString = "//";
+    for (size_t i = 0; i < toPad - 2; i++)
+    {
+        padString = " " + padString;
+    }
+
+    return generatedString + padString;
+}
+
 int main()
 {
     FILE *cpuFd;
@@ -282,10 +256,13 @@ int main()
 
     // (void)piGpioLayout(); // Call this first to make sure all's OK. Don't care about the result.
 
-    if ((cpuFd = fopen("/proc/cpuinfo", "r")) == NULL)
-    {
-        // piGpioLayoutOops("Unable to open /proc/cpuinfo");
-    }
+    // if ((cpuFd = fopen("/proc/cpuinfo", "r")) == NULL)
+    // {
+    //     // piGpioLayoutOops("Unable to open /proc/cpuinfo");
+    // }
+
+    cpuFd = fopen("/proc/cpuinfo", "r");
+    assert((cpuFd != NULL));
 
     while (fgets(line, 120, cpuFd) != NULL)
     {
@@ -309,11 +286,6 @@ int main()
         *c = 0;
     }
 
-    // if (wiringPiDebug)
-    {
-        // printf("piBoardId: Revision string: %s\n", line);
-    }
-
     // Need to work out if it's using the new or old encoding scheme:
 
     // Scan to the first character of the revision number
@@ -326,22 +298,12 @@ int main()
         }
     }
 
-    if (*c != ':')
-    {
-        // piGpioLayoutOops("Bogus \"Revision\" line (no colon)");
-    }
-
     // Chomp spaces
 
     ++c;
     while (isspace(*c))
     {
         ++c;
-    }
-
-    if (!isxdigit(*c))
-    {
-        // piGpioLayoutOops("Bogus \"Revision\" line (no hex digit at start of revision)");
     }
 
     revision = (unsigned int)strtol(c, NULL, 16); // Hex number with no leading 0x
@@ -352,14 +314,8 @@ int main()
 
     if ((revision & (1 << 23)) != 0) // New way
     {
-        // if (wiringPiDebug)
-        {
-            // printf("piBoardId: New Way: revision is: %08X\n", revision);
-        }
-
         bRev = (revision & (0x0F << 0)) >> 0;
         bType = (revision & (0xFF << 4)) >> 4;
-        // bProc = (revision & (0x0F << 12)) >> 12; // Not used for now.
         bMfg = (revision & (0x0F << 16)) >> 16;
         bMem = (revision & (0x07 << 20)) >> 20;
         bWarranty = (revision & (0x03 << 24)) != 0;
@@ -369,13 +325,6 @@ int main()
         mem = bMem;
         maker = bMfg;
         warranty = bWarranty;
-
-        // if (wiringPiDebug)
-        {
-            // printf(
-            //     "piBoardId: rev: %d, type: %d, proc: %d, mfg: %d, mem: %d, warranty: %d\n",
-            //     bRev, bType, bProc, bMfg, bMem, bWarranty);
-        }
     }
     else // Old way
     {
@@ -576,17 +525,19 @@ int main()
         }
     }
 
-    // bool usingGpioMem = false;
-    // constexpr const char *gpiomem_global = "/dev/mem";
-    // constexpr const char *gpiomem_BCM = "/dev/gpiomem";
-    // constexpr const char *gpiomemGlobal = gpiomem_global;
-    // constexpr const char *gpiomemModule = gpiomem_BCM;
-    // int fd;
-
     std::ofstream MyFile("piInfo.H");
 
-    MyFile << "#ifndef __PI_INFO_H" << std::endl;
-    MyFile << "#define __PI_INFO_H" << std::endl;
+    MyFile << "// ======================================================================== //" << std::endl;
+    MyFile << "//                                                                          //" << std::endl;
+    MyFile << "// piInfo.H                                                                 //" << std::endl;
+    MyFile << "//                                                                          //" << std::endl;
+    MyFile << "// ======================================================================== //" << std::endl;
+    MyFile << "// Hardware info about your Raspberry Pi necessary for the wiringPi library //" << std::endl;
+    MyFile << generateHeaderTimeString() << std::endl;
+    MyFile << "// ======================================================================== //" << std::endl;
+    MyFile << std::endl;
+    MyFile << "#ifndef __WIRING_PI_piInfo_H" << std::endl;
+    MyFile << "#define __WIRING_PI_piInfo_H" << std::endl;
     MyFile << std::endl;
 
     MyFile << "namespace WiringPi" << std::endl;
@@ -633,10 +584,9 @@ int main()
     MyFile << "    {" << std::endl;
     MyFile << "        return " << warranty << ";" << std::endl;
     MyFile << "    }" << std::endl;
-    MyFile << std::endl;
 
     MyFile << "}" << std::endl;
-
+    MyFile << std::endl;
     MyFile << "#endif" << std::endl;
 
     // Close the file

@@ -2,7 +2,7 @@ clear
 
 cd ../
 make
-./readCpuInfo
+sudo ./readCpuInfo
 cd wiringPi/
 
 rm test

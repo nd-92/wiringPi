@@ -1,5 +1,13 @@
-#ifndef __WIRING_PI_GLOBALS_H
-#define __WIRING_PI_GLOBALS_H
+// ======================================================================== //
+//                                                                          //
+// wiringPiMisc.H                                                           //
+//                                                                          //
+// ======================================================================== //
+// Miscellaneous useful functions for the wiringPi library                  //
+// ======================================================================== //
+
+#ifndef __WIRING_PI_wiringPiTemplateMacros_H
+#define __WIRING_PI_wiringPiTemplateMacros_H
 
 #include "../piInfo.H"
 #include "../version.H"
@@ -21,8 +29,8 @@ namespace WiringPi
     }
 
     // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0
-    // template <typename T>
-    [[nodiscard]] inline consteval uint32_t piGpioPupOffset(const int model)
+    template <typename T>
+    [[nodiscard]] inline consteval T piGpioPupOffset(const int model)
     {
         switch (model)
         {
@@ -56,7 +64,7 @@ namespace WiringPi
         }
         case PI_MODEL_ZERO_W<int>():
         {
-            return GPPUD<uint32_t>();
+            return GPPUD<T>();
         }
         case PI_MODEL_4B<int>():
         {
@@ -68,21 +76,20 @@ namespace WiringPi
         }
         case PI_MODEL_CM4<int>():
         {
-            return GPPUPPDN0<uint32_t>();
+            return GPPUPPDN0<T>();
         }
         default:
         {
-            return GPPUD<uint32_t>();
+            return GPPUD<T>();
         }
         }
     }
 
     // Initialise the base address of the GPIO memory mapped hardware IO
-    // template <typename T>
-    [[nodiscard]] inline constexpr uint32_t piGpioBase(const int model, const bool usingGpioMem)
-    // [[nodiscard]] inline uint32_t piGpioBase(const int model, const bool usingGpioMem)
+    template <typename T>
+    [[nodiscard]] inline constexpr T piGpioBase(const int model, const bool usingGpioMem)
     {
-        uint32_t i = 0;
+        T i = 0;
         // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0
         switch (model)
         {
@@ -116,7 +123,7 @@ namespace WiringPi
         }
         case PI_MODEL_ZERO_W<int>():
         {
-            i = GPIO_PERI_BASE_OLD<uint32_t>();
+            i = GPIO_PERI_BASE_OLD<T>();
             break;
         }
         case PI_MODEL_4B<int>():
@@ -129,12 +136,12 @@ namespace WiringPi
         }
         case PI_MODEL_CM4<int>():
         {
-            i = GPIO_PERI_BASE_2711<uint32_t>();
+            i = GPIO_PERI_BASE_2711<T>();
             break;
         }
         default:
         {
-            i = GPIO_PERI_BASE_2835<uint32_t>();
+            i = GPIO_PERI_BASE_2835<T>();
             break;
         }
         }

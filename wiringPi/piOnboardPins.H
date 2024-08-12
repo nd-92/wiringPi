@@ -1,11 +1,17 @@
-#ifndef __WIRING_PI_onboardPins_H
-#define __WIRING_PI_onboardPins_H
+// ======================================================================== //
+//                                                                          //
+// piOnboardPins.H                                                          //
+//                                                                          //
+// ======================================================================== //
+// Oboard pin class for the Raspberry Pi                                    //
+// Handles reading/writing to/from onboard pins                             //
+// Accesses hardware through read/write methods                             //
+// ======================================================================== //
+
+#ifndef __WIRING_PI_piOnboardPins_H
+#define __WIRING_PI_piOnboardPins_H
 
 #include "wiringPi.H"
-
-// GPIO device occupying 1 pin
-// Default constructor allows setting of mode
-// Only acceptable modes are INPUT/OUTPUT for now
 
 namespace WiringPi
 {

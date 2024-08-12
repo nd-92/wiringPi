@@ -1,3 +1,13 @@
+// ======================================================================== //
+//                                                                          //
+// piMemory.H                                                               //
+//                                                                          //
+// ======================================================================== //
+// Memory management class for the Raspberry Pi                             //
+// Maps devices into program memory                                         //
+// Provides access to device memory through gpioPtr() and pwmPtr() methods  //
+// ======================================================================== //
+
 #ifndef __WIRING_PI_piMemory_H
 #define __WIRING_PI_piMemory_H
 
@@ -36,7 +46,7 @@ namespace WiringPi
     public:
         [[nodiscard]] inline piMemory()
             : devMem_(readDeviceMemory()),
-              piGpioBase_(piGpioBase(model, devMem_.usingGpioMem)),
+              piGpioBase_(piGpioBase<pin_t>(model, devMem_.usingGpioMem)),
               GPIO_BASE_(piGpioBase_ + 0x00200000),
               GPIO_PWM_(piGpioBase_ + 0x0020C000),
               GPIO_CLOCK_BASE_(piGpioBase_ + 0x00101000),

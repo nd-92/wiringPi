@@ -1,5 +1,15 @@
-#ifndef __WIRING_PI_PIN_TABLES_H
-#define __WIRING_PI_PIN_TABLES_H
+// ======================================================================== //
+//                                                                          //
+// wiringPiPinTables.H                                                      //
+//                                                                          //
+// ======================================================================== //
+// Contains pin conversion tables for various running modes                 //
+// Used to initialise the wiringPi class with the correct pin table         //
+// All are consteval to prevent incorrect code from being compiled          //
+// ======================================================================== //
+
+#ifndef __WIRING_PI_wiringPiPinTables_H
+#define __WIRING_PI_wiringPiPinTables_H
 
 #include "wiringPiIncludes.H"
 #include "wiringPiDefines.H"
@@ -11,6 +21,22 @@ namespace WiringPi
     [[nodiscard]] inline consteval T nullPin()
     {
         return static_cast<T>(-1);
+    }
+
+    // Get the number of physical pins for the board layout
+    // Fails compilation if layout is not 1 or 2
+    template <const int layout>
+    [[nodiscard]] inline consteval pin_t numPhysicalPins()
+    {
+        static_assert((layout == 1 || layout == 2));
+        if (layout == 1)
+        {
+            return 17;
+        }
+        else
+        {
+            return 32;
+        }
     }
 
     [[nodiscard]] inline consteval const pinTable gpioToPwmPortI()
@@ -26,6 +52,7 @@ namespace WiringPi
             0, 0, 0, 0, 0, 0, 0, 0};
     }
 
+    // Fails compilation if layout is not 1 or 2
     template <const int layout>
     [[nodiscard]] inline consteval const pinTable pinToGpioI()
     {
@@ -56,20 +83,7 @@ namespace WiringPi
         }
     }
 
-    template <const int layout>
-    [[nodiscard]] inline consteval pin_t numPhysicalPins()
-    {
-        static_assert((layout == 1 || layout == 2));
-        if (layout == 1)
-        {
-            return 17;
-        }
-        else
-        {
-            return 32;
-        }
-    }
-
+    // Fails compilation if layout is not 1 or 2
     template <const int layout>
     [[nodiscard]] inline consteval const pinTable physToGpioI()
     {
@@ -100,6 +114,7 @@ namespace WiringPi
         }
     }
 
+    // Fails compilation if layout is not 1 or 2
     template <const int layout>
     [[nodiscard]] inline consteval const pinTable gpioToGpio()
     {
@@ -143,6 +158,9 @@ namespace WiringPi
             nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>()};
     }
 
+    // Create the pin map for a given wiringPi mode
+    // For now, fails compilation on modes other than PINS, GPIO and PHYS
+    // Fails compilation if layout is not 1 or 2
     template <const int layout, const int mode>
     [[nodiscard]] inline consteval const pinTable pinMapI()
     {
@@ -151,12 +169,19 @@ namespace WiringPi
         switch (mode)
         {
         case WPI_MODE_PINS():
+        {
             return pinToGpioI<layout>();
+        }
         case WPI_MODE_GPIO():
+        {
             return gpioToGpio<layout>();
+        }
         case WPI_MODE_PHYS():
+        {
             return physToGpioI<layout>();
+        }
         default:
+        {
             return pinTable{
                 nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
                 nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
@@ -166,6 +191,7 @@ namespace WiringPi
                 nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
                 nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
                 nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>()};
+        }
         }
     }
 
@@ -256,6 +282,7 @@ namespace WiringPi
             18, 21, 24, 27, nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>()};
     }
 
+    // Physical names of onboard pins
     [[nodiscard]] inline consteval const nameTable physNamesI()
     {
         return nameTable{

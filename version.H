@@ -1,23 +1,32 @@
-#ifndef __WIRING_PI_VERSION_H
-#define __WIRING_PI_VERSION_H
+// ======================================================================== //
+//                                                                          //
+// version.H                                                                //
+//                                                                          //
+// ======================================================================== //
+// Software version info about the wiringPi library                         //
+// ======================================================================== //
 
-[[nodiscard]] consteval const std::string_view VERSION()
-{
-    return "2.70";
-}
+#ifndef __WIRING_PI_version_H
+#define __WIRING_PI_version_H
 
-// template <typename T>
-// consteval T VERSION_MAJOR()
-[[nodiscard]] consteval int VERSION_MAJOR()
+namespace WiringPi
 {
-    return 2;
-}
+    [[nodiscard]] consteval const std::string_view VERSION()
+    {
+        return "2.70";
+    }
 
-// template <typename T>
-// consteval T VERSION_MINOR()
-[[nodiscard]] consteval int VERSION_MINOR()
-{
-    return 70;
+    template <typename T>
+    [[nodiscard]] consteval int VERSION_MAJOR()
+    {
+        return 2;
+    }
+
+    template <typename T>
+    [[nodiscard]] consteval int VERSION_MINOR()
+    {
+        return 70;
+    }
 }
 
 #endif

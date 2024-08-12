@@ -1,3 +1,13 @@
+// ======================================================================== //
+//                                                                          //
+// piHardwareInfo.H                                                         //
+//                                                                          //
+// ======================================================================== //
+// Hardware information class for the Raspberry Pi                          //
+// All functions consteval                                                  //
+// Requires piInfo.H to be generated in order to function - use readCpuInfo //
+// ======================================================================== //
+
 #ifndef __WIRING_PI_piHardwareInfo_H
 #define __WIRING_PI_piHardwareInfo_H
 
@@ -70,7 +80,7 @@ namespace WiringPi
         static constexpr const int piMem_ = PI_MEM<int>();
         static constexpr const int piMaker_ = PI_MAKER<int>();
         static constexpr const int piWarranty_ = PI_WARRANTY<int>();
-        static constexpr const pin_t piGpioPupOffset_ = piGpioPupOffset(piModel_);
+        static constexpr const pin_t piGpioPupOffset_ = piGpioPupOffset<pin_t>(piModel_);
         static constexpr const std::string_view modelString_ = piModelStrings()[PI_MODEL<size_t>()];
         static constexpr const pin_t numPhysicalPins_ = numPhysicalPins<GPIO_LAYOUT<int>()>();
     };
