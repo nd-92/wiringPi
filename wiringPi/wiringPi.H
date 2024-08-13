@@ -130,13 +130,98 @@ namespace WiringPi
 
         // Set an output PWM value
         template <const pin_t pinNumber>
-        inline void pwmWriteOnboard(const pwm_t value)
+        inline void pwmWriteOnboard(const pwm_t value) const
         {
             static_assert(piHardware_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
             static_assert(wiringPiMode_ == WPI_MODE_GPIO(), "wiringPi not initialised in GPIO mode: pwmWriteOnboard cannot be called");
             assert((piMemory_.gpioBase() == 0) && "GPIO base address must be 0: pwmWriteOnboard cannot be called");
             assert((!piMemory_.usingGpioMemory()) && "Application is using GPIO memory. Unable to do this when using /dev/gpiomem. Try sudo?");
             onboardPins_.pwmWrite<pinMap_[pinNumber]>(piMemory_.pwmPtr(), value);
+        }
+
+        template <const pin_t pinNumber>
+        inline void pwmToneWriteOnboard(const timer_t freq) const
+        {
+            if (freq == 0)
+            {
+                pwmWriteOnboard<pinNumber>(0);
+            }
+            else
+            {
+                pwmSetRange(600000 / freq);
+                pwmWriteOnboard<pinNumber>(freq / 2);
+            }
+        }
+
+        // Select the native "balanced" mode, or standard mark:space mode
+        template <const int mode>
+        inline void pwmSetMode() const
+        {
+            static_assert(((wiringPiMode == WPI_MODE_PINS()) || (wiringPiMode == WPI_MODE_PHYS()) || (wiringPiMode == WPI_MODE_GPIO())), "Invalid wiringPiMode for pwmSetMode: valid modes are PINS, PHYS, GPIO.");
+            static_assert(((mode == PWM_MODE_MS<int>()) || (mode == PWM_MODE_BAL<int>())), "Invalid mode for pwmSetMode: valid modes are MS, BAL.");
+            {
+                if constexpr (mode == PWM_MODE_MS<int>())
+                {
+                    *(piMemory_.pwmPtr() + PWM_CONTROL<pwm_t>()) = PWM0_ENABLE<pwm_t>() | PWM1_ENABLE<pwm_t>() | PWM0_MS_MODE<pwm_t>() | PWM1_MS_MODE<pwm_t>();
+                }
+                else if constexpr (mode == PWM_MODE_BAL<int>())
+                {
+                    *(piMemory_.pwmPtr() + PWM_CONTROL<pwm_t>()) = PWM0_ENABLE<pwm_t>() | PWM1_ENABLE<pwm_t>();
+                }
+            }
+        }
+
+        // template <const pwm_t range>
+        inline void pwmSetRange(const pwm_t range) const
+        {
+            static_assert(((wiringPiMode == WPI_MODE_PINS()) || (wiringPiMode == WPI_MODE_PHYS()) || (wiringPiMode == WPI_MODE_GPIO())), "Invalid wiringPiMode for pwmSetMode: valid modes are PINS, PHYS, GPIO.");
+            {
+                *(piMemory_.pwmPtr() + PWM0_RANGE<pwm_t>()) = range;
+                delayMicroseconds(10);
+                *(piMemory_.pwmPtr() + PWM1_RANGE<pwm_t>()) = range;
+                delayMicroseconds(10);
+            }
+        }
+
+        template <const timer_t divisor>
+        inline void pwmSetClock() const
+        {
+            static_assert(((wiringPiMode == WPI_MODE_PINS()) || (wiringPiMode == WPI_MODE_PHYS()) || (wiringPiMode == WPI_MODE_GPIO())), "Invalid wiringPiMode for pwmSetMode: valid modes are PINS, PHYS, GPIO.");
+            const timer_t divisor_ = reducedDivisor(divisor);
+
+            // Preserve PWM_CONTROL
+            const timer_t pwmControl = *(piMemory_.pwmPtr() + PWM_CONTROL<pwm_t>());
+
+            // Stop PWM
+            *(piMemory_.pwmPtr() + PWM_CONTROL<pwm_t>()) = 0;
+
+            // Stop PWM clock
+            *(piMemory_.clkPtr() + PWMCLK_CNTL<timer_t>()) = BCM_PASSWORD<timer_t>() | 0x01;
+            // Prevents clock going sloooow
+            delayMicroseconds(110);
+
+            // Wait for clock to be !BUSY
+            while ((*(piMemory_.clkPtr() + PWMCLK_CNTL<timer_t>()) & 0x80) != 0)
+            {
+                delayMicroseconds(1);
+            }
+
+            *(piMemory_.clkPtr() + PWMCLK_DIV<timer_t>()) = BCM_PASSWORD<timer_t>() | (divisor_ << 12);
+
+            // Start PWM clock
+            *(piMemory_.clkPtr() + PWMCLK_CNTL<timer_t>()) = BCM_PASSWORD<timer_t>() | 0x11;
+            // Restore PWM_CONTROL
+            *(piMemory_.pwmPtr() + PWM_CONTROL<pwm_t>()) = pwmControl;
+        }
+
+        [[nodiscard]] inline constexpr timer_t reducedDivisor(const timer_t divisor) const
+        {
+            timer_t reducedDivisor = divisor;
+            if (piMemory_.gpioBase() == GPIO_PERI_BASE_2711<pin_t>())
+            {
+                reducedDivisor = 540 * reducedDivisor / 192;
+            }
+            return reducedDivisor &= 4095;
         }
 
         // Returns the map of pins

@@ -121,6 +121,23 @@ namespace WiringPi
             *(pwmPtr + gpioToPwmPort_[pinNumber]) = value;
         }
 
+        // // Select the native "balanced" mode, or standard mark:space mode
+        // template <const int wiringPiMode, const int mode>
+        // inline void pwmSetMode(const pwm_t *pwmPtr) const
+        // {
+        //     if constexpr ((wiringPiMode == WPI_MODE_PINS()) || (wiringPiMode == WPI_MODE_PHYS()) || (wiringPiMode == WPI_MODE_GPIO()))
+        //     {
+        //         if constexpr (mode == PWM_MODE_MS<int>())
+        //         {
+        //             *(pwmPtr + PWM_CONTROL<pwm_t>()) = PWM0_ENABLE<pwm_t>() | PWM1_ENABLE<pwm_t>() | PWM0_MS_MODE<pwm_t>() | PWM1_MS_MODE<pwm_t>();
+        //         }
+        //         else
+        //         {
+        //             *(pwmPtr + PWM_CONTROL<pwm_t>()) = PWM0_ENABLE<pwm_t>() | PWM1_ENABLE<pwm_t>();
+        //         }
+        //     }
+        // }
+
         // Returns the map of pin modes
         [[nodiscard]] inline constexpr const pinTable &pinModeMap() const
         {

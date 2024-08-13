@@ -59,50 +59,6 @@ namespace WiringPi
             return "wiringPiNode";
         }
 
-        inline void delay(const time_t howLong) const
-        {
-            struct timespec sleeper, dummy;
-
-            sleeper.tv_sec = howLong / 1000;
-            sleeper.tv_nsec = (howLong % 1000) * 1000000;
-
-            nanosleep(&sleeper, &dummy);
-        }
-
-        void delayMicrosecondsHard(const time_t howLong) const volatile
-        {
-            struct timeval tNow, tLong, tEnd;
-
-            gettimeofday(&tNow, NULL);
-            tLong.tv_sec = howLong / 1000000;
-            tLong.tv_usec = howLong % 1000000;
-            timeradd(&tNow, &tLong, &tEnd);
-
-            while (timercmp(&tNow, &tEnd, <))
-            {
-                gettimeofday(&tNow, NULL);
-            }
-        }
-
-        void delayMicroseconds(const time_t howLong) const volatile
-        {
-            struct timespec sleeper;
-            if (howLong == 0)
-            {
-                return;
-            }
-            else if (howLong < 100)
-            {
-                delayMicrosecondsHard(howLong);
-            }
-            else
-            {
-                sleeper.tv_sec = (howLong / 1000000);
-                sleeper.tv_nsec = (howLong % 1000000) * 1000L;
-                nanosleep(&sleeper, NULL);
-            }
-        }
-
     private:
     };
 }

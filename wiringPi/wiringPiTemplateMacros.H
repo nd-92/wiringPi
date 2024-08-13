@@ -15,6 +15,51 @@
 namespace WiringPi
 {
 
+    // Put these into a separate timer class later on
+    inline void delay(const time_t howLong)
+    {
+        struct timespec sleeper, dummy;
+
+        sleeper.tv_sec = howLong / 1000;
+        sleeper.tv_nsec = (howLong % 1000) * 1000000;
+
+        nanosleep(&sleeper, &dummy);
+    }
+
+    void delayMicrosecondsHard(const time_t howLong)
+    {
+        struct timeval tNow, tLong, tEnd;
+
+        gettimeofday(&tNow, NULL);
+        tLong.tv_sec = howLong / 1000000;
+        tLong.tv_usec = howLong % 1000000;
+        timeradd(&tNow, &tLong, &tEnd);
+
+        while (timercmp(&tNow, &tEnd, <))
+        {
+            gettimeofday(&tNow, NULL);
+        }
+    }
+
+    void delayMicroseconds(const time_t howLong)
+    {
+        struct timespec sleeper;
+        if (howLong == 0)
+        {
+            return;
+        }
+        else if (howLong < 100)
+        {
+            delayMicrosecondsHard(howLong);
+        }
+        else
+        {
+            sleeper.tv_sec = (howLong / 1000000);
+            sleeper.tv_nsec = (howLong % 1000000) * 1000L;
+            nanosleep(&sleeper, NULL);
+        }
+    }
+
     // Check WPI mode
     [[nodiscard]] inline consteval int getMode(const int mode, const int model)
     {
@@ -89,69 +134,62 @@ namespace WiringPi
     template <typename T>
     [[nodiscard]] inline constexpr T piGpioBase(const int model, const bool usingGpioMem)
     {
-        T i = 0;
+        if (usingGpioMem)
+        {
+            return 0;
+        }
         // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0
         switch (model)
         {
         case PI_MODEL_A<int>():
         {
-            break;
+            return 0;
         }
         case PI_MODEL_B<int>():
         {
-            break;
+            return 0;
         }
         case PI_MODEL_AP<int>():
         {
-            break;
+            return 0;
         }
         case PI_MODEL_BP<int>():
         {
-            break;
+            return 0;
         }
         case PI_MODEL_ALPHA<int>():
         {
-            break;
+            return 0;
         }
         case PI_MODEL_CM<int>():
         {
-            break;
+            return 0;
         }
         case PI_MODEL_ZERO<int>():
         {
-            break;
+            return 0;
         }
         case PI_MODEL_ZERO_W<int>():
         {
-            i = GPIO_PERI_BASE_OLD<T>();
-            break;
+            return GPIO_PERI_BASE_OLD<T>();
         }
         case PI_MODEL_4B<int>():
         {
-            break;
+            return 0;
         }
         case PI_MODEL_400<int>():
         {
-            break;
+            return 0;
         }
         case PI_MODEL_CM4<int>():
         {
-            i = GPIO_PERI_BASE_2711<T>();
-            break;
+            return GPIO_PERI_BASE_2711<T>();
         }
         default:
         {
-            i = GPIO_PERI_BASE_2835<T>();
-            break;
+            return GPIO_PERI_BASE_2835<T>();
         }
         }
-
-        if (usingGpioMem)
-        {
-            i = 0;
-        }
-
-        return i;
     }
 
     [[nodiscard]] int failure(const int fatal, const char *message, ...)

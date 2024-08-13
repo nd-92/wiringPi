@@ -459,6 +459,103 @@ namespace WiringPi
         return 9;
     }
 
+    // PWM
+    template <typename T>
+    [[nodiscard]] inline consteval T PWM_MODE_MS()
+    {
+        return 0;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PWM_MODE_BAL()
+    {
+        return 1;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PWM0_MS_MODE()
+    {
+        return 0x0080;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PWM0_USEFIFO()
+    {
+        return 0x0020;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PWM0_REVPOLAR()
+    {
+        return 0x0010;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PWM0_OFFSTATE()
+    {
+        return 0x0008;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PWM0_REPEATFF()
+    {
+        return 0x0004;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PWM0_SERIAL()
+    {
+        return 0x0002;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PWM0_ENABLE()
+    {
+        return 0x0001;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PWM1_MS_MODE()
+    {
+        return 0x8000;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PWM1_USEFIFO()
+    {
+        return 0x2000;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PWM1_REVPOLAR()
+    {
+        return 0x1000;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PWM1_OFFSTATE()
+    {
+        return 0x0800;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PWM1_REPEATFF()
+    {
+        return 0x0400;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PWM1_SERIAL()
+    {
+        return 0x0200;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PWM1_ENABLE()
+    {
+        return 0x0100;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PWMCLK_CNTL()
+    {
+        return 40;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T PWMCLK_DIV()
+    {
+        return 41;
+    }
+    template <typename T>
+    [[nodiscard]] inline consteval T BCM_PASSWORD()
+    {
+        return 0x5A000000;
+    }
+
     // Timer offsets
     template <typename T>
     [[nodiscard]] inline consteval T TIMER_LOAD()
