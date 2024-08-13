@@ -39,9 +39,35 @@ namespace WiringPi
         }
     }
 
+    [[nodiscard]] inline consteval const pinTable gpioToClkConI()
+    {
+        return pinTable{
+            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), 28, 30, 32, nullPin<pin_t>(),
+            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), 28, 30, nullPin<pin_t>(), nullPin<pin_t>(),
+            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+            28, nullPin<pin_t>(), 28, nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+            nullPin<pin_t>(), nullPin<pin_t>(), 28, 30, 28, nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>()};
+    }
+
+    [[nodiscard]] inline consteval const pinTable gpioToClkDivI()
+    {
+        return pinTable{
+            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), 29, 31, 33, nullPin<pin_t>(),
+            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), 29, 31, nullPin<pin_t>(), nullPin<pin_t>(),
+            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+            29, nullPin<pin_t>(), 29, nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+            nullPin<pin_t>(), nullPin<pin_t>(), 29, 31, 29, nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+            nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>()};
+    }
+
     [[nodiscard]] inline consteval const pinTable gpioToPwmPortI()
     {
-        return std::array<pin_t, 64>{
+        return pinTable{
             0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, PWM0_DATA<pin_t>(), PWM1_DATA<pin_t>(), 0, 0,
             0, 0, PWM0_DATA<pin_t>(), PWM1_DATA<pin_t>(), 0, 0, 0, 0,

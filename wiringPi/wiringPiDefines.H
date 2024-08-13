@@ -409,6 +409,11 @@ namespace WiringPi
     {
         return 60;
     }
+    template <typename T>
+    [[nodiscard]] inline consteval T GPIO_CLOCK_SOURCE()
+    {
+        return 1;
+    }
 
     // Pull up/down/none
     template <typename T>

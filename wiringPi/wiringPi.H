@@ -214,14 +214,28 @@ namespace WiringPi
             *(piMemory_.pwmPtr() + PWM_CONTROL<pwm_t>()) = pwmControl;
         }
 
-        [[nodiscard]] inline constexpr timer_t reducedDivisor(const timer_t divisor) const
+        template <const pin_t pinNumber>
+        inline void gpioClockSet(const timer_t freq) const
         {
-            timer_t reducedDivisor = divisor;
-            if (piMemory_.gpioBase() == GPIO_PERI_BASE_2711<pin_t>())
+            static_assert(((wiringPiMode == WPI_MODE_PINS()) || (wiringPiMode == WPI_MODE_PHYS()) || (wiringPiMode == WPI_MODE_GPIO())), "Invalid wiringPiMode for pwmSetMode: valid modes are PINS, PHYS, GPIO.");
+            const timer_t divi = std::min(19200000 / freq, static_cast<timer_t>(4095));
+            const timer_t divr = 19200000 % freq;
+            const timer_t divf = static_cast<timer_t>(static_cast<double>(divr) * 4096.0 / 19200000.0);
+
+            // Stop GPIO Clock
+            *(piMemory_.clkPtr() + gpioToClkCon_[pinNumber]) = BCM_PASSWORD<timer_t>() | GPIO_CLOCK_SOURCE<timer_t>();
+
+            // Wait...
+            while ((*(piMemory_.clkPtr() + gpioToClkCon_[pinNumber]) & 0x80) != 0)
             {
-                reducedDivisor = 540 * reducedDivisor / 192;
+                ;
             }
-            return reducedDivisor &= 4095;
+
+            // Set dividers
+            *(piMemory_.clkPtr() + gpioToClkDiv_[pinNumber]) = BCM_PASSWORD<timer_t>() | (divi << 12) | divf;
+
+            // Start Clock
+            *(piMemory_.clkPtr() + gpioToClkCon_[pinNumber]) = BCM_PASSWORD<timer_t>() | 0x10 | GPIO_CLOCK_SOURCE<timer_t>();
         }
 
         // Returns the map of pins
@@ -277,6 +291,17 @@ namespace WiringPi
         }
 
     private:
+        // Helper method for pwmSetClock
+        [[nodiscard]] inline constexpr timer_t reducedDivisor(const timer_t divisor) const
+        {
+            timer_t reducedDivisor = divisor;
+            if (piMemory_.gpioBase() == GPIO_PERI_BASE_2711<pin_t>())
+            {
+                reducedDivisor = 540 * reducedDivisor / 192;
+            }
+            return reducedDivisor &= 4095;
+        }
+
         // Pi hardware info
         static constexpr const piHardware piHardware_ = piHardware();
 
@@ -310,6 +335,12 @@ namespace WiringPi
 
         // Pin conversion table
         static constexpr const pinTable pinMap_ = pinMapI<piHardware_.gpioLayout(), wiringPiMode_>();
+
+        // Offsets to the clock control register
+        static constexpr const pinTable gpioToClkCon_ = gpioToClkConI();
+
+        // Offsets to the divisor register
+        static constexpr const pinTable gpioToClkDiv_ = gpioToClkDivI();
 
         // Physical pin names
         static constexpr const nameTable physNames_ = physNamesI();
