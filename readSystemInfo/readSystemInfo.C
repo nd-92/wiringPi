@@ -1,6 +1,8 @@
 // ************************************************************ //
-//  readCpuInfo.C:                                              //
-//	This program reads the info about the model of Raspberry Pi //
+// readSystemInfo.C:                                            //
+// This program reads the info about the model of Raspberry Pi  //
+// Used to generate the piInfo.H file for the wiringPi library  //
+// A bit messy for now, clean up later                          //
 // ************************************************************ //
 
 // Header includes

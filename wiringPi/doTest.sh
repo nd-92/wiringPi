@@ -1,9 +1,9 @@
 clear
 
-cd ../
+cd ../readSystemInfo
 make
-sudo ./readCpuInfo
-cd wiringPi/
+sudo ./readSystemInfo
+cd ../wiringPi/
 
-rm test
+make clean --silent
 make

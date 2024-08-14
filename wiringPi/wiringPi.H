@@ -40,6 +40,9 @@ namespace WiringPi
               epochMilli_(initialiseEpochMilli()),
               epochMicro_(initialiseEpochMicro())
         {
+            // Check for a valid mode
+            static_assert(((wiringPiMode == WPI_MODE_PINS()) || (wiringPiMode == WPI_MODE_PHYS()) || (wiringPiMode == WPI_MODE_GPIO())), "Invalid wiringPiMode for pwmSetMode: valid modes are PINS, PHYS, GPIO.");
+
             // Check for non-GPIO mode on certain models
             static_assert(!(piHardware_.model() == PI_MODEL_CM<int>() && wiringPiMode != WPI_MODE_GPIO()), "Only WPI_MODE_GPIO available on PI_MODEL_CM");
             static_assert(!(piHardware_.model() == PI_MODEL_CM3<int>() && wiringPiMode != WPI_MODE_GPIO()), "Only WPI_MODE_GPIO available on PI_MODEL_CM3");

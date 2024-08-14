@@ -8,8 +8,15 @@ WFLAGS = -Werror -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wforma
 
 INCLUDE	= -I.
 DEFS = -D_GNU_SOURCE
-CFLAGS = $(OPTFLAGS) $(CXXSTANDARD) $(MFLAGS) $(WFLAGS) $(INCLUDE) $(DEFS) -pipe -fPIC $(EXTRA_CFLAGS)
+CXXFLAGS = $(OPTFLAGS) $(CXXSTANDARD) $(MFLAGS) $(WFLAGS) $(INCLUDE) $(DEFS) -pipe -fPIC $(EXTRA_CFLAGS)
 LIBS = -lm -lpthread -lrt -lcrypt
 
 default:
-	$(CXX) $(CFLAGS) readCpuInfo.C -o readCpuInfo
+	make clean
+	$(CXX) $(CXXFLAGS) readSystemInfo.C -o readSystemInfo
+	./readSystemInfo
+	mv piInfo.H ../
+
+clean:
+	rm -rf readSystemInfo
+	rm -rf ../piInfo.H

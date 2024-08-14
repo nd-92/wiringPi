@@ -1,4 +1,4 @@
 .vscode/
 piInfo.H
 wiringPi/test
-readCpuInfo
+readSystemInfo/readSystemInfo
