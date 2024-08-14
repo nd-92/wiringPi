@@ -19,4 +19,5 @@ default:
 
 clean:
 	rm -rf readSystemInfo
+	rm -rf piInfo.H
 	rm -rf ../piInfo.H
