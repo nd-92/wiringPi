@@ -34,103 +34,188 @@
 #include <unistd.h>
 #include <vector>
 
-#define WPI_MODE_PINS 0
-#define WPI_MODE_GPIO 1
-#define WPI_MODE_GPIO_SYS 2
-#define WPI_MODE_PHYS 3
-#define WPI_MODE_PIFACE 4
-#define WPI_MODE_UNINITIALISED -1
+template <typename T>
+consteval T __WPI_MODE_PINS()
+{
+    return 0;
+}
+template <typename T>
+consteval T __WPI_MODE_GPIO()
+{
+    return 1;
+}
+template <typename T>
+consteval T __WPI_MODE_GPIO_SYS()
+{
+    return 2;
+}
+template <typename T>
+consteval T __WPI_MODE_PHYS()
+{
+    return 3;
+}
+template <typename T>
+consteval T __WPI_MODE_PIFACE()
+{
+    return 4;
+}
+template <typename T>
+consteval T __WPI_MODE_UNINITIALISED()
+{
+    return -1;
+}
 
-#define PI_MODEL_A 0
-#define PI_MODEL_B 1
-#define PI_MODEL_AP 2
-#define PI_MODEL_BP 3
-#define PI_MODEL_2 4
-#define PI_ALPHA 5
-#define PI_MODEL_CM 6
-#define PI_MODEL_07 7
-#define PI_MODEL_3B 8
-#define PI_MODEL_ZERO 9
-#define PI_MODEL_CM3 10
-#define PI_MODEL_ZERO_W 12
-#define PI_MODEL_3BP 13
-#define PI_MODEL_3AP 14
-#define PI_MODEL_CM3P 16
-#define PI_MODEL_4B 17
-#define PI_MODEL_ZERO_2W 18
-#define PI_MODEL_400 19
-#define PI_MODEL_CM4 20
+template <typename T>
+consteval T __PI_MODEL_A()
+{
+    return 0;
+}
+template <typename T>
+consteval T __PI_MODEL_B()
+{
+    return 1;
+}
+template <typename T>
+consteval T __PI_MODEL_AP()
+{
+    return 2;
+}
+template <typename T>
+consteval T __PI_MODEL_BP()
+{
+    return 3;
+}
+template <typename T>
+consteval T __PI_MODEL_2()
+{
+    return 4;
+}
+template <typename T>
+consteval T __PI_ALPHA()
+{
+    return 5;
+}
+template <typename T>
+consteval T __PI_MODEL_CM()
+{
+    return 6;
+}
+template <typename T>
+consteval T __PI_MODEL_07()
+{
+    return 7;
+}
+template <typename T>
+consteval T __PI_MODEL_3B()
+{
+    return 8;
+}
+template <typename T>
+consteval T __PI_MODEL_ZERO()
+{
+    return 9;
+}
+template <typename T>
+consteval T __PI_MODEL_CM3()
+{
+    return 10;
+}
+template <typename T>
+consteval T __PI_MODEL_ZERO_W()
+{
+    return 12;
+}
+template <typename T>
+consteval T __PI_MODEL_3BP()
+{
+    return 13;
+}
+template <typename T>
+consteval T __PI_MODEL_3AP()
+{
+    return 14;
+}
+template <typename T>
+consteval T __PI_MODEL_CM3P()
+{
+    return 16;
+}
+template <typename T>
+consteval T __PI_MODEL_4B()
+{
+    return 17;
+}
+template <typename T>
+consteval T __PI_MODEL_ZERO_2W()
+{
+    return 18;
+}
+template <typename T>
+consteval T __PI_MODEL_400()
+{
+    return 19;
+}
+template <typename T>
+consteval T __PI_MODEL_CM4()
+{
+    return 20;
+}
 
 // Pi versions
 template <typename T>
 consteval T __PI_VERSION_1()
 {
-    return static_cast<T>(0);
+    return 0;
 }
 template <typename T>
 consteval T __PI_VERSION_1_1()
 {
-    return static_cast<T>(1);
+    return 1;
 }
 template <typename T>
 consteval T __PI_VERSION_1_2()
 {
-    return static_cast<T>(2);
+    return 2;
 }
 template <typename T>
 consteval T __PI_VERSION_2()
 {
-    return static_cast<T>(3);
+    return 3;
 }
 
 // Pi manufacturers
 template <typename T>
 consteval T __PI_MAKER_SONY()
 {
-    return static_cast<T>(0);
+    return 0;
 }
 template <typename T>
 consteval T __PI_MAKER_EGOMAN()
 {
-    return static_cast<T>(1);
+    return 1;
 }
 template <typename T>
 consteval T __PI_MAKER_EMBEST()
 {
-    return static_cast<T>(2);
+    return 2;
 }
 template <typename T>
 consteval T __PI_MAKER_UNKNOWN()
 {
-    return static_cast<T>(3);
-}
-
-void __piGpioLayoutOops(const char *why)
-{
-    fprintf(stderr, "Oops: Unable to determine board revision from /proc/cpuinfo\n");
-    fprintf(stderr, " -> %s\n", why);
-    fprintf(stderr, " ->  You'd best google the error to find out why.\n");
-    // fprintf (stderr, " ->  http://www.raspberrypi.org/phpBB3/viewtopic.php?p=184410#p184410\n") ;
-    exit(EXIT_FAILURE);
+    return 3;
 }
 
 int __piGpioLayout(void)
 {
-    FILE *cpuFd;
-    // FILE *cpuFd = fopen("/proc/cpuinfo", "r");
+    // FILE *cpuFd;
     char line[120];
     char *c;
-    static int gpioLayout = -1;
+    int gpioLayout = -1;
 
-    if (gpioLayout != -1)
-    {
-        return gpioLayout;
-    }
+    // Try to open /proc/cpuinfo
+    FILE *cpuFd = fopen("/proc/cpuinfo", "r");
 
-    if ((cpuFd = fopen("/proc/cpuinfo", "r")) == NULL)
-    {
-        __piGpioLayoutOops("Unable to open /proc/cpuinfo");
-    }
+    assert((cpuFd != NULL));
 
     while (fgets(line, 120, cpuFd) != NULL)
     {
@@ -141,6 +226,7 @@ int __piGpioLayout(void)
     }
 
     rewind(cpuFd);
+
     while (fgets(line, 120, cpuFd) != NULL)
     {
         if (strncmp(line, "Revision", 8) == 0)
@@ -151,25 +237,15 @@ int __piGpioLayout(void)
 
     fclose(cpuFd);
 
-    if (strncmp(line, "Revision", 8) != 0)
-    {
-        __piGpioLayoutOops("No \"Revision\" line");
-    }
+    assert((strncmp(line, "Revision", 8) == 0));
 
     // Chomp trailing CR/NL
-
     for (c = &line[strlen(line) - 1]; (*c == '\n') || (*c == '\r'); --c)
     {
         *c = 0;
     }
 
-    // if (wiringPiDebug)
-    {
-        // printf("piGpioLayout: Revision string: %s\n", line);
-    }
-
     // Scan to the first character of the revision number
-
     for (c = line; *c; ++c)
     {
         if (*c == ':')
@@ -178,39 +254,20 @@ int __piGpioLayout(void)
         }
     }
 
-    if (*c != ':')
-    {
-        __piGpioLayoutOops("Bogus \"Revision\" line (no colon)");
-    }
+    assert((!(*c != ':')));
 
     // Chomp spaces
-
     ++c;
     while (isspace(*c))
     {
         ++c;
     }
 
-    if (!isxdigit(*c))
-    {
-        __piGpioLayoutOops("Bogus \"Revision\" line (no hex digit at start of revision)");
-    }
+    assert((isxdigit(*c)));
 
-    // Make sure its long enough
-
-    if (strlen(c) < 4)
-    {
-        __piGpioLayoutOops("Bogus revision line (too small)");
-    }
-
-    // Isolate  last 4 characters: (in-case of overvolting or new encoding scheme)
+    assert((!(strlen(c) < 4)));
 
     c = c + strlen(c) - 4;
-
-    // if (wiringPiDebug)
-    {
-        // printf("piGpioLayout: last4Chars are: \"%s\"\n", c);
-    }
 
     if ((strcmp(c, "0002") == 0) || (strcmp(c, "0003") == 0))
     {
@@ -219,12 +276,13 @@ int __piGpioLayout(void)
     else
     {
         gpioLayout = 2;
-    } // Covers everything else from the B revision 2 to the B+, the Pi v2, v3, zero and CM's.
-
-    // if (wiringPiDebug)
-    {
-        // printf("piGpioLayoutOops: Returning revision: %d\n", gpioLayout);
     }
+
+    // Check that gpioLayout is not -1
+    assert((gpioLayout != -1));
+
+    // Check that it's either 1 or 2
+    assert((gpioLayout == 1 || gpioLayout == 2));
 
     return gpioLayout;
 }

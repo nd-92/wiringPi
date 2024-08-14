@@ -14,7 +14,7 @@ LIBS = -lm -lpthread -lrt -lcrypt
 default:
 	make clean
 	$(CXX) $(CXXFLAGS) readSystemInfo.C -o readSystemInfo
-	./readSystemInfo
+	sudo ./readSystemInfo
 	mv piInfo.H ../
 
 clean:

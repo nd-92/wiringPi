@@ -13,9 +13,6 @@ int main()
     // FILE *cpuFd;
     char line[120];
     char *c;
-    unsigned int revision;
-    // int bRev, bType, bProc, bMfg, bMem, bWarranty;
-    int bRev, bType, bMfg, bMem, bWarranty;
 
     const int layout = __piGpioLayout();
 
@@ -32,10 +29,7 @@ int main()
 
     fclose(cpuFd);
 
-    if (strncmp(line, "Revision", 8) != 0)
-    {
-        // piGpioLayoutOops("No \"Revision\" line");
-    }
+    assert((strncmp(line, "Revision", 8) == 0));
 
     // Chomp trailing CR/NL
 
@@ -64,212 +58,192 @@ int main()
         ++c;
     }
 
-    revision = (unsigned int)strtol(c, NULL, 16); // Hex number with no leading 0x
-
     // Check for new way:
+
+    const unsigned int revision = static_cast<unsigned int>(strtol(c, NULL, 16));
 
     int model, rev, mem, maker, warranty;
 
     if ((revision & (1 << 23)) != 0) // New way
     {
-        bRev = (revision & (0x0F << 0)) >> 0;
-        bType = (revision & (0xFF << 4)) >> 4;
-        bMfg = (revision & (0x0F << 16)) >> 16;
-        bMem = (revision & (0x07 << 20)) >> 20;
-        bWarranty = (revision & (0x03 << 24)) != 0;
-
-        model = bType;
-        rev = bRev;
-        mem = bMem;
-        maker = bMfg;
-        warranty = bWarranty;
+        model = (revision & (0xFF << 4)) >> 4;
+        rev = (revision & (0x0F << 0)) >> 0;
+        mem = (revision & (0x07 << 20)) >> 20;
+        maker = (revision & (0x0F << 16)) >> 16;
+        warranty = (revision & (0x03 << 24)) != 0;
     }
     else // Old way
     {
-        // if (wiringPiDebug)
-        {
-            printf("piBoardId: Old Way: revision is: %s\n", c);
-        }
+        // Check that the revision line is valid
+        assert((isdigit(*c)));
 
-        if (!isdigit(*c))
-        {
-            // piGpioLayoutOops("Bogus \"Revision\" line (no digit at start of revision)");
-        }
-
-        // Make sure its long enough
-
-        if (strlen(c) < 4)
-        {
-            // piGpioLayoutOops("Bogus \"Revision\" line (not long enough)");
-        }
+        // Make sure the revision line is long enough
+        assert((!(strlen(c) < 4)));
 
         // If longer than 4, we'll assume it's been overvolted
-
         warranty = strlen(c) > 4;
 
         // Extract last 4 characters:
-
         c = c + strlen(c) - 4;
 
-        // Fill out the replys as appropriate
-
+        // Fill out the replies as appropriate
         if (strcmp(c, "0002") == 0)
         {
-            model = PI_MODEL_B;
+            model = __PI_MODEL_B<int>();
             rev = __PI_VERSION_1<int>();
             mem = 0;
             maker = __PI_MAKER_EGOMAN<int>();
         }
         else if (strcmp(c, "0003") == 0)
         {
-            model = PI_MODEL_B;
+            model = __PI_MODEL_B<int>();
             rev = __PI_VERSION_1_1<int>();
             mem = 0;
             maker = __PI_MAKER_EGOMAN<int>();
         }
         else if (strcmp(c, "0004") == 0)
         {
-            model = PI_MODEL_B;
+            model = __PI_MODEL_B<int>();
             rev = __PI_VERSION_1_2<int>();
             mem = 0;
             maker = __PI_MAKER_SONY<int>();
         }
         else if (strcmp(c, "0005") == 0)
         {
-            model = PI_MODEL_B;
+            model = __PI_MODEL_B<int>();
             rev = __PI_VERSION_1_2<int>();
             mem = 0;
             maker = __PI_MAKER_EGOMAN<int>();
         }
         else if (strcmp(c, "0006") == 0)
         {
-            model = PI_MODEL_B;
+            model = __PI_MODEL_B<int>();
             rev = __PI_VERSION_1_2<int>();
             mem = 0;
             maker = __PI_MAKER_EGOMAN<int>();
         }
         else if (strcmp(c, "0007") == 0)
         {
-            model = PI_MODEL_A;
+            model = __PI_MODEL_A<int>();
             rev = __PI_VERSION_1_2<int>();
             mem = 0;
             maker = __PI_MAKER_EGOMAN<int>();
         }
         else if (strcmp(c, "0008") == 0)
         {
-            model = PI_MODEL_A;
+            model = __PI_MODEL_A<int>();
             rev = __PI_VERSION_1_2<int>();
             mem = 0;
             maker = __PI_MAKER_SONY<int>();
         }
         else if (strcmp(c, "0009") == 0)
         {
-            model = PI_MODEL_A;
+            model = __PI_MODEL_A<int>();
             rev = __PI_VERSION_1_2<int>();
             mem = 0;
             maker = __PI_MAKER_EGOMAN<int>();
         }
         else if (strcmp(c, "000d") == 0)
         {
-            model = PI_MODEL_B;
+            model = __PI_MODEL_B<int>();
             rev = __PI_VERSION_1_2<int>();
             mem = 1;
             maker = __PI_MAKER_EGOMAN<int>();
         }
         else if (strcmp(c, "000e") == 0)
         {
-            model = PI_MODEL_B;
+            model = __PI_MODEL_B<int>();
             rev = __PI_VERSION_1_2<int>();
             mem = 1;
             maker = __PI_MAKER_SONY<int>();
         }
         else if (strcmp(c, "000f") == 0)
         {
-            model = PI_MODEL_B;
+            model = __PI_MODEL_B<int>();
             rev = __PI_VERSION_1_2<int>();
             mem = 1;
             maker = __PI_MAKER_EGOMAN<int>();
         }
         else if (strcmp(c, "0010") == 0)
         {
-            model = PI_MODEL_BP;
+            model = __PI_MODEL_BP<int>();
             rev = __PI_VERSION_1_2<int>();
             mem = 1;
             maker = __PI_MAKER_SONY<int>();
         }
         else if (strcmp(c, "0013") == 0)
         {
-            model = PI_MODEL_BP;
+            model = __PI_MODEL_BP<int>();
             rev = __PI_VERSION_1_2<int>();
             mem = 1;
             maker = __PI_MAKER_EMBEST<int>();
         }
         else if (strcmp(c, "0016") == 0)
         {
-            model = PI_MODEL_BP;
+            model = __PI_MODEL_BP<int>();
             rev = __PI_VERSION_1_2<int>();
             mem = 1;
             maker = __PI_MAKER_SONY<int>();
         }
         else if (strcmp(c, "0019") == 0)
         {
-            model = PI_MODEL_BP;
+            model = __PI_MODEL_BP<int>();
             rev = __PI_VERSION_1_2<int>();
             mem = 1;
             maker = __PI_MAKER_EGOMAN<int>();
         }
         else if (strcmp(c, "0011") == 0)
         {
-            model = PI_MODEL_CM;
+            model = __PI_MODEL_CM<int>();
             rev = __PI_VERSION_1_1<int>();
             mem = 1;
             maker = __PI_MAKER_SONY<int>();
         }
         else if (strcmp(c, "0014") == 0)
         {
-            model = PI_MODEL_CM;
+            model = __PI_MODEL_CM<int>();
             rev = __PI_VERSION_1_1<int>();
             mem = 1;
             maker = __PI_MAKER_EMBEST<int>();
         }
         else if (strcmp(c, "0017") == 0)
         {
-            model = PI_MODEL_CM;
+            model = __PI_MODEL_CM<int>();
             rev = __PI_VERSION_1_1<int>();
             mem = 1;
             maker = __PI_MAKER_SONY<int>();
         }
         else if (strcmp(c, "001a") == 0)
         {
-            model = PI_MODEL_CM;
+            model = __PI_MODEL_CM<int>();
             rev = __PI_VERSION_1_1<int>();
             mem = 1;
             maker = __PI_MAKER_EGOMAN<int>();
         }
         else if (strcmp(c, "0012") == 0)
         {
-            model = PI_MODEL_AP;
+            model = __PI_MODEL_AP<int>();
             rev = __PI_VERSION_1_1<int>();
             mem = 0;
             maker = __PI_MAKER_SONY<int>();
         }
         else if (strcmp(c, "0015") == 0)
         {
-            model = PI_MODEL_AP;
+            model = __PI_MODEL_AP<int>();
             rev = __PI_VERSION_1_1<int>();
             mem = 1;
             maker = __PI_MAKER_EMBEST<int>();
         }
         else if (strcmp(c, "0018") == 0)
         {
-            model = PI_MODEL_AP;
+            model = __PI_MODEL_AP<int>();
             rev = __PI_VERSION_1_1<int>();
             mem = 0;
             maker = __PI_MAKER_SONY<int>();
         }
         else if (strcmp(c, "001b") == 0)
         {
-            model = PI_MODEL_AP;
+            model = __PI_MODEL_AP<int>();
             rev = __PI_VERSION_1_1<int>();
             mem = 0;
             maker = __PI_MAKER_EGOMAN<int>();
