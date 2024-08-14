@@ -112,6 +112,11 @@ namespace WiringPi
             return clk_;
         }
 
+        [[nodiscard]] inline constexpr volatile pwm_t *padsPtr() const volatile
+        {
+            return pads_;
+        }
+
         [[nodiscard]] inline constexpr bool usingGpioMemory() const
         {
             return devMem_.usingGpioMem;

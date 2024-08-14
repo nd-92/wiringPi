@@ -142,6 +142,7 @@ namespace WiringPi
             onboardPins_.pwmWrite<pinMap_[pinNumber]>(piMemory_.pwmPtr(), value);
         }
 
+        // Output the given frequency on the Pi's PWM pin
         template <const pin_t pinNumber>
         inline void pwmToneWriteOnboard(const timer_t freq) const
         {
@@ -174,7 +175,7 @@ namespace WiringPi
             }
         }
 
-        // template <const pwm_t range>
+        // Set the PWM range register
         inline void pwmSetRange(const pwm_t range) const
         {
             static_assert(((wiringPiMode == WPI_MODE_PINS()) || (wiringPiMode == WPI_MODE_PHYS()) || (wiringPiMode == WPI_MODE_GPIO())), "Invalid wiringPiMode for pwmSetMode: valid modes are PINS, PHYS, GPIO.");
@@ -186,6 +187,7 @@ namespace WiringPi
             }
         }
 
+        // Set the PWM clock
         template <const timer_t divisor>
         inline void pwmSetClock() const
         {
@@ -217,6 +219,7 @@ namespace WiringPi
             *(piMemory_.pwmPtr() + PWM_CONTROL<pwm_t>()) = pwmControl;
         }
 
+        // Set the frequency on a GPIO clock pin
         template <const pin_t pinNumber>
         inline void gpioClockSet(const timer_t freq) const
         {
@@ -239,6 +242,21 @@ namespace WiringPi
 
             // Start Clock
             *(piMemory_.clkPtr() + gpioToClkCon_[pinNumber]) = BCM_PASSWORD<timer_t>() | 0x10 | GPIO_CLOCK_SOURCE<timer_t>();
+        }
+
+        // Set the PAD driver value
+        // Group must be 0, 1, 2
+        template <const pin_t group>
+        inline void setPadDrive(const pwm_t value) const
+        {
+            static_assert(((wiringPiMode == WPI_MODE_PINS()) || (wiringPiMode == WPI_MODE_PHYS()) || (wiringPiMode == WPI_MODE_GPIO())), "Invalid wiringPiMode for pwmSetMode: valid modes are PINS, PHYS, GPIO.");
+            static_assert(((group == 0) || (group == 1) || (group == 2)), "Invalid group for setPadDrive: valid groups are 0, 1, 2.");
+
+            const pwm_t reducedValue = value & 7;
+
+            const pwm_t wrVal = BCM_PASSWORD<pwm_t>() | 0x18 | value; // Drive strength 0-7
+            *(piMemory_.padsPtr() + group + 11) = wrVal;
+            // rdVal = *(pads + group + 11);
         }
 
         // Returns the map of pins
