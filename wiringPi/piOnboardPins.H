@@ -64,6 +64,7 @@ namespace WiringPi
         template <const pin_t pinNumber>
         [[nodiscard]] inline gpio_t digitalRead(const volatile gpio_t *gpioPtr) const volatile
         {
+            static_assert(pinNumber != nullPin<pin_t>());
             return static_cast<gpio_t>((*(gpioPtr + gpioToGPLEV(pinNumber)) & digitalReadModulo(pinNumber)) != 0);
         }
 
@@ -71,6 +72,7 @@ namespace WiringPi
         template <const pin_t pinNumber>
         inline void digitalWrite(volatile gpio_t *gpioPtr, const gpio_t value) const volatile
         {
+            static_assert(pinNumber != nullPin<pin_t>());
             *(gpioPtr + gpioCLRSET(pinNumber + (64 * !value))) = digitalReadModulo(pinNumber);
         }
 
@@ -78,6 +80,7 @@ namespace WiringPi
         template <const pin_t pinNumber>
         inline void pinMode(volatile gpio_t *gpioPtr, const gpio_t mode, const pin_t fSel, const pin_t shift)
         {
+            static_assert(pinNumber != nullPin<pin_t>());
             if (mode == INPUT<gpio_t>() || mode == PWM_OFF<gpio_t>())
             {
                 *(gpioPtr + fSel) = (*(gpioPtr + fSel) & static_cast<gpio_t>(~(7 << shift)));
@@ -93,6 +96,7 @@ namespace WiringPi
         template <const pin_t pinNumber, const gpio_t offset>
         inline void pullUpDnControl(volatile gpio_t *gpioPtr, const gpio_t pud) const volatile
         {
+            static_assert(pinNumber != nullPin<pin_t>());
             if constexpr (offset == GPPUPPDN0<gpio_t>())
             {
                 // Pi 4B pull up/down method
@@ -118,25 +122,9 @@ namespace WiringPi
         template <const pin_t pinNumber>
         inline void pwmWrite(volatile gpio_t *pwmPtr, const gpio_t value) const volatile
         {
+            static_assert(pinNumber != nullPin<pin_t>());
             *(pwmPtr + gpioToPwmPort_[pinNumber]) = value;
         }
-
-        // // Select the native "balanced" mode, or standard mark:space mode
-        // template <const int wiringPiMode, const int mode>
-        // inline void pwmSetMode(const pwm_t *pwmPtr) const
-        // {
-        //     if constexpr ((wiringPiMode == WPI_MODE_PINS()) || (wiringPiMode == WPI_MODE_PHYS()) || (wiringPiMode == WPI_MODE_GPIO()))
-        //     {
-        //         if constexpr (mode == PWM_MODE_MS<int>())
-        //         {
-        //             *(pwmPtr + PWM_CONTROL<pwm_t>()) = PWM0_ENABLE<pwm_t>() | PWM1_ENABLE<pwm_t>() | PWM0_MS_MODE<pwm_t>() | PWM1_MS_MODE<pwm_t>();
-        //         }
-        //         else
-        //         {
-        //             *(pwmPtr + PWM_CONTROL<pwm_t>()) = PWM0_ENABLE<pwm_t>() | PWM1_ENABLE<pwm_t>();
-        //         }
-        //     }
-        // }
 
         // Returns the map of pin modes
         [[nodiscard]] inline constexpr const pinTable &pinModeMap() const
@@ -153,8 +141,6 @@ namespace WiringPi
     private:
         gpioTable pinMode_ = pinModeI();
         static constexpr const gpioTable gpioToPwmPort_ = gpioToPwmPortI();
-        // static constexpr const gpioTable pullReg_ = pullRegI();
-        // static constexpr const gpioTable pullShift_ = pullShiftI();
     };
 }
 #endif

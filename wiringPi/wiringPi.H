@@ -120,7 +120,7 @@ namespace WiringPi
         inline void pinModeOnboard(const gpio_t mode)
         {
             static_assert(piHardware_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
-            onboardPins_.pinMode<pinMap_[pinNumber]>(piMemory_.gpioPtr(), mode, gpioToGPFSEL_[pinNumber], gpioToShift_[pinNumber]);
+            onboardPins_.pinMode<pinMap_[pinNumber]>(piMemory_.gpioPtr(), mode, gpioToGPFSEL_[pinMap_[pinNumber]], gpioToShift_[pinMap_[pinNumber]]);
         }
 
         // Control the internal pull-up/down resistors on a GPIO pin
@@ -221,27 +221,33 @@ namespace WiringPi
 
         // Set the frequency on a GPIO clock pin
         template <const pin_t pinNumber>
-        inline void gpioClockSet(const timer_t freq) const
+        // inline void gpioClockSet(const timer_t freq) const
+        void gpioClockSet(const timer_t freq) const
         {
             static_assert(((wiringPiMode == WPI_MODE_PINS()) || (wiringPiMode == WPI_MODE_PHYS()) || (wiringPiMode == WPI_MODE_GPIO())), "Invalid wiringPiMode for pwmSetMode: valid modes are PINS, PHYS, GPIO.");
+            static_assert(piHardware_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
+            static_assert(gpioToClkDiv_[pinMap_[pinNumber]] != nullPin<pin_t>(), "Pin number is not a valid GPIO pin");
+            static_assert(gpioToClkCon_[pinMap_[pinNumber]] != nullPin<pin_t>(), "Pin number is not a valid GPIO pin");
+            assert((!piMemory_.usingGpioMemory()) && "Application is using GPIO memory. Unable to do this when using /dev/gpiomem. Try sudo?");
+
             const timer_t divi = std::min(19200000 / freq, static_cast<timer_t>(4095));
             const timer_t divr = 19200000 % freq;
             const timer_t divf = static_cast<timer_t>(static_cast<double>(divr) * 4096.0 / 19200000.0);
 
             // Stop GPIO Clock
-            *(piMemory_.clkPtr() + gpioToClkCon_[pinNumber]) = BCM_PASSWORD<timer_t>() | GPIO_CLOCK_SOURCE<timer_t>();
+            *(piMemory_.clkPtr() + gpioToClkCon_[pinMap_[pinNumber]]) = BCM_PASSWORD<timer_t>() | GPIO_CLOCK_SOURCE<timer_t>();
 
             // Wait...
-            while ((*(piMemory_.clkPtr() + gpioToClkCon_[pinNumber]) & 0x80) != 0)
+            while ((*(piMemory_.clkPtr() + gpioToClkCon_[pinMap_[pinNumber]]) & 0x80) != 0)
             {
                 ;
             }
 
-            // Set dividers
-            *(piMemory_.clkPtr() + gpioToClkDiv_[pinNumber]) = BCM_PASSWORD<timer_t>() | (divi << 12) | divf;
+            // // Set dividers
+            *(piMemory_.clkPtr() + gpioToClkDiv_[pinMap_[pinNumber]]) = BCM_PASSWORD<timer_t>() | (divi << 12) | divf;
 
-            // Start Clock
-            *(piMemory_.clkPtr() + gpioToClkCon_[pinNumber]) = BCM_PASSWORD<timer_t>() | 0x10 | GPIO_CLOCK_SOURCE<timer_t>();
+            // // Start Clock
+            *(piMemory_.clkPtr() + gpioToClkCon_[pinMap_[pinNumber]]) = BCM_PASSWORD<timer_t>() | 0x10 | GPIO_CLOCK_SOURCE<timer_t>();
         }
 
         // Set the PAD driver value
@@ -257,6 +263,13 @@ namespace WiringPi
             const pwm_t wrVal = BCM_PASSWORD<pwm_t>() | 0x18 | value; // Drive strength 0-7
             *(piMemory_.padsPtr() + group + 11) = wrVal;
             // rdVal = *(pads + group + 11);
+        }
+
+        template <const pin_t pinNumber>
+        [[nodiscard]] inline constexpr gpio_t getAlt() const
+        {
+            static_assert(piHardware_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
+            return (*(piMemory_.gpioPtr() + gpioToGPFSEL_[pinMap_[pinNumber]]) >> gpioToShift_[pinMap_[pinNumber]]) & 7;
         }
 
         // Returns the map of pins
