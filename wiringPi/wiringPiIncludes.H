@@ -15,13 +15,16 @@
 #include <asm/ioctl.h>
 #include <atomic>
 #include <cassert>
+#include <cstring>
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <poll.h>
 #include <pthread.h>
+#include <sched.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>

@@ -21,25 +21,6 @@ namespace WiringPi
         const bool usingGpioMem;
     };
 
-    memorySpec readDeviceMemory()
-    {
-        int fd_;
-        bool usingGpioMem_ = false;
-
-        constexpr const char *gpiomemGlobal = "/dev/mem";
-        constexpr const char *gpiomemModule = "/dev/gpiomem";
-
-        if (gpiomemGlobal == NULL || (fd_ = open(gpiomemGlobal, O_RDWR | O_SYNC | O_CLOEXEC)) < 0)
-        {
-            if (gpiomemModule && (fd_ = open(gpiomemModule, O_RDWR | O_SYNC | O_CLOEXEC)) >= 0) // We're using gpiomem
-            {
-                usingGpioMem_ = true;
-            }
-        }
-
-        return memorySpec{fd_, usingGpioMem_};
-    }
-
     template <const int model>
     class piMemory
     {
@@ -148,6 +129,26 @@ namespace WiringPi
             *(ptr + TIMER_CONTROL<timer_t>()) = 0x0000280;
             *(ptr + TIMER_PRE_DIV<timer_t>()) = 0x00000F9;
             return ptr;
+        }
+
+        // Read the device memory
+        memorySpec readDeviceMemory()
+        {
+            int fd_;
+            bool usingGpioMem_ = false;
+
+            constexpr const char *gpiomemGlobal = "/dev/mem";
+            constexpr const char *gpiomemModule = "/dev/gpiomem";
+
+            if (gpiomemGlobal == NULL || (fd_ = open(gpiomemGlobal, O_RDWR | O_SYNC | O_CLOEXEC)) < 0)
+            {
+                if (gpiomemModule && (fd_ = open(gpiomemModule, O_RDWR | O_SYNC | O_CLOEXEC)) >= 0) // We're using gpiomem
+                {
+                    usingGpioMem_ = true;
+                }
+            }
+
+            return memorySpec{fd_, usingGpioMem_};
         }
 
         // Hardware pointers
