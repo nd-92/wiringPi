@@ -14,69 +14,40 @@
 
 namespace WiringPi
 {
-
-    // Put these into a separate timer class later on
-    inline void delay(const time_t howLong)
+    // Check for a valid model
+    template <const int model>
+    [[nodiscard]] inline consteval bool piModelCheck()
     {
-        struct timespec sleeper, dummy;
-
-        sleeper.tv_sec = howLong / 1000;
-        sleeper.tv_nsec = (howLong % 1000) * 1000000;
-
-        nanosleep(&sleeper, &dummy);
-    }
-
-    void delayMicrosecondsHard(const time_t howLong)
-    {
-        struct timeval tNow, tLong, tEnd;
-
-        gettimeofday(&tNow, NULL);
-        tLong.tv_sec = howLong / 1000000;
-        tLong.tv_usec = howLong % 1000000;
-        timeradd(&tNow, &tLong, &tEnd);
-
-        while (timercmp(&tNow, &tEnd, <))
-        {
-            gettimeofday(&tNow, NULL);
-        }
-    }
-
-    void delayMicroseconds(const time_t howLong)
-    {
-        struct timespec sleeper;
-        if (howLong == 0)
-        {
-            return;
-        }
-        else if (howLong < 100)
-        {
-            delayMicrosecondsHard(howLong);
-        }
-        else
-        {
-            sleeper.tv_sec = (howLong / 1000000);
-            sleeper.tv_nsec = (howLong % 1000000) * 1000L;
-            nanosleep(&sleeper, NULL);
-        }
-    }
-
-    // Check WPI mode
-    [[nodiscard]] inline consteval int getMode(const int mode, const int model)
-    {
-        if ((model == PI_MODEL_CM<int>()) || (model == PI_MODEL_CM3<int>()) || (model == PI_MODEL_CM3P<int>()))
-        {
-            return WPI_MODE_GPIO();
-        }
-        else
-        {
-            return mode;
-        }
+        return (
+            model == PI_MODEL_A<int>() ||
+            model == PI_MODEL_B<int>() ||
+            model == PI_MODEL_AP<int>() ||
+            model == PI_MODEL_BP<int>() ||
+            model == PI_MODEL_2<int>() ||
+            model == PI_MODEL_ALPHA<int>() ||
+            model == PI_MODEL_CM<int>() ||
+            model == PI_MODEL_07<int>() ||
+            model == PI_MODEL_3B<int>() ||
+            model == PI_MODEL_ZERO<int>() ||
+            model == PI_MODEL_CM3<int>() ||
+            model == PI_MODEL_ZERO_W<int>() ||
+            model == PI_MODEL_3BP<int>() ||
+            model == PI_MODEL_3AP<int>() ||
+            model == PI_MODEL_CM3P<int>() ||
+            model == PI_MODEL_4B<int>() ||
+            model == PI_MODEL_ZERO_2W<int>() ||
+            model == PI_MODEL_400<int>() ||
+            model == PI_MODEL_CM4<int>() ||
+            model == PI_MODEL_CM4S<int>() ||
+            model == PI_MODEL_5<int>());
     }
 
     // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0
-    template <typename T>
-    [[nodiscard]] inline consteval T piGpioPupOffset(const int model)
+    template <typename T, const int model>
+    [[nodiscard]] inline consteval T piGpioPupOffset()
     {
+        static_assert(piModelCheck<model>());
+
         switch (model)
         {
         case PI_MODEL_A<int>():
@@ -131,9 +102,12 @@ namespace WiringPi
     }
 
     // Initialise the base address of the GPIO memory mapped hardware IO
-    template <typename T>
-    [[nodiscard]] inline constexpr T piGpioBase(const int model, const bool usingGpioMem)
+    template <typename T, const int model>
+    [[nodiscard]] inline constexpr T piGpioBase(const bool usingGpioMem)
     {
+        // Check for a valid model
+        static_assert(piModelCheck<model>());
+
         if (usingGpioMem)
         {
             return 0;
@@ -192,6 +166,7 @@ namespace WiringPi
         }
     }
 
+    // Maybe unused
     [[nodiscard]] int failure(const int fatal, const char *message, ...)
     {
         va_list argp;
@@ -213,7 +188,6 @@ namespace WiringPi
 
         return 0;
     }
-
 }
 
 #endif

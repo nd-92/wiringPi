@@ -41,12 +41,10 @@ namespace WiringPi
               epochMicro_(initialiseEpochMicro())
         {
             // Check for a valid mode
-            static_assert(((wiringPiMode == WPI_MODE_PINS()) || (wiringPiMode == WPI_MODE_PHYS()) || (wiringPiMode == WPI_MODE_GPIO())), "Invalid wiringPiMode for pwmSetMode: valid modes are PINS, PHYS, GPIO.");
+            setupModeCheck<wiringPiMode>();
 
             // Check for non-GPIO mode on certain models
-            static_assert(!(piHardware_.model() == PI_MODEL_CM<int>() && wiringPiMode != WPI_MODE_GPIO()), "Only WPI_MODE_GPIO available on PI_MODEL_CM");
-            static_assert(!(piHardware_.model() == PI_MODEL_CM3<int>() && wiringPiMode != WPI_MODE_GPIO()), "Only WPI_MODE_GPIO available on PI_MODEL_CM3");
-            static_assert(!(piHardware_.model() == PI_MODEL_CM3P<int>() && wiringPiMode != WPI_MODE_GPIO()), "Only WPI_MODE_GPIO available on PI_MODEL_CM3P");
+            computeModelCheck<piHardware_.model(), wiringPiMode_>();
 
             // Make sure cleanup is performed on interrupt, terminate, hangup or segfault
             struct sigaction sa;
@@ -103,7 +101,7 @@ namespace WiringPi
         template <const pin_t pinNumber>
         [[nodiscard]] inline gpio_t digitalReadOnboard() const volatile
         {
-            static_assert(piHardware_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
+            onboardPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
             return onboardPins_.digitalRead<pinMap_[pinNumber]>(piMemory_.gpioPtr());
         }
 
@@ -111,7 +109,7 @@ namespace WiringPi
         template <const pin_t pinNumber>
         inline void digitalWriteOnboard(const gpio_t value) const volatile
         {
-            static_assert(piHardware_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
+            onboardPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
             onboardPins_.digitalWrite<pinMap_[pinNumber]>(piMemory_.gpioPtr(), value);
         }
 
@@ -119,7 +117,7 @@ namespace WiringPi
         template <const pin_t pinNumber>
         inline void pinModeOnboard(const gpio_t mode)
         {
-            static_assert(piHardware_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
+            onboardPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
             onboardPins_.pinMode<pinMap_[pinNumber]>(piMemory_.gpioPtr(), mode, gpioToGPFSEL_[pinMap_[pinNumber]], gpioToShift_[pinMap_[pinNumber]]);
         }
 
@@ -127,7 +125,7 @@ namespace WiringPi
         template <const pin_t pinNumber>
         inline void pullUpDnControlOnboard(const gpio_t pud) const
         {
-            static_assert(piHardware_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
+            onboardPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
             onboardPins_.pullUpDnControl<pinMap_[pinNumber], piHardware_.gpioPupOffset()>(piMemory_.gpioPtr(), pud);
         }
 
@@ -135,7 +133,7 @@ namespace WiringPi
         template <const pin_t pinNumber>
         inline void pwmWriteOnboard(const pwm_t value) const
         {
-            static_assert(piHardware_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
+            onboardPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
             static_assert(wiringPiMode_ == WPI_MODE_GPIO(), "wiringPi not initialised in GPIO mode: pwmWriteOnboard cannot be called");
             assert((piMemory_.gpioBase() == 0) && "GPIO base address must be 0: pwmWriteOnboard cannot be called");
             assert((!piMemory_.usingGpioMemory()) && "Application is using GPIO memory. Unable to do this when using /dev/gpiomem. Try sudo?");
@@ -161,37 +159,33 @@ namespace WiringPi
         template <const int mode>
         inline void pwmSetMode() const
         {
-            static_assert(((wiringPiMode == WPI_MODE_PINS()) || (wiringPiMode == WPI_MODE_PHYS()) || (wiringPiMode == WPI_MODE_GPIO())), "Invalid wiringPiMode for pwmSetMode: valid modes are PINS, PHYS, GPIO.");
+            setupModeCheck<wiringPiMode>();
             static_assert(((mode == PWM_MODE_MS<int>()) || (mode == PWM_MODE_BAL<int>())), "Invalid mode for pwmSetMode: valid modes are MS, BAL.");
+            if constexpr (mode == PWM_MODE_MS<int>())
             {
-                if constexpr (mode == PWM_MODE_MS<int>())
-                {
-                    *(piMemory_.pwmPtr() + PWM_CONTROL<pwm_t>()) = PWM0_ENABLE<pwm_t>() | PWM1_ENABLE<pwm_t>() | PWM0_MS_MODE<pwm_t>() | PWM1_MS_MODE<pwm_t>();
-                }
-                else if constexpr (mode == PWM_MODE_BAL<int>())
-                {
-                    *(piMemory_.pwmPtr() + PWM_CONTROL<pwm_t>()) = PWM0_ENABLE<pwm_t>() | PWM1_ENABLE<pwm_t>();
-                }
+                *(piMemory_.pwmPtr() + PWM_CONTROL<pwm_t>()) = PWM0_ENABLE<pwm_t>() | PWM1_ENABLE<pwm_t>() | PWM0_MS_MODE<pwm_t>() | PWM1_MS_MODE<pwm_t>();
+            }
+            else if constexpr (mode == PWM_MODE_BAL<int>())
+            {
+                *(piMemory_.pwmPtr() + PWM_CONTROL<pwm_t>()) = PWM0_ENABLE<pwm_t>() | PWM1_ENABLE<pwm_t>();
             }
         }
 
         // Set the PWM range register
         inline void pwmSetRange(const pwm_t range) const
         {
-            static_assert(((wiringPiMode == WPI_MODE_PINS()) || (wiringPiMode == WPI_MODE_PHYS()) || (wiringPiMode == WPI_MODE_GPIO())), "Invalid wiringPiMode for pwmSetMode: valid modes are PINS, PHYS, GPIO.");
-            {
-                *(piMemory_.pwmPtr() + PWM0_RANGE<pwm_t>()) = range;
-                delayMicroseconds(10);
-                *(piMemory_.pwmPtr() + PWM1_RANGE<pwm_t>()) = range;
-                delayMicroseconds(10);
-            }
+            setupModeCheck<wiringPiMode>();
+            *(piMemory_.pwmPtr() + PWM0_RANGE<pwm_t>()) = range;
+            std::this_thread::sleep_for(std::chrono::microseconds(10));
+            *(piMemory_.pwmPtr() + PWM1_RANGE<pwm_t>()) = range;
+            std::this_thread::sleep_for(std::chrono::microseconds(10));
         }
 
         // Set the PWM clock
         template <const timer_t divisor>
         inline void pwmSetClock() const
         {
-            static_assert(((wiringPiMode == WPI_MODE_PINS()) || (wiringPiMode == WPI_MODE_PHYS()) || (wiringPiMode == WPI_MODE_GPIO())), "Invalid wiringPiMode for pwmSetMode: valid modes are PINS, PHYS, GPIO.");
+            setupModeCheck<wiringPiMode>();
             const timer_t divisor_ = reducedDivisor(divisor);
 
             // Preserve PWM_CONTROL
@@ -203,12 +197,12 @@ namespace WiringPi
             // Stop PWM clock
             *(piMemory_.clkPtr() + PWMCLK_CNTL<timer_t>()) = BCM_PASSWORD<timer_t>() | 0x01;
             // Prevents clock going sloooow
-            delayMicroseconds(110);
+            std::this_thread::sleep_for(std::chrono::microseconds(110));
 
             // Wait for clock to be !BUSY
             while ((*(piMemory_.clkPtr() + PWMCLK_CNTL<timer_t>()) & 0x80) != 0)
             {
-                delayMicroseconds(1);
+                std::this_thread::sleep_for(std::chrono::microseconds(1));
             }
 
             *(piMemory_.clkPtr() + PWMCLK_DIV<timer_t>()) = BCM_PASSWORD<timer_t>() | (divisor_ << 12);
@@ -224,8 +218,8 @@ namespace WiringPi
         // inline void gpioClockSet(const timer_t freq) const
         void gpioClockSet(const timer_t freq) const
         {
-            static_assert(((wiringPiMode == WPI_MODE_PINS()) || (wiringPiMode == WPI_MODE_PHYS()) || (wiringPiMode == WPI_MODE_GPIO())), "Invalid wiringPiMode for pwmSetMode: valid modes are PINS, PHYS, GPIO.");
-            static_assert(piHardware_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
+            setupModeCheck<wiringPiMode>();
+            onboardPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
             static_assert(gpioToClkDiv_[pinMap_[pinNumber]] != nullPin<pin_t>(), "Pin number is not a valid GPIO pin");
             static_assert(gpioToClkCon_[pinMap_[pinNumber]] != nullPin<pin_t>(), "Pin number is not a valid GPIO pin");
             assert((!piMemory_.usingGpioMemory()) && "Application is using GPIO memory. Unable to do this when using /dev/gpiomem. Try sudo?");
@@ -255,7 +249,7 @@ namespace WiringPi
         template <const pin_t group>
         inline void setPadDrive(const pwm_t value) const
         {
-            static_assert(((wiringPiMode == WPI_MODE_PINS()) || (wiringPiMode == WPI_MODE_PHYS()) || (wiringPiMode == WPI_MODE_GPIO())), "Invalid wiringPiMode for pwmSetMode: valid modes are PINS, PHYS, GPIO.");
+            setupModeCheck<wiringPiMode>();
             static_assert(((group == 0) || (group == 1) || (group == 2)), "Invalid group for setPadDrive: valid groups are 0, 1, 2.");
 
             const pwm_t reducedValue = value & 7;
@@ -268,7 +262,7 @@ namespace WiringPi
         template <const pin_t pinNumber>
         [[nodiscard]] inline constexpr gpio_t getAlt() const
         {
-            static_assert(piHardware_.isOnboard(pinMap_[pinNumber]), "Pin number is not onboard (onboard pins range from 0 to 31)");
+            onboardPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
             return (*(piMemory_.gpioPtr() + gpioToGPFSEL_[pinMap_[pinNumber]]) >> gpioToShift_[pinMap_[pinNumber]]) & 7;
         }
 

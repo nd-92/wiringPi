@@ -608,6 +608,28 @@ namespace WiringPi
         return 0x420 >> 2;
     }
 
+    // Static assertion check for valid program mode
+    template <const int mode>
+    inline void setupModeCheck()
+    {
+        static_assert(((mode == WPI_MODE_PINS()) || (mode == WPI_MODE_PHYS()) || (mode == WPI_MODE_GPIO())), "Invalid wiringPiMode for pwmSetMode: valid modes are PINS, PHYS, GPIO.");
+    }
+
+    // Static assertion check for non-GPIO mode on certain models
+    template <const int model, const int mode>
+    inline void computeModelCheck()
+    {
+        static_assert(!(model == PI_MODEL_CM<int>() && mode != WPI_MODE_GPIO()), "Only WPI_MODE_GPIO available on PI_MODEL_CM");
+        static_assert(!(model == PI_MODEL_CM3<int>() && mode != WPI_MODE_GPIO()), "Only WPI_MODE_GPIO available on PI_MODEL_CM3");
+        static_assert(!(model == PI_MODEL_CM3P<int>() && mode != WPI_MODE_GPIO()), "Only WPI_MODE_GPIO available on PI_MODEL_CM3P");
+    }
+
+    template <const pin_t nPins, const pinTable pinMap_, const pin_t pinNumber>
+    inline void onboardPinCheck()
+    {
+        static_assert(pinMap_[pinNumber] < nPins, "Pin number is not onboard (onboard pins range from 0 to 31)");
+    }
+
 }
 
 #endif

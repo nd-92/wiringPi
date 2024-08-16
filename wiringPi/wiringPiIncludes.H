@@ -15,6 +15,7 @@
 #include <asm/ioctl.h>
 #include <atomic>
 #include <cassert>
+#include <chrono>
 #include <cstring>
 #include <ctype.h>
 #include <errno.h>
@@ -39,6 +40,7 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <time.h>
+#include <thread>
 #include <unistd.h>
 #include <utility>
 #include <vector>

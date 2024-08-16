@@ -19,14 +19,14 @@ namespace WiringPi
 
         // Returns 0 if successfully set
         // Returns -1 if error
-        inline int success() const
+        [[nodiscard]] inline int success() const
         {
             return success_;
         }
 
         // Returns policy for the thread
         // Returns -1 if error
-        inline int schedule() const
+        [[nodiscard]] inline int schedule() const
         {
             return sched_getscheduler();
         }

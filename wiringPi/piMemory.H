@@ -27,7 +27,7 @@ namespace WiringPi
     public:
         [[nodiscard]] inline piMemory()
             : devMem_(readDeviceMemory()),
-              piGpioBase_(piGpioBase<pin_t>(model, devMem_.usingGpioMem)),
+              piGpioBase_(piGpioBase<pin_t, model>(devMem_.usingGpioMem)),
               GPIO_BASE_(piGpioBase_ + 0x00200000),
               GPIO_PWM_(piGpioBase_ + 0x0020C000),
               GPIO_CLOCK_BASE_(piGpioBase_ + 0x00101000),
@@ -48,6 +48,7 @@ namespace WiringPi
             assert((timer_ != MAP_FAILED));
         };
 
+        // Return the base address of the GPIO memory mapped hardware IO
         [[nodiscard]] inline constexpr pin_t gpioBase() const
         {
             return piGpioBase_;
@@ -78,26 +79,32 @@ namespace WiringPi
             return GPIO_PWM_;
         }
 
+        // Pointer to the GPIO hardware
         [[nodiscard]] inline constexpr volatile gpio_t *gpioPtr() const volatile
         {
             return gpio_;
         }
 
+        // Pointer to the PWM hardware
         [[nodiscard]] inline constexpr volatile pwm_t *pwmPtr() const volatile
         {
             return pwm_;
         }
 
+        // Pointer to the clock hardware
         [[nodiscard]] inline constexpr volatile pwm_t *clkPtr() const volatile
         {
             return clk_;
         }
 
+        // Pointer to the pads hardware
         [[nodiscard]] inline constexpr volatile pwm_t *padsPtr() const volatile
         {
             return pads_;
         }
 
+        // Returns 1 if wiringPi is using GPIO memory
+        // Returns 0 if wiringPi is not using GPIO memory
         [[nodiscard]] inline constexpr bool usingGpioMemory() const
         {
             return devMem_.usingGpioMem;
