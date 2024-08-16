@@ -28,7 +28,7 @@ namespace WiringPi
         // Returns -1 if error
         [[nodiscard]] inline int schedule() const
         {
-            return sched_getscheduler();
+            return sched_getscheduler(0);
         }
 
     private:

@@ -24,6 +24,7 @@ namespace WiringPi
     typedef std::array<pin_t, 64> pinTable;
     typedef std::array<gpio_t, 64> gpioTable;
     typedef std::array<std::string_view, 64> nameTable;
+    typedef std::array<int, 64> fileDescriptorTable;
 
     // Mask for the bottom 64 pins which belong to the Raspberry Pi
     // The others are available for the other devices

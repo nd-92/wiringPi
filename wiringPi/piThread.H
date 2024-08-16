@@ -21,7 +21,7 @@ namespace WiringPi
 
         // Activate a mutex
         template <const size_t key>
-        inline void lock() const
+        inline void lock()
         {
             static_assert(key < 5);
             piMutexes_[key].lock();
@@ -29,7 +29,7 @@ namespace WiringPi
 
         // Deactivate a mutex
         template <const size_t key>
-        inline void unlock() const
+        inline void unlock()
         {
             static_assert(key < 5);
             piMutexes_[key].unlock();
@@ -38,6 +38,9 @@ namespace WiringPi
     private:
         // Array of mutexes
         std::array<std::mutex, 4> piMutexes_;
+
+        // Array of file descriptors
+        // fileDescriptorTable isrFds = isrFdsI();
     };
 }
 

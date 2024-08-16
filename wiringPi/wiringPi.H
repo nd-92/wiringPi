@@ -20,6 +20,8 @@
 #include "piHardwareInfo.H"
 #include "piMemory.H"
 #include "wiringPiNode.H"
+#include "piThread.H"
+#include "piHiPriority.H"
 
 namespace WiringPi
 {

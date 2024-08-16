@@ -4,9 +4,15 @@ using namespace WiringPi;
 
 int main(void)
 {
-    wiringPi<WPI_MODE_GPIO()> Pi;
+    // wiringPi<WPI_MODE_GPIO()> Pi;
 
     // Pi.resetPins();
+
+    piThread PiThread;
+
+    PiThread.lock<0>();
+
+    PiThread.unlock<0>();
 
     // Pi.gpioClockSet<0>(10);
     // Pi.gpioClockSet<1>(10);
@@ -15,7 +21,7 @@ int main(void)
     // Pi.gpioClockSet<4>(10);
     // Pi.gpioClockSet<5>(10);
     // Pi.gpioClockSet<6>(10);
-    Pi.gpioClockSet<4>(10);
+    // Pi.gpioClockSet<4>(10);
     // Pi.gpioClockSet<8>(10);
     // Pi.gpioClockSet<9>(10);
     // Pi.gpioClockSet<10>(10);

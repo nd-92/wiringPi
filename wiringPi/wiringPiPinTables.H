@@ -321,6 +321,21 @@ namespace WiringPi
             "       ", "       ", "       ", "GPIO.17", "GPIO.18", "GPIO.19", "GPIO.20", "       ",
             "       ", "       ", "       ", "       ", "       ", "       ", "       ", "       "};
     }
+
+    // Array of file descriptors
+    // Used to initialise isrFds in piThread
+    [[nodiscard]] inline consteval fileDescriptorTable isrFdsI()
+    {
+        return fileDescriptorTable{
+            -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1};
+    }
 }
 
 #endif
