@@ -22,6 +22,7 @@
 #include "wiringPiNode.H"
 #include "piThread.H"
 #include "piHiPriority.H"
+#include "i2c.H"
 
 namespace WiringPi
 {

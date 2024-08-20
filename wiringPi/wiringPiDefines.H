@@ -21,6 +21,7 @@ namespace WiringPi
     typedef uint32_t clk_t;
     typedef uint32_t pads_t;
     typedef uint32_t timer_t;
+    typedef ssize_t i2c_t;
     typedef std::array<pin_t, 64> pinTable;
     typedef std::array<gpio_t, 64> gpioTable;
     typedef std::array<std::string_view, 64> nameTable;
@@ -630,6 +631,125 @@ namespace WiringPi
     {
         static_assert(pinMap_[pinNumber] < nPins, "Pin number is not onboard (onboard pins range from 0 to 31)");
     }
+
+    // I2C defines
+    template <typename T>
+    [[nodiscard]] inline consteval T I2C_SLAVE()
+    {
+        return 0x0703;
+    }
+
+    template <typename T>
+    [[nodiscard]] inline consteval T I2C_SMBUS()
+    {
+        return 0x0720;
+    }
+
+    template <typename T>
+    [[nodiscard]] inline consteval T I2C_SMBUS_READ()
+    {
+        return 1;
+    }
+
+    template <typename T>
+    [[nodiscard]] inline consteval T I2C_SMBUS_WRITE()
+    {
+        return 0;
+    }
+
+    template <typename T>
+    [[nodiscard]] inline consteval T I2C_SMBUS_QUICK()
+    {
+        return 0;
+    }
+
+    template <typename T>
+    [[nodiscard]] inline consteval T I2C_SMBUS_BYTE()
+    {
+        return 1;
+    }
+
+    template <typename T>
+    [[nodiscard]] inline consteval T I2C_SMBUS_BYTE_DATA()
+    {
+        return 2;
+    }
+
+    template <typename T>
+    [[nodiscard]] inline consteval T I2C_SMBUS_WORD_DATA()
+    {
+        return 3;
+    }
+
+    template <typename T>
+    [[nodiscard]] inline consteval T I2C_SMBUS_PROC_CALL()
+    {
+        return 4;
+    }
+
+    template <typename T>
+    [[nodiscard]] inline consteval T I2C_SMBUS_BLOCK_DATA()
+    {
+        return 5;
+    }
+
+    template <typename T>
+    [[nodiscard]] inline consteval T I2C_SMBUS_I2C_BLOCK_BROKEN()
+    {
+        return 6;
+    }
+
+    template <typename T>
+    [[nodiscard]] inline consteval T I2C_SMBUS_BLOCK_PROC_CALL()
+    {
+        return 7;
+    }
+
+    template <typename T>
+    [[nodiscard]] inline consteval T I2C_SMBUS_I2C_BLOCK_DATA()
+    {
+        return 8;
+    }
+
+    template <typename T>
+    [[nodiscard]] inline consteval T I2C_SMBUS_BLOCK_MAX()
+    {
+        return 32;
+    }
+
+    template <typename T>
+    [[nodiscard]] inline consteval T I2C_SMBUS_I2C_BLOCK_MAX()
+    {
+        return 32;
+    }
+
+    template <const int layout>
+    [[nodiscard]] consteval const std::string_view i2cDeviceNameI()
+    {
+        if constexpr (layout == 1)
+        {
+            return "/dev/i2c-0";
+        }
+        else
+        {
+            return "/dev/i2c-1";
+        }
+    }
+
+    union i2c_smbus_data
+    {
+        uint8_t byte;
+        uint16_t word;
+        uint8_t block[I2C_SMBUS_BLOCK_MAX<size_t>() + 2];
+    };
+
+    struct i2c_smbus_ioctl_data
+    {
+        const uint8_t read_write;
+        const uint8_t command;
+        const uint32_t size;
+        union i2c_smbus_data *data;
+    };
 
 }
 

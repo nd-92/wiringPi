@@ -42,6 +42,13 @@ namespace WiringPi
             model == PI_MODEL_5<int>());
     }
 
+    // Check for a valid board layout
+    template <const int layout>
+    [[nodiscard]] inline consteval bool piLayoutCheck()
+    {
+        return (layout == 1 || layout == 2);
+    }
+
     // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0
     template <typename T, const int model>
     [[nodiscard]] inline consteval T piGpioPupOffset()

@@ -28,7 +28,7 @@ namespace WiringPi
     template <const int layout>
     [[nodiscard]] inline consteval pin_t numPhysicalPins()
     {
-        static_assert((layout == 1 || layout == 2));
+        static_assert(piLayoutCheck<layout>());
         if (layout == 1)
         {
             return 17;
@@ -82,7 +82,7 @@ namespace WiringPi
     template <const int layout>
     [[nodiscard]] inline consteval const pinTable pinToGpioI()
     {
-        static_assert((layout == 1 || layout == 2));
+        static_assert(piLayoutCheck<layout>());
         if (layout == 1) // A, B, Rev 1, 1.1
         {
             return pinTable{
@@ -113,7 +113,7 @@ namespace WiringPi
     template <const int layout>
     [[nodiscard]] inline consteval const pinTable physToGpioI()
     {
-        static_assert((layout == 1 || layout == 2));
+        static_assert(piLayoutCheck<layout>());
         if (layout == 1) // A, B, Rev 1, 1.1
         {
             return pinTable{
@@ -144,7 +144,7 @@ namespace WiringPi
     template <const int layout>
     [[nodiscard]] inline consteval const pinTable gpioToGpio()
     {
-        static_assert((layout == 1 || layout == 2));
+        static_assert(piLayoutCheck<layout>());
         if (layout == 1) // A, B, Rev 1, 1.1
         {
             return pinTable{
@@ -190,7 +190,7 @@ namespace WiringPi
     template <const int layout, const int mode>
     [[nodiscard]] inline consteval const pinTable pinMapI()
     {
-        static_assert((layout == 1 || layout == 2));
+        static_assert(piLayoutCheck<layout>());
         static_assert((mode == WPI_MODE_PINS() || mode == WPI_MODE_GPIO() || mode == WPI_MODE_PHYS()));
         switch (mode)
         {

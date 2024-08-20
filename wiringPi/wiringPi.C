@@ -4,69 +4,33 @@ using namespace WiringPi;
 
 int main(void)
 {
-    // wiringPi<WPI_MODE_GPIO()> Pi;
+    const i2c<2, 13> I2C;
 
-    // Pi.resetPins();
+    std::cout << "I2C device: " << I2C.deviceName() << std::endl;
 
-    piThread PiThread;
+    uint8_t value = 0xFF;
 
-    PiThread.lock<0>();
+    // std::cout << "I2C.read() returning " << I2C.i2cRead() << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
 
-    PiThread.unlock<0>();
+    // std::cout << "I2C.read8() returning " << I2C.i2cRead8(0) << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
 
-    // Pi.gpioClockSet<0>(10);
-    // Pi.gpioClockSet<1>(10);
-    // Pi.gpioClockSet<2>(10);
-    // Pi.gpioClockSet<3>(10);
-    // Pi.gpioClockSet<4>(10);
-    // Pi.gpioClockSet<5>(10);
-    // Pi.gpioClockSet<6>(10);
-    // Pi.gpioClockSet<4>(10);
-    // Pi.gpioClockSet<8>(10);
-    // Pi.gpioClockSet<9>(10);
-    // Pi.gpioClockSet<10>(10);
-    // Pi.gpioClockSet<11>(10);
-    // Pi.gpioClockSet<12>(10);
-    // Pi.gpioClockSet<13>(10);
-    // Pi.gpioClockSet<14>(10);
-    // Pi.gpioClockSet<15>(10);
-    // Pi.gpioClockSet<16>(10);
-    // Pi.gpioClockSet<17>(10);
-    // Pi.gpioClockSet<18>(10);
-    // Pi.gpioClockSet<19>(10);
-    // Pi.gpioClockSet<20>(10);
-    // Pi.gpioClockSet<21>(10);
-    // Pi.gpioClockSet<22>(10);
-    // Pi.gpioClockSet<23>(10);
-    // Pi.gpioClockSet<24>(10);
-    // Pi.gpioClockSet<25>(10);
-    // Pi.gpioClockSet<26>(10);
-    // Pi.gpioClockSet<27>(10);
-    // Pi.gpioClockSet<28>(10);
-    // Pi.gpioClockSet<29>(10);
-    // Pi.gpioClockSet<30>(10);
-    // Pi.gpioClockSet<31>(10);
+    // std::cout << "I2C.read16() returning " << I2C.i2cRead16(0) << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
 
-    // Pi.writePinsLow();
+    // std::cout << "I2C.readBlockData() returning " << I2C.i2cReadBlockData(0, &value, 1) << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
 
-    // Pi.readPins();
+    // std::cout << "I2C.readRaw() returning " << I2C.i2cReadRaw(&value, 1) << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
 
-    // Pi.pullUpDnControlPins();
+    std::cout << "I2C.i2cRead() returning " << I2C.i2cRead() << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
 
-    // for (pin_t i = 0; i < 32; i++)
-    // {
-    //     std::cout << "digitalReadOnboard returned " << Pi.digitalReadOnboard<i>() << std::endl;
-    // }
+    std::cout << "I2C.i2cRead8() returning " << I2C.i2cRead8(0) << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
 
-    // while (Pi.run())
-    // {
+    std::cout << "I2C.i2cRead16() returning " << I2C.i2cRead16(0) << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
 
-    // Pi.pwmSetMode<PWM_MODE_BAL<int>()>();
+    std::cout << "I2C.i2cReadBlockData() returning " << I2C.i2cReadBlockData(0, &value, 1) << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
 
-    // Pi.pwmSetMode<PWM_MODE_MS<int>()>();
+    std::cout << "I2C.i2cReadRaw() returning " << I2C.i2cReadRaw(&value, 1) << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
 
-    // Pi.pwmSetMode<3>();
-    // }
+    // std::cout << "I2C.read8() returning " << I2C.read8(0) << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
 
     return 0;
 }
