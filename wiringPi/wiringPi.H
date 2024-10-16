@@ -23,9 +23,12 @@
 #include "piThread.H"
 #include "piHiPriority.H"
 #include "i2c.H"
+#include "wiringPiStrings.H"
 
 namespace WiringPi
 {
+    // #define WIRINGPI_DEBUG 1
+
     static constinit std::atomic<bool> quit(false);
 
     void signalHandler(int)
@@ -104,23 +107,26 @@ namespace WiringPi
         template <const pin_t pinNumber>
         [[nodiscard]] inline gpio_t digitalReadOnboard() const volatile
         {
-            onboardPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
+            validPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
+#ifdef WIRINGPI_DEBUG
+            std::cout << "Reading " << onboardPins_.digitalRead<pinMap_[pinNumber]>(piMemory_.gpioPtr()) << " from pin " << pinMap_[pinNumber] << std::endl;
+#endif
             return onboardPins_.digitalRead<pinMap_[pinNumber]>(piMemory_.gpioPtr());
         }
 
         // Write an output bit
-        template <const pin_t pinNumber>
-        inline void digitalWriteOnboard(const gpio_t value) const volatile
+        template <const pin_t pinNumber, const gpio_t value>
+        inline void digitalWriteOnboard() const volatile
         {
-            onboardPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
-            onboardPins_.digitalWrite<pinMap_[pinNumber]>(piMemory_.gpioPtr(), value);
+            validPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
+            onboardPins_.digitalWrite<pinMap_[pinNumber], value>(piMemory_.gpioPtr());
         }
 
         // Sets the mode of a pin to be input, output or PWM output
         template <const pin_t pinNumber>
         inline void pinModeOnboard(const gpio_t mode)
         {
-            onboardPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
+            validPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
             onboardPins_.pinMode<pinMap_[pinNumber]>(piMemory_.gpioPtr(), mode, gpioToGPFSEL_[pinMap_[pinNumber]], gpioToShift_[pinMap_[pinNumber]]);
         }
 
@@ -128,7 +134,7 @@ namespace WiringPi
         template <const pin_t pinNumber>
         inline void pullUpDnControlOnboard(const gpio_t pud) const
         {
-            onboardPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
+            validPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
             onboardPins_.pullUpDnControl<pinMap_[pinNumber], piHardware_.gpioPupOffset()>(piMemory_.gpioPtr(), pud);
         }
 
@@ -136,7 +142,7 @@ namespace WiringPi
         template <const pin_t pinNumber>
         inline void pwmWriteOnboard(const pwm_t value) const
         {
-            onboardPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
+            validPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
             static_assert(wiringPiMode_ == WPI_MODE_GPIO(), "wiringPi not initialised in GPIO mode: pwmWriteOnboard cannot be called");
             assert((piMemory_.gpioBase() == 0) && "GPIO base address must be 0: pwmWriteOnboard cannot be called");
             assert((!piMemory_.usingGpioMemory()) && "Application is using GPIO memory. Unable to do this when using /dev/gpiomem. Try sudo?");
@@ -222,7 +228,7 @@ namespace WiringPi
         void gpioClockSet(const timer_t freq) const
         {
             setupModeCheck<wiringPiMode>();
-            onboardPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
+            validPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
             static_assert(gpioToClkDiv_[pinMap_[pinNumber]] != nullPin<pin_t>(), "Pin number is not a valid GPIO pin");
             static_assert(gpioToClkCon_[pinMap_[pinNumber]] != nullPin<pin_t>(), "Pin number is not a valid GPIO pin");
             assert((!piMemory_.usingGpioMemory()) && "Application is using GPIO memory. Unable to do this when using /dev/gpiomem. Try sudo?");
@@ -265,7 +271,7 @@ namespace WiringPi
         template <const pin_t pinNumber>
         [[nodiscard]] inline constexpr gpio_t getAlt() const
         {
-            onboardPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
+            validPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
             return (*(piMemory_.gpioPtr() + gpioToGPFSEL_[pinMap_[pinNumber]]) >> gpioToShift_[pinMap_[pinNumber]]) & 7;
         }
 
@@ -344,12 +350,25 @@ namespace WiringPi
         template <pin_t index = 0>
         void resetAllPins(std::integral_constant<pin_t, index> = std::integral_constant<pin_t, 0>())
         {
-            pinModeOnboard<index>(INPUT<gpio_t>());
+            if constexpr (pinMap_[index] != nullPin<pin_t>())
+            {
+                pinModeOnboard<index>(OUTPUT<gpio_t>());
+                digitalWriteOnboard<index, LOW<gpio_t>()>();
+                pinModeOnboard<index>(INPUT<gpio_t>());
+                std::cout << "Value reset to " << digitalReadOnboard<index>() << " on pin " << index << std::endl;
+            }
+            else
+            {
+                std::cout << "Non-onboard or ground pin on pin " << index << std::endl;
+            }
             resetAllPins(std::integral_constant<pin_t, index + 1>());
         }
 
         // Registry of onboard pins
         onboardPins onboardPins_ = onboardPins();
+
+        // Registry of pin threads
+        std::array<std::thread, 64> pinThreads_;
 
         // Setup info
         // static constexpr const int wiringPiSetuped_ = static_cast<int>(true);

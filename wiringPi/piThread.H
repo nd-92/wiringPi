@@ -14,34 +14,36 @@
 
 namespace WiringPi
 {
-    class piThread
-    {
-    public:
-        [[nodiscard]] inline constexpr piThread() {};
+    typedef std::thread piThread;
 
-        // Activate a mutex
-        template <const size_t key>
-        inline void lock()
-        {
-            static_assert(key < 5);
-            piMutexes_[key].lock();
-        }
+    // class piThread
+    // {
+    // public:
+    //     [[nodiscard]] inline constexpr piThread() {};
 
-        // Deactivate a mutex
-        template <const size_t key>
-        inline void unlock()
-        {
-            static_assert(key < 5);
-            piMutexes_[key].unlock();
-        }
+    //     // Activate a mutex
+    //     template <const size_t key>
+    //     inline void lock()
+    //     {
+    //         static_assert(key < 5);
+    //         piMutexes_[key].lock();
+    //     }
 
-    private:
-        // Array of mutexes
-        std::array<std::mutex, 4> piMutexes_;
+    //     // Deactivate a mutex
+    //     template <const size_t key>
+    //     inline void unlock()
+    //     {
+    //         static_assert(key < 5);
+    //         piMutexes_[key].unlock();
+    //     }
 
-        // Array of file descriptors
-        // fileDescriptorTable isrFds = isrFdsI();
-    };
+    // private:
+    //     // Array of mutexes
+    //     std::array<std::mutex, 4> piMutexes_;
+
+    //     // Array of file descriptors
+    //     // fileDescriptorTable isrFds = isrFdsI();
+    // };
 }
 
 #endif

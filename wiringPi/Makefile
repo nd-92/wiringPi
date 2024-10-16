@@ -1,5 +1,5 @@
 CXX = g++
-CXXSTANDARD = -std=c++20
+CXXSTANDARD = -std=c++23
 OPTFLAGS = -O3 -flto -fconstexpr-depth=1024
 MFLAGS = -march=native -mtune=native
 WFLAGS = -Werror -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wformat-security -Winline -Wformat=2 -Wattributes \

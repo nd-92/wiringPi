@@ -10,6 +10,7 @@
 #define __WIRING_PI_wiringPiDefines_H
 
 #include "wiringPiIncludes.H"
+#include "wiringPiStrings.H"
 
 namespace WiringPi
 {
@@ -26,6 +27,13 @@ namespace WiringPi
     typedef std::array<gpio_t, 64> gpioTable;
     typedef std::array<std::string_view, 64> nameTable;
     typedef std::array<int, 64> fileDescriptorTable;
+
+    // Type safe initialisation of a default value of -1
+    template <typename T>
+    [[nodiscard]] inline consteval T nullPin()
+    {
+        return static_cast<T>(-1);
+    }
 
     // Mask for the bottom 64 pins which belong to the Raspberry Pi
     // The others are available for the other devices
@@ -627,8 +635,9 @@ namespace WiringPi
     }
 
     template <const pin_t nPins, const pinTable pinMap_, const pin_t pinNumber>
-    inline void onboardPinCheck()
+    inline void validPinCheck()
     {
+        static_assert(pinMap_[pinNumber] != nullPin<pin_t>(), "Pin number is null");
         static_assert(pinMap_[pinNumber] < nPins, "Pin number is not onboard (onboard pins range from 0 to 31)");
     }
 

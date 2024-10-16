@@ -16,11 +16,51 @@
 
 namespace WiringPi
 {
-    // Type safe initialisation of a default value of -1
-    template <typename T>
-    [[nodiscard]] inline consteval T nullPin()
+    // Returns 2 ^ (pinNumber & 31)
+    // template <const pin_t pinNumber>
+    [[nodiscard]] inline consteval pin_t digitalReadModulo(const pin_t pinNumber)
     {
-        return static_cast<T>(-1);
+        return static_cast<pin_t>(1 << (pinNumber & 31));
+    }
+
+    // Offset to the Pull Up Down Clock regsiter
+    // This is equivalent to the gpioToPUDCLK table
+    // Returns 38 on pins 0 -> 31, 39 on pins 32 -> 63
+    // template <const pin_t pinNumber>
+    [[nodiscard]] inline consteval gpio_t gpioToPUDCLK(const pin_t pinNumber)
+    {
+        return 38 + (pinNumber / 32);
+    }
+
+    // Offset to the GPIO Input level registers for each GPIO pin
+    // This is equivalent to the gpioToGPLEV table
+    // Returns 13 on pins 0 -> 31, 14 on pins 32 -> 63
+    // template <const pin_t pinNumber>
+    [[nodiscard]] inline consteval gpio_t gpioToGPLEV(const pin_t pinNumber)
+    {
+        return (13 + (pinNumber / 32));
+    }
+
+    // Offset to the GPIO Clear and Set registers for each GPIO pin
+    // This is equivalent to the gpioToGPCLR and gpioToGPSET tables
+    // Value passed to this function should be deviceNo + (64 * !value)
+    // Returns 10 -> 11 for digital value LOW, 7 -> 8 for digital value HIGH
+    // template <const pin_t pinNumber>
+    [[nodiscard]] inline consteval gpio_t gpioCLRSET(const pin_t pinNumber)
+    {
+        return (7 + (pinNumber / 64) + (pinNumber / 32));
+    }
+
+    // template <const pin_t pinNumber>
+    [[nodiscard]] inline consteval gpio_t pullReg(const pin_t pinNumber)
+    {
+        return (GPPUPPDN0<gpio_t>() + (pinNumber >> 4));
+    }
+
+    // template <const pin_t pinNumber>
+    [[nodiscard]] inline consteval gpio_t pullShift(const pin_t pinNumber)
+    {
+        return ((pinNumber & 0xf) << 1);
     }
 
     // Get the number of physical pins for the board layout

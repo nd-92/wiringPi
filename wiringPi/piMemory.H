@@ -139,9 +139,9 @@ namespace WiringPi
         }
 
         // Read the device memory
-        memorySpec readDeviceMemory()
+        [[nodiscard]] inline memorySpec readDeviceMemory() const
         {
-            int fd_;
+            int fd_ = -1;
             bool usingGpioMem_ = false;
 
             constexpr const char *gpiomemGlobal = "/dev/mem";

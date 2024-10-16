@@ -16,6 +16,7 @@
 #include <atomic>
 #include <cassert>
 #include <chrono>
+#include <cstddef>
 #include <cstring>
 #include <ctype.h>
 #include <errno.h>

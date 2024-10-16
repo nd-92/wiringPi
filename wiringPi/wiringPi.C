@@ -4,33 +4,29 @@ using namespace WiringPi;
 
 int main(void)
 {
-    const i2c<2, 13> I2C;
 
-    std::cout << "I2C device: " << I2C.deviceName() << std::endl;
+    // static constexpr auto a1 = constexpr_strcat(
+    //     std::to_array("Hello"),
+    //     std::to_array(" "),
+    //     std::to_array("world"),
+    //     std::to_array("!"));
 
-    uint8_t value = 0xFF;
+    // constexpr const std::string_view s_1 = toStringView(a1);
 
-    // std::cout << "I2C.read() returning " << I2C.i2cRead() << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
+    // std::cout << "s_1 = " << s_1 << std::endl;
 
-    // std::cout << "I2C.read8() returning " << I2C.i2cRead8(0) << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
+    wiringPi<WPI_MODE_GPIO()> Pi;
 
-    // std::cout << "I2C.read16() returning " << I2C.i2cRead16(0) << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
+    // const gpio_t i = Pi.digitalReadOnboard<3>();
 
-    // std::cout << "I2C.readBlockData() returning " << I2C.i2cReadBlockData(0, &value, 1) << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
+    // std::cout << "i = " << i << std::endl;
 
-    // std::cout << "I2C.readRaw() returning " << I2C.i2cReadRaw(&value, 1) << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
-
-    std::cout << "I2C.i2cRead() returning " << I2C.i2cRead() << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
-
-    std::cout << "I2C.i2cRead8() returning " << I2C.i2cRead8(0) << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
-
-    std::cout << "I2C.i2cRead16() returning " << I2C.i2cRead16(0) << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
-
-    std::cout << "I2C.i2cReadBlockData() returning " << I2C.i2cReadBlockData(0, &value, 1) << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
-
-    std::cout << "I2C.i2cReadRaw() returning " << I2C.i2cReadRaw(&value, 1) << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
-
-    // std::cout << "I2C.read8() returning " << I2C.read8(0) << ". False return is equal to " << static_cast<gpio_t>(-1) << std::endl;
+    // for (size_t i = 0; i < 64; i++)
+    for (pinTable::const_iterator i = Pi.pinMap().begin(); i < Pi.pinMap().end(); i++)
+    {
+        // std::cout << "i = " << *i << ", pin = " << Pi.pinMap()[i] << std::endl;
+        std::cout << "i = " << *i << std::endl;
+    }
 
     return 0;
 }
