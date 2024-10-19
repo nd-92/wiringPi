@@ -90,7 +90,8 @@ namespace WiringPi
         static constexpr const int piMaker_ = PI_MAKER<int>();
         static constexpr const int piWarranty_ = PI_WARRANTY<int>();
         static constexpr const pin_t piGpioPupOffset_ = piGpioPupOffset<pin_t, PI_MODEL<int>()>();
-        static constexpr const std::string_view modelString_ = piModelStrings()[PI_MODEL<size_t>()];
+        // static constexpr const std::string_view modelString_ = piModelStrings()[PI_MODEL<size_t>()];
+        static constexpr const std::string_view modelString_ = piModelStrings(PI_MODEL<size_t>());
         static constexpr const pin_t numPhysicalPins_ = numPhysicalPins<GPIO_LAYOUT<int>()>();
     };
 }

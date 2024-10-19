@@ -42,7 +42,8 @@ namespace WiringPi
     {
     public:
         [[nodiscard]] inline wiringPi()
-            : piMemory_(piMemory<piHardware_.model()>()),
+            : sa_(initialiseSigaction()),
+              piMemory_(piMemory<piHardware_.model()>()),
               epochMilli_(initialiseEpochMilli()),
               epochMicro_(initialiseEpochMicro())
         {
@@ -52,16 +53,11 @@ namespace WiringPi
             // Check for non-GPIO mode on certain models
             computeModelCheck<piHardware_.model(), wiringPiMode_>();
 
-            // Make sure cleanup is performed on interrupt, terminate, hangup or segfault
-            struct sigaction sa;
-            memset(&sa, 0, sizeof(sa));
-            sa.sa_handler = signalHandler;
-            sigfillset(&sa.sa_mask);
-            sigaction(SIGINT, &sa, NULL);
-            sigaction(SIGTERM, &sa, NULL);
-            sigaction(SIGHUP, &sa, NULL);
-            sigaction(SIGSEGV, &sa, NULL);
-            std::cout << "WiringPi initialised on mode " << wiringPiModes()[wiringPiMode_] << std::endl;
+            // Debug message
+            std::cout << "WiringPi initialised on mode " << wiringPiModes(wiringPiMode_) << std::endl;
+
+            // Hardware info message
+            std::cout << "Running on a Raspberry Pi " << piHardware_.modelString() << std::endl;
         }
 
         ~wiringPi()
@@ -328,6 +324,36 @@ namespace WiringPi
         }
 
     private:
+        // Helper function to initialise sa_
+        [[nodiscard]] inline const struct sigaction initialiseSigaction() const
+        {
+            struct sigaction sa
+            {
+            };
+            memset(&sa, 0, sizeof(sa));
+            sa.sa_handler = signalHandler;
+
+            const int sigfillset_return = sigfillset(&sa.sa_mask);
+            assert((sigfillset_return == 0) && "sigfillset returned non-zero on initialisation of wiringPi class");
+
+            // Set actions
+            const int sigaction_interrupt = sigaction(SIGINT, &sa, NULL);
+            const int sigaction_terminate = sigaction(SIGTERM, &sa, NULL);
+            const int sigaction_hangup = sigaction(SIGHUP, &sa, NULL);
+            const int sigaction_segfault = sigaction(SIGSEGV, &sa, NULL);
+
+            // Check for failure
+            assert((sigaction_interrupt == 0) && "sigaction returned non-zero on establishing interrupt");
+            assert((sigaction_terminate == 0) && "sigaction returned non-zero on establishing terminate");
+            assert((sigaction_hangup == 0) && "sigaction returned non-zero on establishing hangup");
+            assert((sigaction_segfault == 0) && "sigaction returned non-zero on establishing segfault");
+
+            return sa;
+        }
+
+        // Make sure cleanup is performed on interrupt, terminate, hangup or segfault
+        const struct sigaction sa_;
+
         // Helper method for pwmSetClock
         [[nodiscard]] inline constexpr timer_t reducedDivisor(const timer_t divisor) const
         {
@@ -355,11 +381,15 @@ namespace WiringPi
                 pinModeOnboard<index>(OUTPUT<gpio_t>());
                 digitalWriteOnboard<index, LOW<gpio_t>()>();
                 pinModeOnboard<index>(INPUT<gpio_t>());
+#ifdef WIRINGPI_DEBUG
                 std::cout << "Value reset to " << digitalReadOnboard<index>() << " on pin " << index << std::endl;
+#endif
             }
             else
             {
-                std::cout << "Non-onboard or ground pin on pin " << index << std::endl;
+#ifdef WIRINGPI_DEBUG
+                std::cout << "Non-onboard or ground on pin " << index << std::endl;
+#endif
             }
             resetAllPins(std::integral_constant<pin_t, index + 1>());
         }
@@ -368,7 +398,7 @@ namespace WiringPi
         onboardPins onboardPins_ = onboardPins();
 
         // Registry of pin threads
-        std::array<std::thread, 64> pinThreads_;
+        // std::array<std::thread, 64> pinThreads_;
 
         // Setup info
         // static constexpr const int wiringPiSetuped_ = static_cast<int>(true);

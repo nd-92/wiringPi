@@ -160,15 +160,26 @@ namespace WiringPi
     {
         return -1;
     }
-    [[nodiscard]] inline consteval std::array<std::string_view, 6> wiringPiModes()
+    // [[nodiscard]] inline consteval std::array<std::string_view, 6> wiringPiModes()
+    // {
+    //     return std::array<std::string_view, 6>{
+    //         "PINS",
+    //         "GPIO",
+    //         "GPIO_SYS",
+    //         "PHYS",
+    //         "PIFACE",
+    //         "UNINITIALISED"};
+    // }
+    [[nodiscard]] inline consteval std::string_view wiringPiModes(const pin_t mode)
     {
-        return std::array<std::string_view, 6>{
+        constexpr const std::array<std::string_view, 6> arr{
             "PINS",
             "GPIO",
             "GPIO_SYS",
             "PHYS",
             "PIFACE",
             "UNINITIALISED"};
+        return arr[mode];
     }
 
     // Pi models
@@ -278,9 +289,9 @@ namespace WiringPi
         return 23;
     }
 
-    [[nodiscard]] inline consteval std::array<std::string_view, 21> piModelStrings()
+    [[nodiscard]] inline consteval std::string_view piModelStrings(const size_t model)
     {
-        return std::array<std::string_view, 21>{
+        constexpr const std::array<std::string_view, 21> arr{
             "A",
             "B",
             "AP",
@@ -302,6 +313,7 @@ namespace WiringPi
             "ZERO_2W",
             "400",
             "CM4"};
+        return arr[model];
     }
 
     // Pi versions
