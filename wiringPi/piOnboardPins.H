@@ -21,62 +21,57 @@ namespace WiringPi
         [[nodiscard]] inline constexpr onboardPins() {};
 
         // Read the value of a given pin, returns either HIGH or LOW
-        template <const pin_t pinNumber>
-        [[nodiscard]] inline gpio_t digitalRead(const volatile gpio_t *gpioPtr) const volatile
+        template <const pin_t __pinNumber>
+        [[nodiscard]] inline gpio_t digitalRead(const volatile gpio_t *gpioPtr, const pin_constant<__pinNumber> pinNumber) const volatile
         {
-            static_assert(pinNumber != nullPin<pin_t>());
-            // return static_cast<gpio_t>((*(gpioPtr + gpioToGPLEV<pinNumber>()) & digitalReadModulo<pinNumber>()) != 0);
-            return static_cast<gpio_t>((*(gpioPtr + gpioToGPLEV(pinNumber)) & digitalReadModulo(pinNumber)) != 0);
+            return static_cast<gpio_t>((*(gpioPtr + gpioToGPLEV(pinNumber())) & digitalReadModulo(pinNumber())) != 0);
         }
 
         // Set an output bit on a given pin
-        template <const pin_t pinNumber, const gpio_t value>
-        inline void digitalWrite(volatile gpio_t *gpioPtr) const volatile
+        template <const pin_t __pinNumber, const gpio_t __value>
+        inline void digitalWrite(volatile gpio_t *gpioPtr, const pin_constant<__pinNumber> pinNumber, const pin_constant<__value> value) const volatile
         {
-            static_assert(pinNumber != nullPin<pin_t>());
-            // *(gpioPtr + gpioCLRSET<pinNumber + (64 * !value)>()) = digitalReadModulo<pinNumber>();
-            *(gpioPtr + gpioCLRSET(pinNumber + (64 * !value))) = digitalReadModulo(pinNumber);
+            *(gpioPtr + gpioCLRSET(pinNumber() + (64 * !value()))) = digitalReadModulo(pinNumber());
         }
 
         // Sets the mode of a pin to be input, output or PWM output
-        template <const pin_t pinNumber>
-        inline void pinMode(volatile gpio_t *gpioPtr, const gpio_t mode, const pin_t fSel, const pin_t shift)
+        template <const pin_t __pinNumber, const gpio_t __mode, const pin_t __fSel, const pin_t __shift>
+        inline void pinMode(volatile gpio_t *gpioPtr, const pin_constant<__pinNumber> pinNumber, const gpio_constant<__mode> mode, const pin_constant<__fSel> fSel, const pin_constant<__shift> shift)
         {
-            static_assert(pinNumber != nullPin<pin_t>());
-            if (mode == INPUT<gpio_t>() || mode == PWM_OFF<gpio_t>())
+            static_assert(pinNumber() != nullPin<pin_t>());
+            if constexpr (mode() == INPUT<gpio_t>() || mode() == PWM_OFF<gpio_t>())
             {
-                *(gpioPtr + fSel) = (*(gpioPtr + fSel) & static_cast<gpio_t>(~(7 << shift)));
+                *(gpioPtr + fSel()) = (*(gpioPtr + fSel()) & static_cast<gpio_t>(~(7 << shift())));
             }
-            else if (mode == OUTPUT<gpio_t>())
+            else if constexpr (mode() == OUTPUT<gpio_t>())
             {
-                *(gpioPtr + fSel) = (*(gpioPtr + fSel) & static_cast<gpio_t>(~(7 << shift))) | (1 << shift);
+                *(gpioPtr + fSel()) = (*(gpioPtr + fSel()) & static_cast<gpio_t>(~(7 << shift()))) | (1 << shift());
             }
-            pinMode_[pinNumber] = mode;
+            pinMode_[pinNumber()] = mode();
         }
 
         // Control the internal pull-up/down resistors on a GPIO pin
-        template <const pin_t pinNumber, const gpio_t offset>
-        inline void pullUpDnControl(volatile gpio_t *gpioPtr, const gpio_t pud) const volatile
+        template <const pin_t __pinNumber, const gpio_t __pud, const gpio_t __offset>
+        inline void pullUpDnControl(volatile gpio_t *gpioPtr, const pin_constant<__pinNumber> pinNumber, const gpio_constant<__pud> pud, const gpio_constant<__offset> offset) const volatile
         {
-            static_assert(pinNumber != nullPin<pin_t>());
-            if constexpr (offset == GPPUPPDN0<gpio_t>())
+            static_assert(pinNumber() != nullPin<pin_t>());
+            if constexpr (offset() == GPPUPPDN0<gpio_t>())
             {
                 // Pi 4B pull up/down method
                 pin_t pullBits = *(gpioPtr + pullReg<pinNumber>());
-                pullBits &= static_cast<gpio_t>(~(3 << pullShift<pinNumber>()));
-                pullBits |= (pud << pullShift<pinNumber>());
+                pullBits &= static_cast<gpio_t>(~(3 << pullShift<pinNumber()>()));
+                pullBits |= (pud() << pullShift<pinNumber()>());
                 *(gpioPtr + pullReg<pinNumber>()) = pullBits;
             }
             else
             {
-                *(gpioPtr + GPPUD<gpio_t>()) = pud & 3;
+                *(gpioPtr + GPPUD<gpio_t>()) = pud() & 3;
                 std::this_thread::sleep_for(std::chrono::microseconds(5));
-                // *(gpioPtr + gpioToPUDCLK<pinNumber>()) = digitalReadModulo<pinNumber>();
-                *(gpioPtr + gpioToPUDCLK(pinNumber)) = digitalReadModulo(pinNumber);
+                *(gpioPtr + gpioToPUDCLK(pinNumber())) = digitalReadModulo(pinNumber());
                 std::this_thread::sleep_for(std::chrono::microseconds(5));
                 *(gpioPtr + GPPUD<gpio_t>()) = 0;
                 std::this_thread::sleep_for(std::chrono::microseconds(5));
-                *(gpioPtr + gpioToPUDCLK(pinNumber)) = 0;
+                *(gpioPtr + gpioToPUDCLK(pinNumber())) = 0;
                 std::this_thread::sleep_for(std::chrono::microseconds(5));
             }
         }
@@ -102,53 +97,6 @@ namespace WiringPi
         }
 
     private:
-        // // Returns 2 ^ (pinNumber & 31)
-        // template <const pin_t pinNumber>
-        // [[nodiscard]] inline consteval pin_t digitalReadModulo()
-        // {
-        //     return (1 << (pinNumber & 31));
-        // }
-
-        // // Offset to the Pull Up Down Clock regsiter
-        // // This is equivalent to the gpioToPUDCLK table
-        // // Returns 38 on pins 0 -> 31, 39 on pins 32 -> 63
-        // template <const pin_t pinNumber>
-        // [[nodiscard]] inline consteval gpio_t gpioToPUDCLK()
-        // {
-        //     return 38 + (pinNumber / 32);
-        // }
-
-        // // Offset to the GPIO Input level registers for each GPIO pin
-        // // This is equivalent to the gpioToGPLEV table
-        // // Returns 13 on pins 0 -> 31, 14 on pins 32 -> 63
-        // template <const pin_t pinNumber>
-        // [[nodiscard]] inline consteval gpio_t gpioToGPLEV()
-        // {
-        //     return (13 + (pinNumber / 32));
-        // }
-
-        // // Offset to the GPIO Clear and Set registers for each GPIO pin
-        // // This is equivalent to the gpioToGPCLR and gpioToGPSET tables
-        // // Value passed to this function should be deviceNo + (64 * !value)
-        // // Returns 10 -> 11 for digital value LOW, 7 -> 8 for digital value HIGH
-        // template <const pin_t pinNumber>
-        // [[nodiscard]] inline consteval gpio_t gpioCLRSET()
-        // {
-        //     return (7 + (pinNumber / 64) + (pinNumber / 32));
-        // }
-
-        // template <const pin_t pinNumber>
-        // [[nodiscard]] inline consteval gpio_t pullReg()
-        // {
-        //     return (GPPUPPDN0<gpio_t>() + (pinNumber >> 4));
-        // }
-
-        // template <const pin_t pinNumber>
-        // [[nodiscard]] inline consteval gpio_t pullShift()
-        // {
-        //     return ((pinNumber & 0xf) << 1);
-        // }
-
         gpioTable pinMode_ = pinModeI();
         static constexpr const gpioTable gpioToPwmPort_ = gpioToPwmPortI();
     };

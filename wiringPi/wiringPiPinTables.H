@@ -68,7 +68,7 @@ namespace WiringPi
     template <const int layout>
     [[nodiscard]] inline consteval pin_t numPhysicalPins()
     {
-        static_assert(piLayoutCheck<layout>());
+        static_assert(piLayoutCheck(layout));
         if (layout == 1)
         {
             return 17;
@@ -122,7 +122,7 @@ namespace WiringPi
     template <const int layout>
     [[nodiscard]] inline consteval const pinTable pinToGpioI()
     {
-        static_assert(piLayoutCheck<layout>());
+        static_assert(piLayoutCheck(layout));
         if (layout == 1) // A, B, Rev 1, 1.1
         {
             return pinTable{
@@ -153,7 +153,7 @@ namespace WiringPi
     template <const int layout>
     [[nodiscard]] inline consteval const pinTable physToGpioI()
     {
-        static_assert(piLayoutCheck<layout>());
+        static_assert(piLayoutCheck(layout));
         if (layout == 1) // A, B, Rev 1, 1.1
         {
             return pinTable{
@@ -184,7 +184,7 @@ namespace WiringPi
     template <const int layout>
     [[nodiscard]] inline consteval const pinTable gpioToGpio()
     {
-        static_assert(piLayoutCheck<layout>());
+        static_assert(piLayoutCheck(layout));
         if (layout == 1) // A, B, Rev 1, 1.1
         {
             return pinTable{
@@ -230,7 +230,7 @@ namespace WiringPi
     template <const int layout, const int mode>
     [[nodiscard]] inline consteval const pinTable pinMapI()
     {
-        static_assert(piLayoutCheck<layout>());
+        static_assert(piLayoutCheck(layout));
         static_assert((mode == WPI_MODE_PINS() || mode == WPI_MODE_GPIO() || mode == WPI_MODE_PHYS()));
         switch (mode)
         {
@@ -288,7 +288,7 @@ namespace WiringPi
                 nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
                 nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
                 nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>()};
-            for (pin_t pin = 0; pin < 64; ++pin)
+            for (pin_t pin = 0; pin < MAX_PINS<pin_t>(); ++pin)
             {
                 sprintf(fName, "/sys/class/gpio/gpio%u/value", pin);
                 arr[pin] = static_cast<pin_t>(open(fName, O_RDWR));
@@ -352,14 +352,50 @@ namespace WiringPi
     [[nodiscard]] inline consteval const nameTable physNamesI()
     {
         return nameTable{
-            "       ", "   3.3v", "5v     ", "  SDA.1", "5v     ", "  SCL.1", "0v     ", "GPIO. 7",
-            "TxD    ", "     0v", "RxD    ", "GPIO. 0", "GPIO. 1", "GPIO. 2", "0v     ", "GPIO. 3",
-            "GPIO. 4", "   3.3v", "GPIO. 5", "   MOSI", "0v     ", "   MISO", "GPIO. 6", "   SCLK",
-            "CE0    ", "     0v", "CE1    ", "  SDA.0", "SCL.0  ", "GPIO.21", "0v     ", "GPIO.22",
-            "GPIO.26", "GPIO.23", "0v     ", "GPIO.24", "GPIO.27", "GPIO.25", "GPIO.28", "     0v",
-            "GPIO.29", "       ", "       ", "       ", "       ", "       ", "       ", "       ",
-            "       ", "       ", "       ", "GPIO.17", "GPIO.18", "GPIO.19", "GPIO.20", "       ",
-            "       ", "       ", "       ", "       ", "       ", "       ", "       ", "       "};
+            "         ", " 3.3v    ",
+            " 5v      ", " SDA.1   ",
+            " 5v      ", " SCL.1   ",
+            " 0v      ", " GPIO.07 ",
+            " TxD     ", " 0v      ",
+            " RxD     ", " GPIO.00 ",
+            " GPIO.01 ", " GPIO.02 ",
+            " 0v      ", " GPIO.03 ",
+            " GPIO.04 ", " 3.3v    ",
+            " GPIO.05 ", " MOSI    ",
+            " 0v      ", " MISO    ",
+            " GPIO.06 ", " SCLK    ",
+            " CE0     ", " 0v      ",
+            " CE1     ", " SDA.0   ",
+            " SCL.0   ", " GPIO.21 ",
+            " 0v      ", " GPIO.22 ",
+            " GPIO.26 ", " GPIO.23 ",
+            " 0v      ", " GPIO.24 ",
+            " GPIO.27 ", " GPIO.25 ",
+            " GPIO.28 ", " 0v      ",
+            " GPIO.29 ", "         ",
+            "         ", "         ",
+            "         ", "         ",
+            "         ", "         ",
+            "         ", "         ",
+            "         ", " GPIO.17 ",
+            " GPIO.18 ", " GPIO.19 ",
+            " GPIO.20 ", "         ",
+            "         ", "         ",
+            "         ", "         ",
+            "         ", "         ",
+            "         ", "         "};
+    }
+
+    [[nodiscard]] inline consteval const std::string_view physicalNames(const pin_t i)
+    {
+        if ((i == nullPin<pin_t>()) | (i > MAX_PINS<pin_t>() - 1))
+        {
+            return "         ";
+        }
+        else
+        {
+            return physNamesI()[i];
+        }
     }
 
     // Array of file descriptors
@@ -375,6 +411,32 @@ namespace WiringPi
             -1, -1, -1, -1, -1, -1, -1, -1,
             -1, -1, -1, -1, -1, -1, -1, -1,
             -1, -1, -1, -1, -1, -1, -1, -1};
+    }
+
+    [[nodiscard]] inline constexpr pinTable softPwmMarksI()
+    {
+        return pinTable{
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0};
+    }
+
+    [[nodiscard]] inline constexpr pinTable softPwmRangeI()
+    {
+        return pinTable{
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0};
     }
 }
 

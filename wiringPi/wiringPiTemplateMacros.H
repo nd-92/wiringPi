@@ -11,49 +11,15 @@
 
 #include "../piInfo.H"
 #include "../version.H"
+#include "wiringPiDefines.H"
 
 namespace WiringPi
 {
-    // Check for a valid model
-    template <const int model>
-    [[nodiscard]] inline consteval bool piModelCheck()
-    {
-        return (
-            model == PI_MODEL_A<int>() ||
-            model == PI_MODEL_B<int>() ||
-            model == PI_MODEL_AP<int>() ||
-            model == PI_MODEL_BP<int>() ||
-            model == PI_MODEL_2<int>() ||
-            model == PI_MODEL_ALPHA<int>() ||
-            model == PI_MODEL_CM<int>() ||
-            model == PI_MODEL_07<int>() ||
-            model == PI_MODEL_3B<int>() ||
-            model == PI_MODEL_ZERO<int>() ||
-            model == PI_MODEL_CM3<int>() ||
-            model == PI_MODEL_ZERO_W<int>() ||
-            model == PI_MODEL_3BP<int>() ||
-            model == PI_MODEL_3AP<int>() ||
-            model == PI_MODEL_CM3P<int>() ||
-            model == PI_MODEL_4B<int>() ||
-            model == PI_MODEL_ZERO_2W<int>() ||
-            model == PI_MODEL_400<int>() ||
-            model == PI_MODEL_CM4<int>() ||
-            model == PI_MODEL_CM4S<int>() ||
-            model == PI_MODEL_5<int>());
-    }
-
-    // Check for a valid board layout
-    template <const int layout>
-    [[nodiscard]] inline consteval bool piLayoutCheck()
-    {
-        return (layout == 1 || layout == 2);
-    }
-
     // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0
     template <typename T, const int model>
     [[nodiscard]] inline consteval T piGpioPupOffset()
     {
-        static_assert(piModelCheck<model>());
+        static_assert(piModelCheck(model), "Invalid Raspberry Pi model");
 
         switch (model)
         {
@@ -113,7 +79,7 @@ namespace WiringPi
     [[nodiscard]] inline constexpr T piGpioBase(const bool usingGpioMem)
     {
         // Check for a valid model
-        static_assert(piModelCheck<model>());
+        static_assert(piModelCheck(model), "Invalid Raspberry Pi model");
 
         if (usingGpioMem)
         {

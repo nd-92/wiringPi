@@ -13,6 +13,7 @@
 
 #include "wiringPiIncludes.H"
 #include "wiringPiDefines.H"
+#include "wiringPiStaticAsserts.H"
 #include "wiringPiTemplateMacros.H"
 #include "wiringPiPinTables.H"
 #include "wiringPiNode.H"
@@ -24,6 +25,7 @@
 #include "piHiPriority.H"
 #include "i2c.H"
 #include "wiringPiStrings.H"
+#include "softPwm.H"
 
 namespace WiringPi
 {
@@ -41,55 +43,115 @@ namespace WiringPi
     class wiringPi
     {
     public:
-        [[nodiscard]] inline wiringPi()
+        // Default constructor: specify wiringPiMode
+        [[nodiscard]] wiringPi()
             : sa_(initialiseSigaction()),
               piMemory_(piMemory<piHardware_.model()>()),
               epochMilli_(initialiseEpochMilli()),
               epochMicro_(initialiseEpochMicro())
         {
             // Check for a valid mode
-            setupModeCheck<wiringPiMode>();
+            setupModeCheck(mode_constant<wiringPiMode_>());
 
             // Check for non-GPIO mode on certain models
-            computeModelCheck<piHardware_.model(), wiringPiMode_>();
+            computeModelCheck(pi_model_constant<piHardware_.model()>(), mode_constant<wiringPiMode_>());
 
-            // Debug message
+            // Debug messages
+#ifdef WIRINGPI_DEBUG
+            // Mode info
             std::cout << "WiringPi initialised on mode " << wiringPiModes(wiringPiMode_) << std::endl;
 
             // Hardware info message
             std::cout << "Running on a Raspberry Pi " << piHardware_.modelString() << std::endl;
+#endif
         }
 
+        // Default destructor: reset all pins
         ~wiringPi()
         {
             // Statically ranged loop to reset pin modes to input
-            resetPins();
+            resetAllPins();
+
+            // Debug messages
+#ifdef WIRINGPI_DEBUG
             std::cout << std::endl;
             std::cout << "All pins successfully reset to input on exit" << std::endl;
             std::cout << std::endl;
             std::cout << "wiringPi exited cleanly" << std::endl;
             std::cout << std::endl;
+#endif
         };
 
-        inline void readAll() const
+        // Prints the pin layout
+        inline void pinLayout() const
         {
-            for (pin_t i = 0; i < 32; i++)
+            layoutHeader();
+            writePinLine();
+            layoutHeader();
+        }
+
+        // Performs the read/write test on all available pins
+        [[nodiscard]] bool readWriteTest()
+        {
+            // Allocate an array of booleans
+            std::array<bool, 64> testReturns;
+
+            // By default set all to fail
+            for (std::size_t i = 0; i < testReturns.size(); i++)
             {
-                std::cout << "Pin " << i << ", mode " << modeStrings()[pinModeMap()[i]] << std::endl;
+                testReturns[i] = unit_test_fail();
+            }
+
+            // Perform the read/write test
+            pinReadWriteTest(testReturns, pin_constant<0>());
+
+            // Check to see if any failed
+            for (std::size_t i = 0; i < testReturns.size(); i++)
+            {
+                if (testReturns[i] == unit_test_fail())
+                {
+                    return unit_test_fail();
+                }
+            }
+
+            // None failed, so pass
+            return unit_test_pass();
+        }
+
+        // Reads the value at a pin and converts it into a string
+        template <const pin_t __pinNumber>
+        [[nodiscard]] inline constexpr const std::string_view readToString(const pin_constant<__pinNumber> pinNumber) const
+        {
+            // If the pin is valid, read the value and convert it to a string_view
+            if constexpr (pinMap_[pinNumber()] != nullPin<pin_t>())
+            {
+                if (digitalReadOnboard(pin_constant<pinNumber()>()) == 0)
+                {
+                    return "0";
+                }
+                else
+                {
+                    return "1";
+                }
+            }
+            // Otherwise return a blank string_view
+            else
+            {
+                return "-";
             }
         }
 
-        const std::string pinString(const pin_t i) const
+        [[nodiscard]] const std::string pinString(const pin_t i) const
         {
             if (i == nullPin<pin_t>())
             {
-                return "    ";
+                return "  --  ";
             }
             if (i > 9)
             {
-                return " " + std::to_string(i) + " ";
+                return "  " + std::to_string(i) + "  ";
             }
-            return "  " + std::to_string(i) + " ";
+            return "   " + std::to_string(i) + "  ";
         }
 
         // Program kill switch
@@ -100,45 +162,70 @@ namespace WiringPi
         }
 
         // Read an input bit
-        template <const pin_t pinNumber>
-        [[nodiscard]] inline gpio_t digitalReadOnboard() const volatile
+        template <const pin_t __pinNumber>
+        [[nodiscard]] inline gpio_t digitalReadOnboard(const pin_constant<__pinNumber> pinNumber) const volatile
         {
-            validPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
+            // Check that we are operating on a valid pin
+            validPinCheck(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pinNumber()]>());
+
 #ifdef WIRINGPI_DEBUG
-            std::cout << "Reading " << onboardPins_.digitalRead<pinMap_[pinNumber]>(piMemory_.gpioPtr()) << " from pin " << pinMap_[pinNumber] << std::endl;
+            std::cout << "Reading " << onboardPins_.digitalRead(piMemory_.gpioPtr(), pin_constant<pinMap_[pinNumber()]>()) << " from pin " << pinMap_[pinNumber()] << std::endl;
 #endif
-            return onboardPins_.digitalRead<pinMap_[pinNumber]>(piMemory_.gpioPtr());
+
+            // Call the method on the onboard pins
+            return onboardPins_.digitalRead(piMemory_.gpioPtr(), pin_constant<pinMap_[pinNumber()]>());
         }
 
         // Write an output bit
-        template <const pin_t pinNumber, const gpio_t value>
-        inline void digitalWriteOnboard() const volatile
+        template <const pin_t __pinNumber, const gpio_t __value>
+        inline void digitalWriteOnboard(const pin_constant<__pinNumber> pinNumber, const gpio_constant<__value> value) const volatile
         {
-            validPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
-            onboardPins_.digitalWrite<pinMap_[pinNumber], value>(piMemory_.gpioPtr());
+            // Check that we are operating on a valid pin
+            validPinCheck(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pinNumber()]>());
+
+#ifdef WIRINGPI_DEBUG
+            std::cout << "Writing " << value() << " to pin " << pinMap_[pinNumber()] << std::endl;
+#endif
+
+            // Call the method on the onboard pins
+            onboardPins_.digitalWrite(piMemory_.gpioPtr(), pin_constant<pinMap_[pinNumber()]>(), pin_constant<value()>());
         }
 
         // Sets the mode of a pin to be input, output or PWM output
-        template <const pin_t pinNumber>
-        inline void pinModeOnboard(const gpio_t mode)
+        template <const pin_t __pinNumber, const gpio_t __mode>
+        inline void pinModeOnboard(const pin_constant<__pinNumber> pinNumber, const gpio_constant<__mode> mode)
         {
-            validPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
-            onboardPins_.pinMode<pinMap_[pinNumber]>(piMemory_.gpioPtr(), mode, gpioToGPFSEL_[pinMap_[pinNumber]], gpioToShift_[pinMap_[pinNumber]]);
+            // Check that we are operating on a valid pin
+            validPinCheck(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pinNumber()]>());
+
+#ifdef WIRINGPI_DEBUG
+            std::cout << "Setting pin " << pinMap_[pinNumber()] << " to mode " << mode() << std::endl;
+#endif
+
+            // Call the method on the onboard pins
+            onboardPins_.pinMode(piMemory_.gpioPtr(), pin_constant<pinMap_[pinNumber()]>(), gpio_constant<mode()>(), pin_constant<gpioToGPFSEL_[pinMap_[pinNumber()]]>(), pin_constant<gpioToShift_[pinMap_[pinNumber()]]>());
         }
 
         // Control the internal pull-up/down resistors on a GPIO pin
-        template <const pin_t pinNumber>
-        inline void pullUpDnControlOnboard(const gpio_t pud) const
+        template <const pin_t __pinNumber, const gpio_t __pud>
+        inline void pullUpDnControlOnboard(const pin_constant<__pinNumber> pinNumber, const gpio_constant<__pud> pud) const
         {
-            validPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
-            onboardPins_.pullUpDnControl<pinMap_[pinNumber], piHardware_.gpioPupOffset()>(piMemory_.gpioPtr(), pud);
+            // Check that we are operating on a valid pin
+            validPinCheck(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pinNumber()]>());
+
+#ifdef WIRINGPI_DEBUG
+            std::cout << "Setting PUD to " << pud() << " on pin " << pinMap_[pinNumber()] << std::endl;
+#endif
+
+            // Call the method on the onboard pins
+            onboardPins_.pullUpDnControl(piMemory_.gpioPtr(), pin_constant<pinMap_[pinNumber()]>(), gpio_constant<pud()>(), gpio_constant<piHardware_.gpioPupOffset()>());
         }
 
         // Set an output PWM value
         template <const pin_t pinNumber>
         inline void pwmWriteOnboard(const pwm_t value) const
         {
-            validPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
+            validPinCheck(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pinNumber]>());
             static_assert(wiringPiMode_ == WPI_MODE_GPIO(), "wiringPi not initialised in GPIO mode: pwmWriteOnboard cannot be called");
             assert((piMemory_.gpioBase() == 0) && "GPIO base address must be 0: pwmWriteOnboard cannot be called");
             assert((!piMemory_.usingGpioMemory()) && "Application is using GPIO memory. Unable to do this when using /dev/gpiomem. Try sudo?");
@@ -224,7 +311,7 @@ namespace WiringPi
         void gpioClockSet(const timer_t freq) const
         {
             setupModeCheck<wiringPiMode>();
-            validPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
+            validPinCheck(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pinNumber]>());
             static_assert(gpioToClkDiv_[pinMap_[pinNumber]] != nullPin<pin_t>(), "Pin number is not a valid GPIO pin");
             static_assert(gpioToClkCon_[pinMap_[pinNumber]] != nullPin<pin_t>(), "Pin number is not a valid GPIO pin");
             assert((!piMemory_.usingGpioMemory()) && "Application is using GPIO memory. Unable to do this when using /dev/gpiomem. Try sudo?");
@@ -259,7 +346,7 @@ namespace WiringPi
 
             const pwm_t reducedValue = value & 7;
 
-            const pwm_t wrVal = BCM_PASSWORD<pwm_t>() | 0x18 | value; // Drive strength 0-7
+            const pwm_t wrVal = BCM_PASSWORD<pwm_t>() | 0x18 | reducedValue; // Drive strength 0-7
             *(piMemory_.padsPtr() + group + 11) = wrVal;
             // rdVal = *(pads + group + 11);
         }
@@ -267,12 +354,12 @@ namespace WiringPi
         template <const pin_t pinNumber>
         [[nodiscard]] inline constexpr gpio_t getAlt() const
         {
-            validPinCheck<piHardware_.numPins(), pinMap_, pinNumber>();
+            validPinCheck(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pinNumber]>());
             return (*(piMemory_.gpioPtr() + gpioToGPFSEL_[pinMap_[pinNumber]]) >> gpioToShift_[pinMap_[pinNumber]]) & 7;
         }
 
         // Returns the map of pins
-        [[nodiscard]] inline consteval const pinTable &pinMap() const
+        [[nodiscard]] inline constexpr const pinTable &pinMap() const
         {
             return pinMap_;
         }
@@ -312,18 +399,135 @@ namespace WiringPi
             return onboardPins_.deviceName();
         }
 
-        [[nodiscard]] inline consteval const nameTable physNames() const
+        [[nodiscard]] inline constexpr const nameTable physNames() const
         {
             return physNames_;
         }
 
-        // Reset pins to INPUT
+        // Reset pins to input
         inline void resetPins()
         {
             resetAllPins();
         }
 
     private:
+        // Gets the correct comparison for the pin number:
+        // Returns 1, except if the pin number is 30
+        template <const pin_t __pinNumber>
+        [[nodiscard]] inline constexpr gpio_t firstReadComparison(const pin_constant<__pinNumber> pinNumber) const
+        {
+            // Pin number 30 always returns 0 on the first comparison
+            if constexpr (pinNumber() == 30)
+            {
+                return 0;
+            }
+            else
+            {
+                return 1;
+            }
+        }
+
+        // Gets the correct comparison for the pin number:
+        // Returns 0, except if the pin number is 2, 3, 28 or 31
+        template <const pin_t __pinNumber>
+        [[nodiscard]] inline constexpr gpio_t secondReadComparison(const pin_constant<__pinNumber> pinNumber) const
+        {
+            // Pins 2, 3, 28 and 31 always return 1 on the second comparison
+            if constexpr ((pinNumber() == 2) | (pinNumber() == 3) | (pinNumber() == 28) | (pinNumber() == 31))
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        // Writes the header of the pin layout
+        void layoutHeader() const
+        {
+            std::cout << "+------+------+---------+------+---+------++------+---+------+---------+------+------+" << std::endl;
+            std::cout << "| BCM  |  Pi  | PinName | Mode | V |   Physical   | V | Mode | PinName |  Pi  | BCM  |" << std::endl;
+            std::cout << "+------+------+---------+------+---+------++------+---+------+---------+------+------+" << std::endl;
+        }
+
+        // Write an individual line of the pin layout
+        template <const pin_t __pinNumber = 0>
+        void writePinLine(const pin_constant<__pinNumber> = pin_constant<0>()) const
+        {
+            const pin_t i_1 = (2 * __pinNumber);
+            const pin_t i_2 = (2 * __pinNumber) + 1;
+            std::cout << "|" << pinString(pinMap()[i_1])                  // Mapped pin
+                      << "|" << pinString(physToWpi_[i_1])                // Phys to wPi
+                      << "|" << physNames()[i_1]                          // Name
+                      << "|" << modeStrings()[pinModeMap()[i_1]]          // Mode
+                      << "| " << readToString(pin_constant<i_1>()) << " " // Value
+                      << "|" << pinString(i_1 + 1)                        // Physical pin number
+                      << "||" << pinString(i_2 + 1)                       // Physical pin number
+                      << "| " << readToString(pin_constant<i_2>()) << " " // Value
+                      << "|" << modeStrings()[pinModeMap()[i_2]]          // Mode
+                      << "|" << physNames()[i_2]                          // Name
+                      << "|" << pinString(physToWpi_[i_2])                // Phys to wPi
+                      << "|" << pinString(pinMap()[i_2])                  // Mapped pin
+                      << "|" << std::endl;
+
+            // The index must be less than 19
+            if constexpr (__pinNumber < 19)
+            {
+                writePinLine(pin_constant<__pinNumber + 1>());
+            }
+        }
+
+        // Performs the read/write unit test on a particular pin
+        template <const pin_t __pinNumber>
+        void pinReadWriteTest(std::array<bool, 64> &testReturns, const pin_constant<__pinNumber> pinNumber)
+        {
+            // Check if we are on a null pin
+            if constexpr (pinMap_[pinNumber()] == nullPin<pin_t>())
+            {
+                // If so, automatically pass
+                testReturns[pinNumber()] = unit_test_pass();
+            }
+            // Do this if we are not on a null pin
+            else
+            {
+                // Set the pin to output and set value to 1
+                pinModeOnboard(pin_constant<pinNumber()>(), outputMode());
+                digitalWriteOnboard(pin_constant<pinNumber()>(), high());
+
+                // Set the pin to input and read the value
+                pinModeOnboard(pin_constant<pinNumber()>(), inputMode());
+                const gpio_t firstRead = digitalReadOnboard(pin_constant<pinNumber()>());
+
+                // Set the pin to output and set value to 0
+                pinModeOnboard(pin_constant<pinNumber()>(), outputMode());
+                digitalWriteOnboard(pin_constant<pinNumber()>(), low());
+
+                // Set the pin to input and read the value
+                pinModeOnboard(pin_constant<pinNumber()>(), inputMode());
+                const gpio_t secondRead = digitalReadOnboard(pin_constant<pinNumber()>());
+
+                // Pass condition is that we returned 1 and then 0
+                // Special cases:
+                // On pins 2, 3, 28, 31, should return [1, 1]
+                // On pin 19, should return [0, 0]
+                if ((firstRead == firstReadComparison(pin_constant<pinMap_[pinNumber()]>())) & (secondRead == secondReadComparison(pin_constant<pinMap_[pinNumber()]>())))
+                {
+                    testReturns[pinNumber()] = unit_test_pass();
+                }
+                else
+                {
+                    std::cout << "Read/write test fail on pin " << pinNumber() << " (mapped pin " << pinMap_[pinNumber()] << ")" << ", returned [" << firstRead << ", " << secondRead << "], pass is [1, 0] " << std::endl;
+                }
+            }
+
+            // Advance to the next iteration if we are still within bounds
+            if constexpr (__pinNumber < MAX_PINS<pin_t>() - 1)
+            {
+                pinReadWriteTest(testReturns, pin_constant<__pinNumber + 1>());
+            }
+        }
+
         // Helper function to initialise sa_
         [[nodiscard]] inline const struct sigaction initialiseSigaction() const
         {
@@ -372,33 +576,26 @@ namespace WiringPi
         const piMemory<piHardware_.model()> piMemory_;
 
         // Reset all the pins to input mode
-        void resetAllPins(std::integral_constant<pin_t, piHardware_.numPins()>) {}
-        template <pin_t index = 0>
-        void resetAllPins(std::integral_constant<pin_t, index> = std::integral_constant<pin_t, 0>())
+        template <pin_t __pinNumber = 0>
+        void resetAllPins(const pin_constant<__pinNumber> = pin_constant<0>())
         {
-            if constexpr (pinMap_[index] != nullPin<pin_t>())
+            if constexpr (pinMap_[__pinNumber] != nullPin<pin_t>())
             {
-                pinModeOnboard<index>(OUTPUT<gpio_t>());
-                digitalWriteOnboard<index, LOW<gpio_t>()>();
-                pinModeOnboard<index>(INPUT<gpio_t>());
-#ifdef WIRINGPI_DEBUG
-                std::cout << "Value reset to " << digitalReadOnboard<index>() << " on pin " << index << std::endl;
-#endif
+                pinModeOnboard(pin_constant<__pinNumber>(), gpio_constant<OUTPUT<gpio_t>()>());
+                digitalWriteOnboard(pin_constant<__pinNumber>(), gpio_constant<LOW<gpio_t>()>());
+                pinModeOnboard(pin_constant<__pinNumber>(), gpio_constant<INPUT<gpio_t>()>());
             }
-            else
+            if constexpr (__pinNumber < MAX_PINS<pin_t>() - 1)
             {
-#ifdef WIRINGPI_DEBUG
-                std::cout << "Non-onboard or ground on pin " << index << std::endl;
-#endif
+                resetAllPins(pin_constant<__pinNumber + 1>());
             }
-            resetAllPins(std::integral_constant<pin_t, index + 1>());
         }
 
         // Registry of onboard pins
         onboardPins onboardPins_ = onboardPins();
 
         // Registry of pin threads
-        // std::array<std::thread, 64> pinThreads_;
+        // std::array<std::thread, MAX_PINS()> pinThreads_;
 
         // Setup info
         // static constexpr const int wiringPiSetuped_ = static_cast<int>(true);
@@ -415,6 +612,9 @@ namespace WiringPi
 
         // Pin conversion table
         static constexpr const pinTable pinMap_ = pinMapI<piHardware_.gpioLayout(), wiringPiMode_>();
+
+        // Physical to wPi conversion table
+        static constexpr const pinTable physToWpi_ = physToWpiI();
 
         // Offsets to the clock control register
         static constexpr const pinTable gpioToClkCon_ = gpioToClkConI();

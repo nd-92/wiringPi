@@ -25,7 +25,7 @@ namespace WiringPi
     class piMemory
     {
     public:
-        [[nodiscard]] inline piMemory()
+        [[nodiscard]] piMemory()
             : devMem_(readDeviceMemory()),
               piGpioBase_(piGpioBase<pin_t, model>(devMem_.usingGpioMem)),
               GPIO_BASE_(piGpioBase_ + 0x00200000),

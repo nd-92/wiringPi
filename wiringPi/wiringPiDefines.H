@@ -14,7 +14,6 @@
 
 namespace WiringPi
 {
-
     // Data type of pins
     typedef uint32_t pin_t;
     typedef uint32_t gpio_t;
@@ -23,10 +22,39 @@ namespace WiringPi
     typedef uint32_t pads_t;
     typedef uint32_t timer_t;
     typedef ssize_t i2c_t;
-    typedef std::array<pin_t, 64> pinTable;
-    typedef std::array<gpio_t, 64> gpioTable;
-    typedef std::array<std::string_view, 64> nameTable;
-    typedef std::array<int, 64> fileDescriptorTable;
+
+    template <const pin_t pin>
+    using pin_constant = const std::integral_constant<pin_t, pin>;
+    template <const gpio_t gpio>
+    using gpio_constant = const std::integral_constant<gpio_t, gpio>;
+    template <const pwm_t pwm>
+    using pwm_constant = const std::integral_constant<pwm_t, pwm>;
+    template <const clk_t clk>
+    using clk_constant = const std::integral_constant<clk_t, clk>;
+    template <const pads_t pads>
+    using pads_constant = const std::integral_constant<pads_t, pads>;
+    template <const timer_t timer>
+    using timer_constant = const std::integral_constant<timer_t, timer>;
+    template <const i2c_t i2c>
+    using i2c_constant = const std::integral_constant<i2c_t, i2c>;
+    template <const int mode>
+    using mode_constant = const std::integral_constant<int, mode>;
+    template <const int pi_model>
+    using pi_model_constant = const std::integral_constant<int, pi_model>;
+
+    // Maximum number of pins
+    template <typename T>
+    [[nodiscard]] inline consteval pin_t MAX_PINS()
+    {
+        return 64;
+    }
+
+    // Pin table types
+    typedef std::array<pin_t, MAX_PINS<size_t>()> pinTable;
+    typedef std::array<gpio_t, MAX_PINS<size_t>()> gpioTable;
+    typedef std::array<std::string_view, MAX_PINS<size_t>()> nameTable;
+    typedef std::array<int, MAX_PINS<size_t>()> fileDescriptorTable;
+    typedef std::array<std::thread, MAX_PINS<size_t>()> threadTable;
 
     // Type safe initialisation of a default value of -1
     template <typename T>
@@ -34,6 +62,12 @@ namespace WiringPi
     {
         return static_cast<T>(-1);
     }
+
+    // Default initialisation of std::thread
+    // [[nodiscard]] inline consteval std::thread nullThread()
+    // {
+    //     return std::thread;
+    // }
 
     // Mask for the bottom 64 pins which belong to the Raspberry Pi
     // The others are available for the other devices
@@ -68,6 +102,10 @@ namespace WiringPi
     {
         return 1;
     }
+
+    using inputMode = const gpio_constant<INPUT<gpio_t>()>;
+    using outputMode = const gpio_constant<OUTPUT<gpio_t>()>;
+
     template <typename T>
     [[nodiscard]] inline consteval T PWM_OUTPUT()
     {
@@ -134,6 +172,8 @@ namespace WiringPi
     {
         return 0;
     }
+    using high = const gpio_constant<HIGH<gpio_t>()>;
+    using low = const gpio_constant<LOW<gpio_t>()>;
 
     // wiringPi modes
     [[nodiscard]] inline consteval int WPI_MODE_PINS()
@@ -628,29 +668,6 @@ namespace WiringPi
     [[nodiscard]] inline consteval T TIMER_COUNTER()
     {
         return 0x420 >> 2;
-    }
-
-    // Static assertion check for valid program mode
-    template <const int mode>
-    inline void setupModeCheck()
-    {
-        static_assert(((mode == WPI_MODE_PINS()) || (mode == WPI_MODE_PHYS()) || (mode == WPI_MODE_GPIO())), "Invalid wiringPiMode for pwmSetMode: valid modes are PINS, PHYS, GPIO.");
-    }
-
-    // Static assertion check for non-GPIO mode on certain models
-    template <const int model, const int mode>
-    inline void computeModelCheck()
-    {
-        static_assert(!(model == PI_MODEL_CM<int>() && mode != WPI_MODE_GPIO()), "Only WPI_MODE_GPIO available on PI_MODEL_CM");
-        static_assert(!(model == PI_MODEL_CM3<int>() && mode != WPI_MODE_GPIO()), "Only WPI_MODE_GPIO available on PI_MODEL_CM3");
-        static_assert(!(model == PI_MODEL_CM3P<int>() && mode != WPI_MODE_GPIO()), "Only WPI_MODE_GPIO available on PI_MODEL_CM3P");
-    }
-
-    template <const pin_t nPins, const pinTable pinMap_, const pin_t pinNumber>
-    inline void validPinCheck()
-    {
-        static_assert(pinMap_[pinNumber] != nullPin<pin_t>(), "Pin number is null");
-        static_assert(pinMap_[pinNumber] < nPins, "Pin number is not onboard (onboard pins range from 0 to 31)");
     }
 
     // I2C defines

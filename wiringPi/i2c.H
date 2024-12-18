@@ -20,7 +20,7 @@ namespace WiringPi
         [[nodiscard]] inline i2c()
             : fd_(setupInterface(std::string(deviceName_)))
         {
-            static_assert(piLayoutCheck<layout>());
+            static_assert(piLayoutCheck(layout));
 
             assert((!(fd_ < 0)));
             std::cout << "fd = " << fd_ << std::endl;
