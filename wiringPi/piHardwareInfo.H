@@ -15,6 +15,66 @@
 
 namespace WiringPi
 {
+    // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0
+    // Must be defined at namespace scope
+    template <typename T, const int model>
+    [[nodiscard]] inline consteval T piGpioPupOffset()
+    {
+        static_assert(piModelCheck(model), "Invalid Raspberry Pi model");
+
+        switch (model)
+        {
+        case Pi::models::PiA():
+        {
+            return 0;
+        }
+        case Pi::models::PiB():
+        {
+            return 0;
+        }
+        case Pi::models::PiAP():
+        {
+            return 0;
+        }
+        case Pi::models::PiBP():
+        {
+            return 0;
+        }
+        case Pi::models::PiAlpha():
+        {
+            return 0;
+        }
+        case Pi::models::PiCM():
+        {
+            return 0;
+        }
+        case Pi::models::PiZero():
+        {
+            return 0;
+        }
+        case Pi::models::PiZero_W():
+        {
+            return GPPUD<T>();
+        }
+        case Pi::models::Pi4B():
+        {
+            return 0;
+        }
+        case Pi::models::Pi400():
+        {
+            return 0;
+        }
+        case Pi::models::PiCM4():
+        {
+            return GPPUPPDN0<T>();
+        }
+        default:
+        {
+            return GPPUD<T>();
+        }
+        }
+    }
+
     class piHardware
     {
     public:
@@ -64,9 +124,9 @@ namespace WiringPi
 
         // Check if pin is onboard
         // Returns true only if less than 32
-        [[nodiscard]] inline consteval bool isOnboard(const pin_t pinNumber) const
+        [[nodiscard]] inline consteval bool isOnboard(const pin_t pin) const
         {
-            return pinNumber < numPhysicalPins_;
+            return pin < numPhysicalPins_;
         }
 
         // Returns the number of physical pins
@@ -89,10 +149,9 @@ namespace WiringPi
         static constexpr const int piMem_ = PI_MEM<int>();
         static constexpr const int piMaker_ = PI_MAKER<int>();
         static constexpr const int piWarranty_ = PI_WARRANTY<int>();
-        static constexpr const pin_t piGpioPupOffset_ = piGpioPupOffset<pin_t, PI_MODEL<int>()>();
-        // static constexpr const std::string_view modelString_ = piModelStrings()[PI_MODEL<size_t>()];
-        static constexpr const std::string_view modelString_ = piModelStrings(PI_MODEL<size_t>());
-        static constexpr const pin_t numPhysicalPins_ = numPhysicalPins<GPIO_LAYOUT<int>()>();
+        static constexpr const pin_t piGpioPupOffset_ = piGpioPupOffset<pin_t, piModel_>();
+        static constexpr const std::string_view modelString_ = Pi::models::names(piModel_);
+        static constexpr const pin_t numPhysicalPins_ = pinTables::numPhysicalPins<gpioLayout_>();
     };
 }
 

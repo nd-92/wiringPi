@@ -27,7 +27,7 @@ namespace WiringPi
     public:
         [[nodiscard]] piMemory()
             : devMem_(readDeviceMemory()),
-              piGpioBase_(piGpioBase<pin_t, model>(devMem_.usingGpioMem)),
+              piGpioBase_(piGpioBase<pin_t>(devMem_.usingGpioMem)),
               GPIO_BASE_(piGpioBase_ + 0x00200000),
               GPIO_PWM_(piGpioBase_ + 0x0020C000),
               GPIO_CLOCK_BASE_(piGpioBase_ + 0x00101000),
@@ -38,7 +38,7 @@ namespace WiringPi
               clk_(mapHardware<clk_t>(GPIO_CLOCK_BASE_)),
               pads_(mapHardware<pads_t>(GPIO_PADS_)),
               timer_(mapTimer(GPIO_TIMER_)),
-              timerIrqRaw_(timer_ + TIMER_IRQ_RAW<timer_t>())
+              timerIrqRaw_(timer_ + timer::irqRaw())
         {
             // Check that the maps succeeded
             assert((gpio_ != MAP_FAILED));
@@ -126,15 +126,15 @@ namespace WiringPi
         template <typename T0, typename T1>
         [[nodiscard]] volatile T0 *mapHardware(const T1 offset) const
         {
-            return static_cast<volatile T0 *>(mmap(0, BLOCK_SIZE<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, devMem_.fd, static_cast<__off_t>(offset)));
+            return static_cast<volatile T0 *>(mmap(0, memory::blockSize<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, devMem_.fd, static_cast<__off_t>(offset)));
         }
 
         // Map timer
         [[nodiscard]] volatile timer_t *mapTimer(const gpio_t offset) const
         {
-            volatile timer_t *volatile ptr = static_cast<volatile timer_t *>(mmap(0, BLOCK_SIZE<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, devMem_.fd, static_cast<__off_t>(offset)));
-            *(ptr + TIMER_CONTROL<timer_t>()) = 0x0000280;
-            *(ptr + TIMER_PRE_DIV<timer_t>()) = 0x00000F9;
+            volatile timer_t *volatile ptr = static_cast<volatile timer_t *>(mmap(0, memory::blockSize<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, devMem_.fd, static_cast<__off_t>(offset)));
+            *(ptr + timer::control()) = 0x0000280;
+            *(ptr + timer::preDiv()) = 0x00000F9;
             return ptr;
         }
 
@@ -165,6 +165,130 @@ namespace WiringPi
         volatile pads_t *volatile pads_;
         volatile timer_t *volatile timer_;
         volatile timer_t *volatile timerIrqRaw_;
+
+        // Initialise the base address of the GPIO memory mapped hardware IO
+        template <typename T>
+        [[nodiscard]] inline constexpr T piGpioBase(const bool usingGpioMem) const
+        {
+            // Check for a valid model
+            static_assert(piModelCheck(model), "Invalid Raspberry Pi model");
+
+            if (usingGpioMem)
+            {
+                return 0;
+            }
+            // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0
+            switch (model)
+            {
+            case Pi::models::PiA():
+            {
+                return 0;
+            }
+            case Pi::models::PiB():
+            {
+                return 0;
+            }
+            case Pi::models::PiAP():
+            {
+                return 0;
+            }
+            case Pi::models::PiBP():
+            {
+                return 0;
+            }
+            case Pi::models::PiAlpha():
+            {
+                return 0;
+            }
+            case Pi::models::PiCM():
+            {
+                return 0;
+            }
+            case Pi::models::PiZero():
+            {
+                return 0;
+            }
+            case Pi::models::PiZero_W():
+            {
+                return GPIO::PERI::BASE_OLD<T>();
+            }
+            case Pi::models::Pi4B():
+            {
+                return 0;
+            }
+            case Pi::models::Pi400():
+            {
+                return 0;
+            }
+            case Pi::models::PiCM4():
+            {
+                return GPIO::PERI::BASE_2711<T>();
+            }
+            default:
+            {
+                return GPIO::PERI::BASE_2835<T>();
+            }
+            }
+        }
+
+        // // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0
+        // template <typename T>
+        // [[nodiscard]] inline consteval T piGpioPupOffset()
+        // {
+        //     static_assert(piModelCheck(model), "Invalid Raspberry Pi model");
+
+        //     switch (model)
+        //     {
+        //     case Pi::models::PiA():
+        //     {
+        //         return 0;
+        //     }
+        //     case Pi::models::PiB():
+        //     {
+        //         return 0;
+        //     }
+        //     case Pi::models::PiAP():
+        //     {
+        //         return 0;
+        //     }
+        //     case Pi::models::PiBP():
+        //     {
+        //         return 0;
+        //     }
+        //     case Pi::models::PiAlpha():
+        //     {
+        //         return 0;
+        //     }
+        //     case Pi::models::PiCM():
+        //     {
+        //         return 0;
+        //     }
+        //     case Pi::models::PiZero():
+        //     {
+        //         return 0;
+        //     }
+        //     case Pi::models::PiZero_W():
+        //     {
+        //         return GPPUD<T>();
+        //     }
+        //     case Pi::models::Pi4B():
+        //     {
+        //         return 0;
+        //     }
+        //     case Pi::models::Pi400():
+        //     {
+        //         return 0;
+        //     }
+        //     case Pi::models::PiCM4():
+        //     {
+        //         return GPPUPPDN0<T>();
+        //     }
+        //     default:
+        //     {
+        //         return GPPUD<T>();
+        //     }
+        //     }
+        // }
     };
 }
 

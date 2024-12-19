@@ -16,40 +16,88 @@ namespace WiringPi
     using unit_test_fail = const std::integral_constant<bool, 0>;
     using unit_test_pass = const std::integral_constant<bool, 1>;
 
-    // Static assertion check for valid program mode
-    template <const int __mode>
-    inline void setupModeCheck(const mode_constant<__mode> mode)
+    // Check that the given pin is not null
+    [[nodiscard]] inline consteval bool nullPinCheck(const pin_t pin)
     {
-        static_assert(((mode() == WPI_MODE_PINS()) || (mode() == WPI_MODE_PHYS()) || (mode() == WPI_MODE_GPIO())), "Invalid wiringPiMode: valid modes are PINS, PHYS, GPIO.");
+        return (pin != nullPin<pin_t>());
     }
 
-    // Static assertion check for non-GPIO mode on certain models
-    template <const int __model, const int __mode>
-    inline void computeModelCheck(const pi_model_constant<__model> model, const mode_constant<__mode> mode)
+    // Assert that the given pin must not be null
+    template <const pin_t pin_>
+    inline void nullPinAssert(const pin_constant<pin_> pin)
     {
-        static_assert(!(model() == PI_MODEL_CM<int>() && mode() != WPI_MODE_GPIO()), "Only WPI_MODE_GPIO available on PI_MODEL_CM");
-        static_assert(!(model() == PI_MODEL_CM3<int>() && mode() != WPI_MODE_GPIO()), "Only WPI_MODE_GPIO available on PI_MODEL_CM3");
-        static_assert(!(model() == PI_MODEL_CM3P<int>() && mode() != WPI_MODE_GPIO()), "Only WPI_MODE_GPIO available on PI_MODEL_CM3P");
+        static_assert(nullPinCheck(pin()), "Pin number is null");
     }
 
-    template <const pin_t __nPins, const pin_t __pinNumber>
-    inline void validPinCheck(const pin_constant<__nPins> nPins, const pin_constant<__pinNumber> pinNumber)
+    // Assert that the given pin must not be null nor greater than the max number of pins
+    template <const pin_t __nPins, const pin_t pin_>
+    inline void validPinAssert(const pin_constant<__nPins> nPins, const pin_constant<pin_> pin)
     {
-        static_assert(pinNumber() != nullPin<pin_t>(), "Pin number is null");
-        static_assert(pinNumber() < nPins(), "Pin number is not onboard (onboard pins range from 0 to 31)");
+        nullPinAssert(pin_constant<pin()>());
+        static_assert(pin() < nPins(), "Pin number is not onboard (onboard pins range from 0 to 31)");
     }
 
-    // Check for a valid model
+    // Check that the mode is valid
+    // This is currently identical to pwmModeCheck as no other setup modes have been implemented yet
+    [[nodiscard]] inline consteval bool setupModeCheck(const int mode)
+    {
+        return (mode == wiringPiModes::pins() || mode == wiringPiModes::gpio() || mode == wiringPiModes::phys());
+    }
+
+    // Assert that the mode must be valid
+    template <const int mode_>
+    inline void setupModeAssert(const mode_constant<mode_> mode)
+    {
+        static_assert(setupModeCheck(mode()), "Invalid wiringPiMode: valid modes are PINS, PHYS, GPIO.");
+    }
+
+    // Check that the mode works for PWM
+    // This is currently identical to setupModeCheck as no other setup modes have been implemented yet
+    [[nodiscard]] inline consteval bool pwmModeCheck(const int mode)
+    {
+        return (mode == wiringPiModes::pins() || mode == wiringPiModes::gpio() || mode == wiringPiModes::phys());
+    }
+
+    // Assert that the mode must work for PWM
+    template <const int mode_>
+    inline void pwmModeAssert(const mode_constant<mode_> mode)
+    {
+        static_assert(pwmModeCheck(mode()), "Invalid wiringPiMode for PWM operation: valid modes are PINS, PHYS, GPIO.");
+    }
+
+    // Assert that the mode must be GPIO on certain models
+    template <const int model_, const int mode_>
+    inline void computeModelAssert(const pi_model_constant<model_> model, const mode_constant<mode_> mode)
+    {
+        static_assert(!(model() == Pi::models::PiCM() && mode() != wiringPiModes::gpio()), "Only WPI_MODE_GPIO available on Pi::models::PiCM");
+        static_assert(!(model() == Pi::models::PiCM3() && mode() != wiringPiModes::gpio()), "Only WPI_MODE_GPIO available on Pi::models::PiCM3");
+        static_assert(!(model() == Pi::models::PiCM3P() && mode() != wiringPiModes::gpio()), "Only WPI_MODE_GPIO available on Pi::models::PiCM3P");
+    }
+
+    // Check that the model must be valid
     [[nodiscard]] inline consteval bool piModelCheck(const int model)
     {
-        return (model == PI_MODEL_A<int>() || model == PI_MODEL_B<int>() || model == PI_MODEL_AP<int>() || model == PI_MODEL_BP<int>() || model == PI_MODEL_2<int>() || model == PI_MODEL_ALPHA<int>() || model == PI_MODEL_CM<int>() || model == PI_MODEL_07<int>() || model == PI_MODEL_3B<int>() || model == PI_MODEL_ZERO<int>() || model == PI_MODEL_CM3<int>() || model == PI_MODEL_ZERO_W<int>() || model == PI_MODEL_3BP<int>() || model == PI_MODEL_3AP<int>() || model == PI_MODEL_CM3P<int>() || model == PI_MODEL_4B<int>() || model == PI_MODEL_ZERO_2W<int>() || model == PI_MODEL_400<int>() || model == PI_MODEL_CM4<int>() || model == PI_MODEL_CM4S<int>() || model == PI_MODEL_5<int>());
+        return (model == Pi::models::PiA() || model == Pi::models::PiB() || model == Pi::models::PiAP() || model == Pi::models::PiBP() || model == Pi::models::Pi2() || model == Pi::models::PiAlpha() || model == Pi::models::PiCM() || model == Pi::models::Pi07() || model == Pi::models::Pi3B() || model == Pi::models::PiZero() || model == Pi::models::PiCM3() || model == Pi::models::PiZero_W() || model == Pi::models::Pi3BP() || model == Pi::models::Pi3AP() || model == Pi::models::PiCM3P() || model == Pi::models::Pi4B() || model == Pi::models::PiZero_2W() || model == Pi::models::Pi400() || model == Pi::models::PiCM4() || model == Pi::models::PiCM4S() || model == Pi::models::Pi5());
     }
 
-    // Check for a valid board layout
-    // template <const int layout>
-    [[nodiscard]] inline consteval bool piLayoutCheck(const int layout)
+    // Assert that the model must be valid
+    template <const int model_>
+    inline void piModelAssert(const pi_model_constant<model_> model)
+    {
+        static_assert(piModelCheck(model()), "Invalid model of Raspberry pi");
+    }
+
+    // Check that the board layout must be valid
+    [[nodiscard]] inline consteval bool layoutCheck(const int layout)
     {
         return (layout == 1 || layout == 2);
+    }
+
+    // Assert that the mode is valid
+    template <const int layout_>
+    inline void layoutAssert(const layout_constant<layout_> layout)
+    {
+        static_assert(layoutCheck(layout()), "Invalid GPIO layout");
     }
 }
 

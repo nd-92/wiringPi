@@ -4,9 +4,12 @@
 namespace WiringPi
 {
     // Handy define to do the unit tests for all modes
-    [[nodiscard]] inline consteval int WPI_MODE_ALL()
+    namespace wiringPiModes
     {
-        return 100;
+        [[nodiscard]] inline consteval int all()
+        {
+            return 100;
+        }
     }
 
     class argHandler
@@ -32,11 +35,13 @@ namespace WiringPi
             return readWriteTest_;
         }
 
+        // Returns the specified mode
         [[nodiscard]] int wiringPiMode() const
         {
             return wiringPiMode_;
         }
 
+        // Returns the number of arguments
         [[nodiscard]] std::size_t nArgs() const
         {
             return nArgs_;
@@ -112,34 +117,34 @@ namespace WiringPi
                         // First check to see that i + 1 is not out of bounds
                         if (i + 1 < nArgs_)
                         {
-                            if (strcmp(argv[i + 1], "Pins") == 0)
+                            if (strcmp(argv[i + 1], "pins") == 0)
                             {
-                                return WPI_MODE_PINS();
+                                return wiringPiModes::pins();
                             }
-                            else if (strcmp(argv[i + 1], "GPIO") == 0)
+                            else if (strcmp(argv[i + 1], "gpio") == 0)
                             {
-                                return WPI_MODE_GPIO();
+                                return wiringPiModes::gpio();
                             }
-                            else if (strcmp(argv[i + 1], "GPIO_SYS") == 0)
+                            else if (strcmp(argv[i + 1], "gpioSys") == 0)
                             {
-                                return WPI_MODE_GPIO_SYS();
+                                return wiringPiModes::gpioSys();
                             }
-                            else if (strcmp(argv[i + 1], "PHYS") == 0)
+                            else if (strcmp(argv[i + 1], "phys") == 0)
                             {
-                                return WPI_MODE_PHYS();
+                                return wiringPiModes::phys();
                             }
-                            else if (strcmp(argv[i + 1], "PIFACE") == 0)
+                            else if (strcmp(argv[i + 1], "piFace") == 0)
                             {
-                                return WPI_MODE_PIFACE();
+                                return wiringPiModes::piFace();
                             }
                             else if (strcmp(argv[i + 1], "all") == 0)
                             {
-                                return WPI_MODE_ALL();
+                                return wiringPiModes::all();
                             }
                             else
                             {
                                 std::cout << "Invalid mode " << argv[i + 1] << " supplied" << std::endl;
-                                std::cout << "Valid modes are: Pins, GPIO, GPIO_SYS, PHYS, PIFACE" << std::endl;
+                                std::cout << "Valid modes are: pins, gpio, gpioSys, phys, piFace, all" << std::endl;
                                 return -1;
                             }
                         }

@@ -11,19 +11,19 @@ int main(const int argc, const char *argv[])
     // Write the pin layout
     if (args.pinLayout())
     {
-        if ((args.wiringPiMode() == WPI_MODE_PINS()) | (args.wiringPiMode() == WPI_MODE_ALL()))
+        if ((args.wiringPiMode() == wiringPiModes::pins()) | (args.wiringPiMode() == wiringPiModes::all()))
         {
-            wiringPi<WPI_MODE_PINS()> Pi;
+            wiringPi<wiringPiModes::pins()> Pi;
             Pi.pinLayout();
         }
-        if ((args.wiringPiMode() == WPI_MODE_GPIO()) | (args.wiringPiMode() == WPI_MODE_ALL()))
+        if ((args.wiringPiMode() == wiringPiModes::gpio()) | (args.wiringPiMode() == wiringPiModes::all()))
         {
-            wiringPi<WPI_MODE_GPIO()> Pi;
+            wiringPi<wiringPiModes::gpio()> Pi;
             Pi.pinLayout();
         }
-        if ((args.wiringPiMode() == WPI_MODE_PHYS()) | (args.wiringPiMode() == WPI_MODE_ALL()))
+        if ((args.wiringPiMode() == wiringPiModes::phys()) | (args.wiringPiMode() == wiringPiModes::all()))
         {
-            wiringPi<WPI_MODE_PHYS()> Pi;
+            wiringPi<wiringPiModes::phys()> Pi;
             Pi.pinLayout();
         }
     }
@@ -31,9 +31,9 @@ int main(const int argc, const char *argv[])
     // Perform the read/write unit test
     if (args.readWriteTest())
     {
-        if ((args.wiringPiMode() == WPI_MODE_PINS()) | (args.wiringPiMode() == WPI_MODE_ALL()))
+        if ((args.wiringPiMode() == wiringPiModes::pins()) | (args.wiringPiMode() == wiringPiModes::all()))
         {
-            wiringPi<WPI_MODE_PINS()> Pi;
+            wiringPi<wiringPiModes::pins()> Pi;
             if (Pi.readWriteTest() == unit_test_pass())
             {
                 std::cout << "Unit test passed on mode PINS" << std::endl;
@@ -43,9 +43,9 @@ int main(const int argc, const char *argv[])
                 std::cout << "Unit test failed on mode PINS" << std::endl;
             }
         }
-        if ((args.wiringPiMode() == WPI_MODE_GPIO()) | (args.wiringPiMode() == WPI_MODE_ALL()))
+        if ((args.wiringPiMode() == wiringPiModes::gpio()) | (args.wiringPiMode() == wiringPiModes::all()))
         {
-            wiringPi<WPI_MODE_GPIO()> Pi;
+            wiringPi<wiringPiModes::gpio()> Pi;
             if (Pi.readWriteTest() == unit_test_pass())
             {
                 std::cout << "Unit test passed on mode GPIO" << std::endl;
@@ -55,9 +55,9 @@ int main(const int argc, const char *argv[])
                 std::cout << "Unit test failed on mode GPIO" << std::endl;
             }
         }
-        if ((args.wiringPiMode() == WPI_MODE_PHYS()) | (args.wiringPiMode() == WPI_MODE_ALL()))
+        if ((args.wiringPiMode() == wiringPiModes::phys()) | (args.wiringPiMode() == wiringPiModes::all()))
         {
-            wiringPi<WPI_MODE_PHYS()> Pi;
+            wiringPi<wiringPiModes::phys()> Pi;
             if (Pi.readWriteTest() == unit_test_pass())
             {
                 std::cout << "Unit test passed on mode PHYS" << std::endl;

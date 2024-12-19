@@ -38,19 +38,19 @@ namespace WiringPi
     {
     public:
         [[nodiscard]] inline softPwm()
-            : marks_(softPwmMarksI()),
-              range_(softPwmRangeI()) {};
+            : marks_(pinTables::softPwmMarks()),
+              range_(pinTables::softPwmRange()) {};
 
         ~softPwm() {};
 
-        template <const pin_t pinNumber>
+        template <const pin_t pin>
         [[nodiscard]] inline int create(const pwm_t initialValue, const pwm_t pwmRange) const
         {
-            // Check that pinNumber < 64
-            static_assert(static_cast<size_t>(pinNumber) < MAX_PINS<size_t>());
+            // Check that pin < 64
+            static_assert(static_cast<size_t>(pin) < MAX_PINS<size_t>());
 
             // Check that thread is not already running on this pin
-            assert((range_[pinNumber] != 0));
+            assert((range_[pin] != 0));
 
             // Check that the range is not less than 0
             assert((pwmRange <= 0));

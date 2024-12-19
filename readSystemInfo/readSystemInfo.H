@@ -287,7 +287,7 @@ int __piGpioLayout(void)
     return gpioLayout;
 }
 
-std::string generateHeaderTimeString()
+[[nodiscard]] const std::string generateHeaderTimeString()
 {
     const auto end = std::chrono::system_clock::now();
     const std::time_t end_time = std::chrono::system_clock::to_time_t(end);
@@ -301,7 +301,7 @@ std::string generateHeaderTimeString()
         padString = " " + padString;
     }
 
-    return generatedString;
+    return generatedString + padString;
 }
 
 template <typename T>

@@ -42,7 +42,7 @@ namespace WiringPi
     //     std::array<std::mutex, 4> piMutexes_;
 
     //     // Array of file descriptors
-    //     // fileDescriptorTable isrFds = isrFdsI();
+    //     // fileDescriptorTable isrFds = isrFds();
     // };
 }
 
