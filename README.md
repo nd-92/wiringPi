@@ -11,7 +11,7 @@ Compatibility for the Raspberry Pi 5 has not been added yet. There is also no su
 This is still a very early work in progress and doesn't contain anything close to the full functionality of the original library.
 
 ** TO DO **
-1) Implement softTone
+1) Implement softTone ** DONE **
 2) Implement wiringSerial
 3) Implement wiringShift
 4) Implement drcNet
