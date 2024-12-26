@@ -24,8 +24,6 @@
 #include "piThread.H"
 #include "piHiPriority.H"
 #include "i2c.H"
-#include "wiringPiStrings.H"
-// #include "softPwm.H"
 
 namespace WiringPi
 {
@@ -78,11 +76,11 @@ namespace WiringPi
         ~wiringPi()
         {
             // Join threads
-            for (std::size_t pin = 0; pin < softPwmThreads_.size(); pin++)
+            for (std::size_t pin = 0; pin < threadRegistry_.size(); pin++)
             {
-                if (softPwmThreads_[pin].joinable())
+                if (threadRegistry_[pin].joinable())
                 {
-                    softPwmThreads_[pin].join();
+                    threadRegistry_[pin].join();
                 }
             }
 
@@ -110,6 +108,15 @@ namespace WiringPi
         // Performs the read/write test on all available pins
         [[nodiscard]] bool readWriteTest()
         {
+            if (piMemory_.usingGpioMemory())
+            {
+                std::cout << "Performing read/write test with GPIO memory" << std::endl;
+            }
+            else
+            {
+                std::cout << "Performing read/write test without GPIO memory" << std::endl;
+            }
+
             // Allocate an array of booleans
             std::array<bool, 64> testReturns;
 
@@ -144,7 +151,7 @@ namespace WiringPi
 
         // Writes a PWM value to the given pin
         template <const pin_t pin_>
-        void softPwmWrite(const gpio_t value)
+        void softPwmWrite(const frequency_t value)
         {
             // Check that we are operating on a valid pin
             validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
@@ -158,9 +165,25 @@ namespace WiringPi
 #endif
         }
 
+        // Writes a frequency value to the given pin
+        template <const pin_t pin_>
+        void softToneWrite(const frequency_t value)
+        {
+            // Check that we are operating on a valid pin
+            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
+
+            // Set the mark value no greater than 5 kHz
+            softToneFreq_[pin_] = std::min(value, maxFrequency());
+
+// Debug message
+#ifdef WIRINGPI_DEBUG
+            std::cout << "Setting mark to " << softToneFreq_[pin_] << std::endl;
+#endif
+        }
+
         // Create a softPwm thread
         template <const pin_t pin_>
-        inline void softPwm(const pin_t initialValue, const pin_t pwmRange)
+        inline void softPwm(const frequency_t initialValue, const frequency_t pwmRange)
         {
             // Check that we are operating on a valid pin
             validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
@@ -176,7 +199,27 @@ namespace WiringPi
             pinModeOnboard(pin_constant<pin_>(), output());
 
             // Assign the thread
-            softPwmThreads_[pin_] = std::thread(&wiringPi<wiringPiMode>::softPwmThread<pin_>, this);
+            threadRegistry_[pin_] = std::thread(&wiringPi<wiringPiMode>::softPwmThread<pin_>, this);
+        }
+
+        // Create a softTone thread
+        template <const pin_t pin_>
+        inline void softTone(const frequency_t initialValue)
+        {
+            // Check that we are operating on a valid pin
+            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
+
+            // Set the value and range
+            softToneFreq_[pin_] = initialValue;
+
+            // Set the thread switch to active
+            threadSwitches_[pin_] = true;
+
+            // Set the pin to output
+            pinModeOnboard(pin_constant<pin_>(), output());
+
+            // Assign the thread
+            threadRegistry_[pin_] = std::thread(&wiringPi<wiringPiMode>::softToneThread<pin_>, this);
         }
 
         // End a softPwm thread
@@ -190,11 +233,31 @@ namespace WiringPi
             threadSwitches_[pin_] = false;
 
             // Join the thread
-            softPwmThreads_[pin_].join();
+            threadRegistry_[pin_].join();
 
             // Reset the value and range
             softPwmMarks_[pin_] = 0;
             softPwmRange_[pin_] = 0;
+
+            // Reset the pin to input
+            pinModeOnboard(pin_constant<pin_>(), input());
+        }
+
+        // End a softTone thread
+        template <const pin_t pin_>
+        inline void softToneEnd()
+        {
+            // Check that we are operating on a valid pin
+            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
+
+            // Set the thread switch to false
+            threadSwitches_[pin_] = false;
+
+            // Join the thread
+            threadRegistry_[pin_].join();
+
+            // Reset the value and range
+            softToneFreq_[pin_] = 0;
 
             // Reset the pin to input
             pinModeOnboard(pin_constant<pin_>(), input());
@@ -449,7 +512,7 @@ namespace WiringPi
             return wiringPiMode_;
         }
 
-        [[nodiscard]] inline consteval const std::string_view onboardNames() const
+        [[nodiscard]] inline consteval const name_t onboardNames() const
         {
             return onboardPins_.deviceName();
         }
@@ -468,14 +531,18 @@ namespace WiringPi
     private:
         // Default initialised to 0
         // Must by definition be mutable
-        pinTable softPwmMarks_ = pinTables::softPwmMarks();
+        frequencyTable softPwmMarks_ = pinTables::softPwmMarks();
 
         // Default initialised to 0
         // Potentially constexpr, but not yet
-        pinTable softPwmRange_ = pinTables::softPwmRange();
+        frequencyTable softPwmRange_ = pinTables::softPwmRange();
+
+        // Default initialised to 0
+        // Must by definition be mutable
+        frequencyTable softToneFreq_ = pinTables::softToneFreq();
 
         // Registry of threads
-        threadTable softPwmThreads_ = pinTables::softPwmThreads();
+        threadTable threadRegistry_ = pinTables::threadRegistry();
 
         // Array of kill switches for threaded functions
         // All values false by default
@@ -483,20 +550,17 @@ namespace WiringPi
 
         // Do the software PWM output
         template <const pin_t pin_>
-        void softPwmThread() const
+        inline void softPwmThread() const
         {
             // Check that we are operating on a valid pin
             validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
 
-            // Just try 100 iterations first so we don't loop forever
-            // Is this run() switch safe?
             while (threadSwitches_[pin_] && run())
-            // for (std::size_t i = 0; i < 10; i++)
             {
                 // Look up the values
                 // This has to be done every iteration of the loop since they can be changed by softPwmWrite
-                const pin_t mark = softPwmMarks_[pin_];
-                const pin_t space = softPwmRange_[pin_] - mark;
+                const frequency_t mark = softPwmMarks_[pin_];
+                const frequency_t space = softPwmRange_[pin_] - mark;
 
                 // Debug message
 #ifdef WIRINGPI_DEBUG
@@ -515,6 +579,39 @@ namespace WiringPi
                     digitalWriteOnboard<pin_, 0>();
                 }
                 std::this_thread::sleep_for(std::chrono::microseconds(space * 100));
+            }
+        }
+
+        // Do the software tone output
+        template <const pin_t pin_>
+        inline void softToneThread() const
+        {
+            // Check that we are operating on a valid pin
+            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
+
+            while (threadSwitches_[pin_] && run())
+            {
+                // Look up the values
+                // This has to be done every iteration of the loop since they can be changed by softPwmWrite
+                const frequency_t freq = softToneFreq_[pin_];
+
+                // Debug message
+#ifdef WIRINGPI_DEBUG
+                std::cout << "softToneThread setting freq = " << freq << std::endl;
+#endif
+
+                if (freq == 0)
+                {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                }
+                else
+                {
+                    const frequency_t halfPeriod = 500000 / freq;
+                    digitalWriteOnboard<pin_, 1>();
+                    std::this_thread::sleep_for(std::chrono::microseconds(halfPeriod));
+                    digitalWriteOnboard<pin_, 0>();
+                    std::this_thread::sleep_for(std::chrono::microseconds(halfPeriod));
+                }
             }
         }
 
@@ -560,7 +657,7 @@ namespace WiringPi
 
         // Reads the value at a pin and converts it into a string
         template <const pin_t pin_>
-        [[nodiscard]] inline constexpr const std::string_view readToString(const pin_constant<pin_> pin) const
+        [[nodiscard]] inline constexpr const name_t readToString(const pin_constant<pin_> pin) const
         {
             // If the pin is valid, read the value and convert it to a string_view
             if constexpr (pinMap_[pin()] != nullPin<pin_t>())
@@ -803,7 +900,7 @@ namespace WiringPi
         }
 
         // Software version info
-        static constexpr std::string_view version_ = VERSION();
+        static constexpr name_t version_ = VERSION();
         static constexpr const int versionMajor_ = VERSION_MAJOR<int>();
         static constexpr const int versionMinor_ = VERSION_MINOR<int>();
     };

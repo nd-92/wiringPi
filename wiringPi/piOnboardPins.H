@@ -99,7 +99,7 @@ namespace WiringPi
         }
 
         // Returns the name of the device
-        [[nodiscard]] inline consteval std::string_view deviceName() const
+        [[nodiscard]] inline consteval name_t deviceName() const
         {
             return "Onboard pins";
         }

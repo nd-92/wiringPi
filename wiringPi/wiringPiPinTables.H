@@ -19,9 +19,9 @@ namespace WiringPi
     namespace pinTables
     {
         // Table holding default values for PWM mark
-        [[nodiscard]] inline constexpr pinTable softPwmMarks()
+        [[nodiscard]] inline constexpr frequencyTable softPwmMarks()
         {
-            return pinTable{
+            return frequencyTable{
                 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0,
@@ -33,9 +33,9 @@ namespace WiringPi
         }
 
         // Table holding default values for PWM range
-        [[nodiscard]] inline constexpr pinTable softPwmRange()
+        [[nodiscard]] inline constexpr frequencyTable softPwmRange()
         {
-            return pinTable{
+            return frequencyTable{
                 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0,
@@ -46,7 +46,21 @@ namespace WiringPi
                 0, 0, 0, 0, 0, 0, 0, 0};
         }
 
-        // Table holding default values for PWM mark
+        // Table holding default values for tone frequencies
+        [[nodiscard]] inline constexpr frequencyTable softToneFreq()
+        {
+            return frequencyTable{
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0};
+        }
+
+        // Table holding default values for thread switches
         [[nodiscard]] inline constexpr switchTable threadSwitches()
         {
             return switchTable{
@@ -65,7 +79,7 @@ namespace WiringPi
         {
             return;
         }
-        [[nodiscard]] threadTable softPwmThreads()
+        [[nodiscard]] threadTable threadRegistry()
         {
             threadTable threads;
             for (size_t i = 0; i < MAX_PINS<size_t>(); i++)
@@ -443,7 +457,7 @@ namespace WiringPi
                 "         ", "         "};
         }
 
-        [[nodiscard]] inline consteval const std::string_view physicalNames(const pin_t i)
+        [[nodiscard]] inline consteval const name_t physicalNames(const pin_t i)
         {
             if ((i == nullPin<pin_t>()) | (i > MAX_PINS<pin_t>() - 1))
             {

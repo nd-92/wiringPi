@@ -54,7 +54,7 @@ namespace WiringPi
         }
 
         // Return the device name
-        [[nodiscard]] virtual inline consteval std::string_view deviceName() const
+        [[nodiscard]] virtual inline consteval name_t deviceName() const
         {
             return "wiringPiNode";
         }

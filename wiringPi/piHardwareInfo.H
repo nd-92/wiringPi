@@ -117,7 +117,7 @@ namespace WiringPi
         }
 
         // Returns a string_view of the model
-        [[nodiscard]] inline consteval std::string_view modelString() const
+        [[nodiscard]] inline consteval name_t modelString() const
         {
             return modelString_;
         }
@@ -150,7 +150,7 @@ namespace WiringPi
         static constexpr const int piMaker_ = PI_MAKER<int>();
         static constexpr const int piWarranty_ = PI_WARRANTY<int>();
         static constexpr const pin_t piGpioPupOffset_ = piGpioPupOffset<pin_t, piModel_>();
-        static constexpr const std::string_view modelString_ = Pi::models::names(piModel_);
+        static constexpr const name_t modelString_ = Pi::models::names(piModel_);
         static constexpr const pin_t numPhysicalPins_ = pinTables::numPhysicalPins<gpioLayout_>();
     };
 }

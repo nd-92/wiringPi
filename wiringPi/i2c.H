@@ -96,7 +96,7 @@ namespace WiringPi
             return read(fd_, values, size);
         }
 
-        [[nodiscard]] inline consteval std::string_view deviceName() const
+        [[nodiscard]] inline consteval name_t deviceName() const
         {
             return deviceName_;
         }
@@ -159,7 +159,7 @@ namespace WiringPi
             return ioctl(fd_, I2C::smbus<unsigned long>(), &args);
         }
 
-        static constexpr const std::string_view deviceName_ = I2C::deviceName<layout>();
+        static constexpr const name_t deviceName_ = I2C::deviceName<layout>();
     };
 }
 

@@ -10,7 +10,6 @@
 #define __WIRING_PI_wiringPiDefines_H
 
 #include "wiringPiIncludes.H"
-// #include "wiringPiStrings.H"
 
 namespace WiringPi
 {
@@ -22,6 +21,8 @@ namespace WiringPi
     typedef uint32_t pads_t;
     typedef uint32_t timer_t;
     typedef ssize_t I2C_t;
+    typedef uint64_t frequency_t;
+    typedef std::string_view name_t;
 
     template <const pin_t pin_>
     using pin_constant = const std::integral_constant<pin_t, pin_>;
@@ -60,6 +61,12 @@ namespace WiringPi
         return static_cast<T>(-1);
     }
 
+    // Type safe initialisation of a frequency of 5 kHz (used for softTone)
+    [[nodiscard]] inline consteval frequency_t maxFrequency()
+    {
+        return 5000;
+    }
+
     // Mask for the bottom 64 pins which belong to the Raspberry Pi
     // The others are available for the other devices
     template <typename T>
@@ -70,28 +77,23 @@ namespace WiringPi
 
     // Pin table types
     typedef std::array<pin_t, MAX_PINS<size_t>()> pinTable;
+    typedef std::array<frequency_t, MAX_PINS<size_t>()> frequencyTable;
     typedef std::array<bool, MAX_PINS<size_t>()> switchTable;
     typedef std::array<gpio_t, MAX_PINS<size_t>()> gpioTable;
-    typedef std::array<std::string_view, MAX_PINS<size_t>()> nameTable;
+    typedef std::array<name_t, MAX_PINS<size_t>()> nameTable;
     typedef std::array<int, MAX_PINS<size_t>()> fileDescriptorTable;
     typedef std::array<std::thread, MAX_PINS<size_t>()> threadTable;
 
-    // Default initialisation of std::thread
-    // [[nodiscard]] inline consteval std::thread nullThread()
-    // {
-    //     return std::thread;
-    // }
-
-    // Environment strings
-    [[nodiscard]] consteval const std::string_view ENV_DEBUG()
+    // Environment strings - maybe unused
+    [[nodiscard]] consteval const name_t ENV_DEBUG()
     {
         return "WIRINGPI_DEBUG";
     }
-    [[nodiscard]] consteval const std::string_view ENV_CODES()
+    [[nodiscard]] consteval const name_t ENV_CODES()
     {
         return "WIRINGPI_CODES";
     }
-    [[nodiscard]] consteval const std::string_view ENV_GPIOMEM()
+    [[nodiscard]] consteval const name_t ENV_GPIOMEM()
     {
         return "WIRINGPI_GPIOMEM";
     }
@@ -131,9 +133,9 @@ namespace WiringPi
         {
             return 7;
         }
-        [[nodiscard]] inline consteval std::array<std::string_view, 8> pinModes()
+        [[nodiscard]] inline consteval std::array<name_t, 8> pinModes()
         {
-            return std::array<std::string_view, 8>{
+            return std::array<name_t, 8>{
                 "IN",
                 "OUT",
                 "PWM_OUTPUT",
@@ -143,9 +145,9 @@ namespace WiringPi
                 "PWM_TONE_OUTPUT",
                 "PWM_OFF"};
         }
-        [[nodiscard]] inline consteval std::array<std::string_view, 8> modeStrings()
+        [[nodiscard]] inline consteval std::array<name_t, 8> modeStrings()
         {
-            return std::array<std::string_view, 8>{
+            return std::array<name_t, 8>{
                 "  IN  ",
                 "  OUT ",
                 "PWM_OUTPUT",
@@ -209,9 +211,9 @@ namespace WiringPi
         {
             return -1;
         }
-        [[nodiscard]] inline consteval std::string_view names(const pin_t mode)
+        [[nodiscard]] inline consteval name_t names(const pin_t mode)
         {
-            constexpr const std::array<std::string_view, 6> arr{
+            constexpr const std::array<name_t, 6> arr{
                 "PINS",
                 "GPIO",
                 "GPIO_SYS",
@@ -311,9 +313,9 @@ namespace WiringPi
             {
                 return 23;
             }
-            [[nodiscard]] inline consteval std::string_view names(const size_t model)
+            [[nodiscard]] inline consteval name_t names(const size_t model)
             {
-                constexpr const std::array<std::string_view, 21> arr{
+                constexpr const std::array<name_t, 21> arr{
                     "A",
                     "B",
                     "AP",
@@ -753,7 +755,7 @@ namespace WiringPi
             return 32;
         }
         template <const int layout>
-        [[nodiscard]] consteval const std::string_view deviceName()
+        [[nodiscard]] consteval const name_t deviceName()
         {
             if constexpr (layout == 1)
             {
