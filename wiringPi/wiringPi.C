@@ -11,44 +11,57 @@ int main(const int argc, const char *argv[])
     // Test softPwm implementation
     if (args.threadTest())
     {
+        constexpr const pin_t myPin = 31;
+        constexpr const pin_t initialValue = 10;
+        constexpr const pin_t writeValue = 50;
+        constexpr const pin_t pwmRange = 100;
         if ((args.wiringPiMode() == wiringPiModes::pins()) | (args.wiringPiMode() == wiringPiModes::all()))
         {
-            // Define a pin and create the wiringPi object
-            constexpr const pin_t myPin = 31;
+            // Create the wiringPi object
             wiringPi<wiringPiModes::pins()> Pi;
 
             // Create a softPwm thread
-            Pi.softPwm<myPin>(10, 100);
+            Pi.softPwm<myPin>(initialValue, pwmRange);
 
-            // End it after 2 seconds
+            // Wait for 2 seconds and then write
+            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+            Pi.softPwmWrite<myPin>(writeValue);
+
+            // Wait for 2 seconds and then end
             std::this_thread::sleep_for(std::chrono::milliseconds(2000));
             Pi.softPwmEnd<myPin>();
             std::cout << "Software PWM thread test on mode pins passed on pin " << myPin << std::endl;
         }
         if ((args.wiringPiMode() == wiringPiModes::gpio()) | (args.wiringPiMode() == wiringPiModes::all()))
         {
-            // Define a pin and create the wiringPi object
-            constexpr const pin_t myPin = 31;
+            // Create the wiringPi object
             wiringPi<wiringPiModes::gpio()> Pi;
 
             // Create a softPwm thread
-            Pi.softPwm<myPin>(10, 100);
+            Pi.softPwm<myPin>(initialValue, pwmRange);
 
-            // End it after 2 seconds
+            // Wait for 2 seconds and then write
+            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+            Pi.softPwmWrite<myPin>(writeValue);
+
+            // Wait for 2 seconds and then end
             std::this_thread::sleep_for(std::chrono::milliseconds(2000));
             Pi.softPwmEnd<myPin>();
             std::cout << "Software PWM thread test on mode gpio passed on pin " << myPin << std::endl;
         }
         if ((args.wiringPiMode() == wiringPiModes::phys()) | (args.wiringPiMode() == wiringPiModes::all()))
         {
-            // Define a pin and create the wiringPi object
-            constexpr const pin_t myPin = 31;
+            // Create the wiringPi object
             wiringPi<wiringPiModes::phys()> Pi;
 
             // Create a softPwm thread
-            Pi.softPwm<myPin>(10, 100);
+            Pi.softPwm<myPin>(initialValue, pwmRange);
 
-            // End it after 2 seconds
+            // Wait for 2 seconds and then write
+            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+            Pi.softPwmWrite<myPin>(writeValue);
+
+            // Wait for 2 seconds and then end
             std::this_thread::sleep_for(std::chrono::milliseconds(2000));
             Pi.softPwmEnd<myPin>();
             std::cout << "Software PWM thread test on mode phys passed on pin " << myPin << std::endl;

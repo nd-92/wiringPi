@@ -183,6 +183,9 @@ namespace WiringPi
         template <const pin_t pin_>
         inline void softPwmEnd()
         {
+            // Check that we are operating on a valid pin
+            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
+
             // Set the thread switch to false
             threadSwitches_[pin_] = false;
 
