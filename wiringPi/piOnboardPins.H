@@ -18,7 +18,9 @@ namespace WiringPi
     class onboardPins : public wiringPiNode
     {
     public:
-        [[nodiscard]] inline constexpr onboardPins() {};
+        [[nodiscard]] inline constexpr onboardPins() : pinMode_(pinTables::pinMode()) {};
+        // [[nodiscard]] inline constexpr onboardPins(const gpioTable &pinModes)
+        //     : pinMode_(pinModes) {};
 
         // Read the value of a given pin, returns either HIGH or LOW
         template <const pin_t pin_>
@@ -28,10 +30,10 @@ namespace WiringPi
         }
 
         // Set an output bit on a given pin
-        template <const pin_t pin_, const gpio_t value_>
-        inline void digitalWrite(volatile gpio_t *gpioPtr, const pin_constant<pin_> pin, const pin_constant<value_> value) const volatile
+        template <const pin_t pin, const gpio_t value>
+        inline void digitalWrite(volatile gpio_t *gpioPtr) const volatile
         {
-            *(gpioPtr + pinTables::gpioCLRSET(pin() + (64 * !value()))) = pinTables::digitalReadModulo(pin());
+            *(gpioPtr + pinTables::gpioCLRSET(pin + (64 * !value))) = pinTables::digitalReadModulo(pin);
         }
 
         // Sets the mode of a pin to be input, output or PWM output
@@ -64,10 +66,7 @@ namespace WiringPi
             if constexpr (offset() == GPPUPPDN0<gpio_t>())
             {
                 // Pi 4B pull up/down method
-                pin_t pullBits = *(gpioPtr + pinTables::pullReg(pin()));
-                pullBits &= static_cast<gpio_t>(~(3 << pinTables::pullShift(pin())));
-                pullBits |= (pud() << pinTables::pullShift(pin()));
-                *(gpioPtr + pinTables::pullReg(pin())) = pullBits;
+                *(gpioPtr + pinTables::pullReg(pin())) = pullBits(gpioPtr, pin(), pud());
             }
             else
             {
@@ -106,8 +105,19 @@ namespace WiringPi
         }
 
     private:
-        gpioTable pinMode_ = pinTables::pinMode();
+        // This is potentially constexpr, but not yet
+        gpioTable pinMode_;
+
         static constexpr const gpioTable gpioToPwmPort_ = pinTables::gpioToPwmPort();
+
+        template <const pin_t pin_, const gpio_t pud_>
+        [[nodiscard]] inline constexpr pin_t pullBits(const volatile gpio_t *gpioPtr, const pin_constant<pin_> pin, const gpio_constant<pud_> pud) const
+        {
+            pin_t pullBits_ = *(gpioPtr + pinTables::pullReg(pin()));
+            pullBits_ &= static_cast<gpio_t>(~(3 << pinTables::pullShift(pin())));
+            pullBits_ |= (pud() << pinTables::pullShift(pin()));
+            return pullBits_;
+        }
     };
 }
 #endif

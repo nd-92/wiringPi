@@ -10,7 +10,7 @@
 #define __WIRING_PI_wiringPiDefines_H
 
 #include "wiringPiIncludes.H"
-#include "wiringPiStrings.H"
+// #include "wiringPiStrings.H"
 
 namespace WiringPi
 {
@@ -70,6 +70,7 @@ namespace WiringPi
 
     // Pin table types
     typedef std::array<pin_t, MAX_PINS<size_t>()> pinTable;
+    typedef std::array<bool, MAX_PINS<size_t>()> switchTable;
     typedef std::array<gpio_t, MAX_PINS<size_t>()> gpioTable;
     typedef std::array<std::string_view, MAX_PINS<size_t>()> nameTable;
     typedef std::array<int, MAX_PINS<size_t>()> fileDescriptorTable;

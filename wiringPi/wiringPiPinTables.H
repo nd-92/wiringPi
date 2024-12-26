@@ -18,6 +18,67 @@ namespace WiringPi
 {
     namespace pinTables
     {
+        // Table holding default values for PWM mark
+        [[nodiscard]] inline constexpr pinTable softPwmMarks()
+        {
+            return pinTable{
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0};
+        }
+
+        // Table holding default values for PWM range
+        [[nodiscard]] inline constexpr pinTable softPwmRange()
+        {
+            return pinTable{
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0};
+        }
+
+        // Table holding default values for PWM mark
+        [[nodiscard]] inline constexpr switchTable threadSwitches()
+        {
+            return switchTable{
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0};
+        }
+
+        // Table holding default-initialised null functions
+        void nullFunc()
+        {
+            return;
+        }
+        [[nodiscard]] threadTable softPwmThreads()
+        {
+            threadTable threads;
+            for (size_t i = 0; i < MAX_PINS<size_t>(); i++)
+            {
+                threads[i] = std::thread(nullFunc);
+            }
+            for (size_t i = 0; i < MAX_PINS<size_t>(); i++)
+            {
+                threads[i].join();
+            }
+            return threads;
+        }
+
         // Returns 2 ^ (pin & 31)
         [[nodiscard]] inline consteval pin_t digitalReadModulo(const pin_t pin)
         {
@@ -409,31 +470,31 @@ namespace WiringPi
                 -1, -1, -1, -1, -1, -1, -1, -1};
         }
 
-        [[nodiscard]] inline constexpr pinTable softPwmMarks()
-        {
-            return pinTable{
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0};
-        }
+        // [[nodiscard]] inline constexpr pinTable softPwmMarks()
+        // {
+        //     return pinTable{
+        //         0, 0, 0, 0, 0, 0, 0, 0,
+        //         0, 0, 0, 0, 0, 0, 0, 0,
+        //         0, 0, 0, 0, 0, 0, 0, 0,
+        //         0, 0, 0, 0, 0, 0, 0, 0,
+        //         0, 0, 0, 0, 0, 0, 0, 0,
+        //         0, 0, 0, 0, 0, 0, 0, 0,
+        //         0, 0, 0, 0, 0, 0, 0, 0,
+        //         0, 0, 0, 0, 0, 0, 0, 0};
+        // }
 
-        [[nodiscard]] inline constexpr pinTable softPwmRange()
-        {
-            return pinTable{
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0};
-        }
+        // [[nodiscard]] inline constexpr pinTable softPwmRange()
+        // {
+        //     return pinTable{
+        //         0, 0, 0, 0, 0, 0, 0, 0,
+        //         0, 0, 0, 0, 0, 0, 0, 0,
+        //         0, 0, 0, 0, 0, 0, 0, 0,
+        //         0, 0, 0, 0, 0, 0, 0, 0,
+        //         0, 0, 0, 0, 0, 0, 0, 0,
+        //         0, 0, 0, 0, 0, 0, 0, 0,
+        //         0, 0, 0, 0, 0, 0, 0, 0,
+        //         0, 0, 0, 0, 0, 0, 0, 0};
+        // }
     }
 }
 

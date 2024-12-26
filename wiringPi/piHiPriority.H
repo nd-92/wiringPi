@@ -33,7 +33,7 @@ namespace WiringPi
 
     private:
         // Set a high priority schedulling for the running program
-        int setSched(const int priority) const
+        [[nodiscard]] int setSched(const int priority) const
         {
             struct sched_param sched;
 

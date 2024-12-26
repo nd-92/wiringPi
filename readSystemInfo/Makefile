@@ -8,7 +8,7 @@ WFLAGS = -Werror -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wforma
 
 INCLUDE	= -I.
 DEFS = -D_GNU_SOURCE
-CXXFLAGS = $(OPTFLAGS) $(CXXSTANDARD) $(MFLAGS) $(WFLAGS) $(INCLUDE) $(DEFS) -pipe -fPIC $(EXTRA_CFLAGS)
+CXXFLAGS = $(OPTFLAGS) $(CXXSTANDARD) $(MFLAGS) $(WFLAGS) $(INCLUDE) $(DEFS) -pipe -fPIC $(EXTRA_CXXFLAGS)
 LIBS = -lm -lpthread -lrt -lcrypt
 
 default:

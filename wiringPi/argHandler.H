@@ -17,11 +17,18 @@ namespace WiringPi
     public:
         [[nodiscard]] argHandler(const int argc, const char *argv[])
             : nArgs_(nArgsCheck(argc, argv)),
+              threadTest_(threadTestCheck(argc, argv)),
               readWriteTest_(readWriteTestCheck(argc, argv)),
               pinLayout_(pinLayoutCheck(argc, argv)),
               wiringPiMode_(wiringPiModeCheck(argc, argv)) {};
 
         ~argHandler() {};
+
+        // Return if we are doing the thread test
+        [[nodiscard]] bool threadTest() const
+        {
+            return threadTest_;
+        }
 
         // Return if we are printing the pin layout
         [[nodiscard]] bool pinLayout() const
@@ -88,6 +95,12 @@ namespace WiringPi
             {
                 return static_cast<std::size_t>(argc);
             }
+        }
+
+        const bool threadTest_;
+        [[nodiscard]] bool threadTestCheck(const int argc, const char *argv[]) const
+        {
+            return argumentStringMatch(argc, argv, "-threadTest");
         }
 
         // Are we doing the read/write test

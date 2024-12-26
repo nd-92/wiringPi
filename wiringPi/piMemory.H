@@ -38,15 +38,17 @@ namespace WiringPi
               clk_(mapHardware<clk_t>(GPIO_CLOCK_BASE_)),
               pads_(mapHardware<pads_t>(GPIO_PADS_)),
               timer_(mapTimer(GPIO_TIMER_)),
-              timerIrqRaw_(timer_ + timer::irqRaw())
+              timerIrqRaw_(timer_ + timer::irqRaw()) {};
+
+        ~piMemory()
         {
-            // Check that the maps succeeded
-            assert((gpio_ != MAP_FAILED));
-            assert((pwm_ != MAP_FAILED));
-            assert((clk_ != MAP_FAILED));
-            assert((pads_ != MAP_FAILED));
-            assert((timer_ != MAP_FAILED));
-        };
+            // Unmap all of the hardware components
+            unmapHardware(gpio_);
+            unmapHardware(pwm_);
+            unmapHardware(clk_);
+            unmapHardware(pads_);
+            unmapHardware(timer_);
+        }
 
         // Return the base address of the GPIO memory mapped hardware IO
         [[nodiscard]] inline constexpr pin_t gpioBase() const
@@ -124,18 +126,37 @@ namespace WiringPi
 
         // Map individual hardware components
         template <typename T0, typename T1>
-        [[nodiscard]] volatile T0 *mapHardware(const T1 offset) const
+        [[nodiscard]] T0 *mapHardware(const T1 offset) const
         {
-            return static_cast<volatile T0 *>(mmap(0, memory::blockSize<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, devMem_.fd, static_cast<__off_t>(offset)));
+            // Perform mmap
+            T0 *ptr = static_cast<T0 *>(mmap(0, memory::blockSize<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, devMem_.fd, static_cast<__off_t>(offset)));
+
+            // Check that it didn't fail
+            assert((ptr != MAP_FAILED));
+
+            // Return the pointer
+            return ptr;
         }
 
         // Map timer
-        [[nodiscard]] volatile timer_t *mapTimer(const gpio_t offset) const
+        [[nodiscard]] timer_t *mapTimer(const gpio_t offset) const
         {
-            volatile timer_t *volatile ptr = static_cast<volatile timer_t *>(mmap(0, memory::blockSize<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, devMem_.fd, static_cast<__off_t>(offset)));
+            timer_t *ptr = static_cast<timer_t *>(mmap(0, memory::blockSize<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, devMem_.fd, static_cast<__off_t>(offset)));
             *(ptr + timer::control()) = 0x0000280;
             *(ptr + timer::preDiv()) = 0x00000F9;
+
+            // Check that it didn't fail
+            assert((ptr != MAP_FAILED));
+
             return ptr;
+        }
+
+        // Unmap individual hardware components
+        template <typename T>
+        void unmapHardware(T *ptr) const
+        {
+            // I really don't like the use of the C-style cast to get rid of volatility
+            assert((munmap((void *)ptr, memory::blockSize<size_t>()) != -1));
         }
 
         // Read the device memory
@@ -159,12 +180,12 @@ namespace WiringPi
         }
 
         // Hardware pointers
-        volatile gpio_t *volatile gpio_;
-        volatile pwm_t *volatile pwm_;
-        volatile clk_t *volatile clk_;
-        volatile pads_t *volatile pads_;
-        volatile timer_t *volatile timer_;
-        volatile timer_t *volatile timerIrqRaw_;
+        volatile gpio_t *gpio_;
+        volatile pwm_t *pwm_;
+        volatile clk_t *clk_;
+        volatile pads_t *pads_;
+        volatile timer_t *timer_;
+        volatile timer_t *timerIrqRaw_;
 
         // Initialise the base address of the GPIO memory mapped hardware IO
         template <typename T>
@@ -177,7 +198,7 @@ namespace WiringPi
             {
                 return 0;
             }
-            // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0
+
             switch (model)
             {
             case Pi::models::PiA():
@@ -230,65 +251,6 @@ namespace WiringPi
             }
             }
         }
-
-        // // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0
-        // template <typename T>
-        // [[nodiscard]] inline consteval T piGpioPupOffset()
-        // {
-        //     static_assert(piModelCheck(model), "Invalid Raspberry Pi model");
-
-        //     switch (model)
-        //     {
-        //     case Pi::models::PiA():
-        //     {
-        //         return 0;
-        //     }
-        //     case Pi::models::PiB():
-        //     {
-        //         return 0;
-        //     }
-        //     case Pi::models::PiAP():
-        //     {
-        //         return 0;
-        //     }
-        //     case Pi::models::PiBP():
-        //     {
-        //         return 0;
-        //     }
-        //     case Pi::models::PiAlpha():
-        //     {
-        //         return 0;
-        //     }
-        //     case Pi::models::PiCM():
-        //     {
-        //         return 0;
-        //     }
-        //     case Pi::models::PiZero():
-        //     {
-        //         return 0;
-        //     }
-        //     case Pi::models::PiZero_W():
-        //     {
-        //         return GPPUD<T>();
-        //     }
-        //     case Pi::models::Pi4B():
-        //     {
-        //         return 0;
-        //     }
-        //     case Pi::models::Pi400():
-        //     {
-        //         return 0;
-        //     }
-        //     case Pi::models::PiCM4():
-        //     {
-        //         return GPPUPPDN0<T>();
-        //     }
-        //     default:
-        //     {
-        //         return GPPUD<T>();
-        //     }
-        //     }
-        // }
     };
 }
 

@@ -25,7 +25,7 @@
 #include "piHiPriority.H"
 #include "i2c.H"
 #include "wiringPiStrings.H"
-#include "softPwm.H"
+// #include "softPwm.H"
 
 namespace WiringPi
 {
@@ -33,7 +33,7 @@ namespace WiringPi
 
     static constinit std::atomic<bool> quit(false);
 
-    void signalHandler(int)
+    inline void signalHandler(int)
     {
         quit.store(true);
     }
@@ -65,17 +65,28 @@ namespace WiringPi
             // Debug messages
 #ifdef WIRINGPI_DEBUG
             // Mode info
+            std::cout << std::endl;
             std::cout << "WiringPi initialised on mode " << wiringPiModes::names(wiringPiMode_) << std::endl;
 
             // Hardware info message
             std::cout << "Running on a Raspberry Pi " << piHardware_.modelString() << std::endl;
+            std::cout << std::endl;
 #endif
         }
 
         // Default destructor: reset all pins
         ~wiringPi()
         {
-            // Statically ranged loop to reset pin modes to input
+            // Join threads
+            for (std::size_t pin = 0; pin < softPwmThreads_.size(); pin++)
+            {
+                if (softPwmThreads_[pin].joinable())
+                {
+                    softPwmThreads_[pin].join();
+                }
+            }
+
+            // Reset pin modes to input and values to 0
             resetAllPins();
 
             // Debug messages
@@ -131,9 +142,68 @@ namespace WiringPi
             return !(quit.load());
         }
 
+        // Writes a PWM value to the given pin
+        template <const pin_t pin_>
+        void softPwmWrite(const gpio_t value)
+        {
+            // Check that we are operating on a valid pin
+            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
+
+            // Set the mark value no greater than the range
+            softPwmMarks_[pin_] = std::min(value, softPwmRange_[pin_]);
+
+// Debug message
+#ifdef WIRINGPI_DEBUG
+            std::cout << "Setting mark to " << softPwmMarks_[pin_] << std::endl;
+#endif
+        }
+
+        // Create a softPwm thread
+        template <const pin_t pin_>
+        inline void softPwm(const pin_t initialValue, const pin_t pwmRange)
+        {
+            // Check that we are operating on a valid pin
+            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
+
+            // Set the value and range
+            softPwmMarks_[pin_] = initialValue;
+            softPwmRange_[pin_] = pwmRange;
+
+            // Set the thread switch to active
+            threadSwitches_[pin_] = true;
+
+            // Set the pin to output
+            pinModeOnboard(pin_constant<pin_>(), output());
+
+            // Assign the thread
+            softPwmThreads_[pin_] = std::thread(&wiringPi<wiringPiMode>::softPwmThread<pin_>, this);
+        }
+
+        // End a softPwm thread
+        template <const pin_t pin_>
+        inline void softPwmEnd()
+        {
+            // Set the thread switch to false
+            threadSwitches_[pin_] = false;
+
+            // Join the thread
+            softPwmThreads_[pin_].join();
+
+            // Reset the value and range
+            softPwmMarks_[pin_] = 0;
+            softPwmRange_[pin_] = 0;
+
+            // Reset the pin to input
+            pinModeOnboard(pin_constant<pin_>(), input());
+        }
+
         // Read an input bit
         template <const pin_t pin_>
+#ifndef WIRINGPI_DEBUG
         [[nodiscard]] inline gpio_t digitalReadOnboard(const pin_constant<pin_> pin) const volatile
+#else
+        [[nodiscard]] gpio_t digitalReadOnboard(const pin_constant<pin_> pin) const volatile
+#endif
         {
             // Check that we are operating on a valid pin
             validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin()]>());
@@ -147,23 +217,31 @@ namespace WiringPi
         }
 
         // Write an output bit
-        template <const pin_t pin_, const gpio_t value_>
-        inline void digitalWriteOnboard(const pin_constant<pin_> pin, const gpio_constant<value_> value) const volatile
+        template <const pin_t pin, const gpio_t value>
+#ifndef WIRINGPI_DEBUG
+        inline void digitalWriteOnboard() const
+#else
+        void digitalWriteOnboard() const
+#endif
         {
             // Check that we are operating on a valid pin
-            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin()]>());
+            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin]>());
 
 #ifdef WIRINGPI_DEBUG
-            std::cout << "Writing " << value() << " to pin " << pinMap_[pin()] << std::endl;
+            std::cout << "Writing " << value << " to pin " << pinMap_[pin] << std::endl;
 #endif
 
             // Call the method on the onboard pin
-            onboardPins_.digitalWrite(piMemory_.gpioPtr(), pin_constant<pinMap_[pin()]>(), pin_constant<value()>());
+            onboardPins_.digitalWrite<pinMap_[pin], value>(piMemory_.gpioPtr());
         }
 
         // Sets the mode of a pin to be input, output or PWM output
         template <const pin_t pin_, const gpio_t mode_>
+#ifndef WIRINGPI_DEBUG
         inline void pinModeOnboard(const pin_constant<pin_> pin, const gpio_constant<mode_> mode)
+#else
+        void pinModeOnboard(const pin_constant<pin_> pin, const gpio_constant<mode_> mode)
+#endif
         {
             // Check that we are operating on a valid pin
             validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin()]>());
@@ -385,6 +463,58 @@ namespace WiringPi
         }
 
     private:
+        // Default initialised to 0
+        // Must by definition be mutable
+        pinTable softPwmMarks_ = pinTables::softPwmMarks();
+
+        // Default initialised to 0
+        // Potentially constexpr, but not yet
+        pinTable softPwmRange_ = pinTables::softPwmRange();
+
+        // Registry of threads
+        threadTable softPwmThreads_ = pinTables::softPwmThreads();
+
+        // Array of kill switches for threaded functions
+        // All values false by default
+        switchTable threadSwitches_ = pinTables::threadSwitches();
+
+        // Do the software PWM output
+        template <const pin_t pin_>
+        void softPwmThread() const
+        {
+            // Check that we are operating on a valid pin
+            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
+
+            // Just try 100 iterations first so we don't loop forever
+            // Is this run() switch safe?
+            while (threadSwitches_[pin_] && run())
+            // for (std::size_t i = 0; i < 10; i++)
+            {
+                // Look up the values
+                // This has to be done every iteration of the loop since they can be changed by softPwmWrite
+                const pin_t mark = softPwmMarks_[pin_];
+                const pin_t space = softPwmRange_[pin_] - mark;
+
+                // Debug message
+#ifdef WIRINGPI_DEBUG
+                std::cout << "softPwmThread setting mark = " << mark << ", space = " << space << std::endl;
+#endif
+                // Write high
+                if (mark != 0)
+                {
+                    digitalWriteOnboard<pin_, 1>();
+                }
+                std::this_thread::sleep_for(std::chrono::microseconds(mark * 100));
+
+                // Write low
+                if (space != 0)
+                {
+                    digitalWriteOnboard<pin_, 0>();
+                }
+                std::this_thread::sleep_for(std::chrono::microseconds(space * 100));
+            }
+        }
+
         // Gets the correct comparison for the pin number:
         // Returns 1, except if the pin number is 30
         template <const pin_t pin_>
@@ -503,7 +633,8 @@ namespace WiringPi
             {
                 // Set the pin to output and set value to 1
                 pinModeOnboard(pin_constant<pin()>(), output());
-                digitalWriteOnboard(pin_constant<pin()>(), high());
+                // digitalWriteOnboard(pin_constant<pin()>(), high());
+                digitalWriteOnboard<pin(), 1>();
 
                 // Set the pin to input and read the value
                 pinModeOnboard(pin_constant<pin()>(), input());
@@ -511,7 +642,8 @@ namespace WiringPi
 
                 // Set the pin to output and set value to 0
                 pinModeOnboard(pin_constant<pin()>(), output());
-                digitalWriteOnboard(pin_constant<pin()>(), low());
+                // digitalWriteOnboard(pin_constant<pin()>(), low());
+                digitalWriteOnboard<pin(), 0>();
 
                 // Set the pin to input and read the value
                 pinModeOnboard(pin_constant<pin()>(), input());
@@ -589,10 +721,18 @@ namespace WiringPi
         template <pin_t pin_ = 0>
         void resetAllPins(const pin_constant<pin_> = pin_constant<0>())
         {
+#ifdef WIRINGPI_DEBUG
+            if constexpr (pin_ == 0)
+            {
+                std::cout << std::endl;
+                std::cout << "Resetting all pins" << std::endl;
+                std::cout << std::endl;
+            }
+#endif
             if constexpr (pinMap_[pin_] != nullPin<pin_t>())
             {
                 pinModeOnboard(pin_constant<pin_>(), output());
-                digitalWriteOnboard(pin_constant<pin_>(), low());
+                digitalWriteOnboard<pin_, 0>();
                 pinModeOnboard(pin_constant<pin_>(), input());
             }
             if constexpr (pin_ < MAX_PINS<pin_t>() - 1)
@@ -603,9 +743,6 @@ namespace WiringPi
 
         // Registry of onboard pins
         onboardPins onboardPins_ = onboardPins();
-
-        // Registry of pin threads
-        // std::array<std::thread, MAX_PINS()> pinThreads_;
 
         // Setup info
         // static constexpr const int wiringPiSetuped_ = static_cast<int>(true);
