@@ -97,6 +97,44 @@ namespace WiringPi
 #endif
         };
 
+        // Shift data in from a clocked source
+        template <const pin_t dPin, const pin_t cPin, const int order>
+        [[nodiscard]] inline gpio_t shiftIn() const
+        {
+            // Check that the order is correct
+            static_assert((order == shift::MSBFIRST() || order == shift::LSBFIRST()), "Order must be MSBFIRST or LSBFIRST");
+
+            if constexpr (order == shift::MSBFIRST())
+            {
+                gpio_t value = 0;
+                shiftInMSB<dPin, cPin, 7>(&value);
+                return value;
+            }
+            else if constexpr (order == shift::LSBFIRST())
+            {
+                gpio_t value = 0;
+                shiftInLSB<dPin, cPin, 0>(&value);
+                return value;
+            }
+
+            // Redundant
+            return 0;
+        }
+
+        // Shift data out to a clocked source
+        template <const pin_t dPin, const pin_t cPin, const int order, const gpio_t value>
+        inline void shiftOut() const
+        {
+            if constexpr (order == shift::MSBFIRST())
+            {
+                shiftOutMSB<dPin, cPin, value, 7>();
+            }
+            else if constexpr (order == shift::LSBFIRST())
+            {
+                shiftOutLSB<dPin, cPin, value, 0>();
+            }
+        }
+
         // Prints the pin layout
         inline void pinLayout() const
         {
@@ -151,7 +189,7 @@ namespace WiringPi
 
         // Writes a PWM value to the given pin
         template <const pin_t pin_>
-        void softPwmWrite(const frequency_t value)
+        inline void softPwmWrite(const frequency_t value)
         {
             // Check that we are operating on a valid pin
             validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
@@ -167,7 +205,7 @@ namespace WiringPi
 
         // Writes a frequency value to the given pin
         template <const pin_t pin_>
-        void softToneWrite(const frequency_t value)
+        inline void softToneWrite(const frequency_t value)
         {
             // Check that we are operating on a valid pin
             validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
@@ -266,20 +304,20 @@ namespace WiringPi
         // Read an input bit
         template <const pin_t pin_>
 #ifndef WIRINGPI_DEBUG
-        [[nodiscard]] inline gpio_t digitalReadOnboard(const pin_constant<pin_> pin) const volatile
+        [[nodiscard]] inline gpio_t digitalReadOnboard() const volatile
 #else
-        [[nodiscard]] gpio_t digitalReadOnboard(const pin_constant<pin_> pin) const volatile
+        [[nodiscard]] gpio_t digitalReadOnboard() const volatile
 #endif
         {
             // Check that we are operating on a valid pin
-            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin()]>());
+            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
 
 #ifdef WIRINGPI_DEBUG
             std::cout << "Reading " << onboardPins_.digitalRead(piMemory_.gpioPtr(), pin_constant<pinMap_[pin()]>()) << " from pin " << pinMap_[pin()] << std::endl;
 #endif
 
             // Call the method on the onboard pin
-            return onboardPins_.digitalRead(piMemory_.gpioPtr(), pin_constant<pinMap_[pin()]>());
+            return onboardPins_.digitalRead(piMemory_.gpioPtr(), pin_constant<pinMap_[pin_]>());
         }
 
         // Write an output bit
@@ -569,14 +607,14 @@ namespace WiringPi
                 // Write high
                 if (mark != 0)
                 {
-                    digitalWriteOnboard<pin_, 1>();
+                    digitalWriteOnboard<pin_, high()>();
                 }
                 std::this_thread::sleep_for(std::chrono::microseconds(mark * 100));
 
                 // Write low
                 if (space != 0)
                 {
-                    digitalWriteOnboard<pin_, 0>();
+                    digitalWriteOnboard<pin_, low()>();
                 }
                 std::this_thread::sleep_for(std::chrono::microseconds(space * 100));
             }
@@ -607,9 +645,9 @@ namespace WiringPi
                 else
                 {
                     const frequency_t halfPeriod = 500000 / freq;
-                    digitalWriteOnboard<pin_, 1>();
+                    digitalWriteOnboard<pin_, high()>();
                     std::this_thread::sleep_for(std::chrono::microseconds(halfPeriod));
-                    digitalWriteOnboard<pin_, 0>();
+                    digitalWriteOnboard<pin_, low()>();
                     std::this_thread::sleep_for(std::chrono::microseconds(halfPeriod));
                 }
             }
@@ -662,7 +700,7 @@ namespace WiringPi
             // If the pin is valid, read the value and convert it to a string_view
             if constexpr (pinMap_[pin()] != nullPin<pin_t>())
             {
-                if (digitalReadOnboard(pin_constant<pin()>()) == 0)
+                if (digitalReadOnboard<pin_>() == 0)
                 {
                     return "0";
                 }
@@ -734,20 +772,20 @@ namespace WiringPi
                 // Set the pin to output and set value to 1
                 pinModeOnboard(pin_constant<pin()>(), output());
                 // digitalWriteOnboard(pin_constant<pin()>(), high());
-                digitalWriteOnboard<pin(), 1>();
+                digitalWriteOnboard<pin(), high()>();
 
                 // Set the pin to input and read the value
                 pinModeOnboard(pin_constant<pin()>(), input());
-                const gpio_t firstRead = digitalReadOnboard(pin_constant<pin()>());
+                const gpio_t firstRead = digitalReadOnboard<pin_>();
 
                 // Set the pin to output and set value to 0
                 pinModeOnboard(pin_constant<pin()>(), output());
                 // digitalWriteOnboard(pin_constant<pin()>(), low());
-                digitalWriteOnboard<pin(), 0>();
+                digitalWriteOnboard<pin(), low()>();
 
                 // Set the pin to input and read the value
                 pinModeOnboard(pin_constant<pin()>(), input());
-                const gpio_t secondRead = digitalReadOnboard(pin_constant<pin()>());
+                const gpio_t secondRead = digitalReadOnboard<pin_>();
 
                 // Pass condition is that we returned 1 and then 0
                 // Special cases:
@@ -832,7 +870,7 @@ namespace WiringPi
             if constexpr (pinMap_[pin_] != nullPin<pin_t>())
             {
                 pinModeOnboard(pin_constant<pin_>(), output());
-                digitalWriteOnboard<pin_, 0>();
+                digitalWriteOnboard<pin_, low()>();
                 pinModeOnboard(pin_constant<pin_>(), input());
             }
             if constexpr (pin_ < MAX_PINS<pin_t>() - 1)
@@ -903,6 +941,86 @@ namespace WiringPi
         static constexpr name_t version_ = VERSION();
         static constexpr const int versionMajor_ = VERSION_MAJOR<int>();
         static constexpr const int versionMinor_ = VERSION_MINOR<int>();
+
+        // Implements the logic of the MSBFIRST loop of shiftIn
+        // Loops from 7 to 0
+        template <const pin_t dPin, const pin_t cPin, const pin_t i>
+        inline void shiftInMSB(gpio_t *value) const
+        {
+            // Check that the loop index is valid
+            static_assert(i < 8, "shiftIn loop: index must be < 8");
+
+            digitalWriteOnboard<cPin, high()>();
+            *value |= digitalReadOnboard<dPin>() << i;
+            digitalWriteOnboard<cPin, low()>();
+
+            // Have we reached the end of the loop?
+            if constexpr (i > 0)
+            {
+                // No, continue
+                shiftInMSB<dPin, cPin, i - 1>(value);
+            }
+        }
+
+        // Implements the logic of the LSBFIRST loop of shiftIn
+        // Loops from 0 to 7
+        template <const pin_t dPin, const pin_t cPin, const pin_t i>
+        inline void shiftInLSB(gpio_t *value) const
+        {
+            // Check that the loop index is valid
+            static_assert(i < 8, "shiftIn loop: index must be < 8");
+
+            digitalWriteOnboard<cPin, high()>();
+            *value |= digitalReadOnboard<dPin>() << i;
+            digitalWriteOnboard<cPin, low()>();
+
+            // Have we reached the end of the loop?
+            if constexpr (i < 7)
+            {
+                // No, continue
+                shiftInLSB<dPin, cPin, i + 1>(value);
+            }
+        }
+
+        // Implements the logic of the MSBFIRST loop of shiftOut
+        // Loops from 7 to 0
+        template <const pin_t dPin, const pin_t cPin, const gpio_t value, const pin_t i>
+        inline void shiftOutMSB() const
+        {
+            // Check that the loop index is valid
+            static_assert(i < 8, "shiftOut loop: index must be < 8");
+
+            digitalWriteOnboard<dPin, value & (1 << i)>();
+            digitalWriteOnboard<cPin, high()>();
+            digitalWriteOnboard<cPin, low()>();
+
+            // Have we reached the end of the loop?
+            if constexpr (i > 0)
+            {
+                // No, continue
+                shiftOutMSB<dPin, cPin, value, i - 1>();
+            }
+        }
+
+        // Implements the logic of the LSBFIRST loop of shiftOut
+        // Loops from 0 to 7
+        template <const pin_t dPin, const pin_t cPin, const gpio_t value, const pin_t i>
+        inline void shiftOutLSB() const
+        {
+            // Check that the loop index is valid
+            static_assert(i < 8, "shiftOut loop: index must be < 8");
+
+            digitalWriteOnboard<dPin, value & (1 << i)>();
+            digitalWriteOnboard<cPin, high()>();
+            digitalWriteOnboard<cPin, low()>();
+
+            // Have we reached the end of the loop?
+            if constexpr (i < 7)
+            {
+                // No, continue
+                shiftOutLSB<dPin, cPin, value, i + 1>(value);
+            }
+        }
     };
 }
 

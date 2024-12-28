@@ -168,21 +168,19 @@ namespace WiringPi
     using pwmOff = const gpio_constant<pinModes::pwmOff()>;
 
     // Return values
-    namespace returnValues
+    // namespace returnValues
+    // {
+    [[nodiscard]] inline consteval gpio_t high()
     {
-        template <typename T>
-        [[nodiscard]] inline consteval T high()
-        {
-            return 1;
-        }
-        template <typename T>
-        [[nodiscard]] inline consteval T low()
-        {
-            return 0;
-        }
+        return 1;
     }
-    using high = const gpio_constant<returnValues::high<gpio_t>()>;
-    using low = const gpio_constant<returnValues::low<gpio_t>()>;
+    [[nodiscard]] inline consteval gpio_t low()
+    {
+        return 0;
+    }
+    // }
+    // using high = const gpio_constant<returnValues::high<gpio_t>()>;
+    // using low = const gpio_constant<returnValues::low<gpio_t>()>;
 
     // wiringPi modes
     namespace wiringPiModes
@@ -782,6 +780,18 @@ namespace WiringPi
         const uint32_t size;
         union i2c_smbus_data *data;
     };
+
+    namespace shift
+    {
+        [[nodiscard]] inline consteval int LSBFIRST()
+        {
+            return 0;
+        }
+        [[nodiscard]] inline consteval int MSBFIRST()
+        {
+            return 1;
+        }
+    }
 
 }
 

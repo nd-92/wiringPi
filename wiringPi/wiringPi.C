@@ -6,6 +6,17 @@ using namespace WiringPi;
 
 int main(const int argc, const char *argv[])
 {
+    // Try wiringShift
+    {
+        // Create the wiringPi object
+        wiringPi<wiringPiModes::pins()> Pi;
+        const gpio_t i = Pi.shiftIn<0, 1, shift::MSBFIRST()>();
+        std::cout << "i = " << i << std::endl;
+
+        const gpio_t j = Pi.shiftIn<0, 1, shift::LSBFIRST()>();
+        std::cout << "j = " << j << std::endl;
+    }
+
     // Handle the input arguments
     const argHandler args(argc, argv);
 
