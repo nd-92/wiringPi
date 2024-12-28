@@ -12,8 +12,8 @@ This is still a very early work in progress and doesn't contain anything close t
 
 ** TO DO **
 1) Implement softTone ** DONE **
-2) Implement wiringSerial
-3) Implement wiringShift
+2) Implement wiringSerial ** DONE EXCEPT FOR PRINTF **
+3) Implement wiringShift ** DONE **
 4) Implement drcNet
 5) Implement pseudoPins
 6) Implement wpiExtensions
