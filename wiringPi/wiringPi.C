@@ -1,4 +1,5 @@
 #include "wiringPi.H"
+#include "wiringSerial.H"
 #include "argHandler.H"
 
 using namespace WiringPi;

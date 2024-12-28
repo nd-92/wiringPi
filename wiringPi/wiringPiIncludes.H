@@ -42,6 +42,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/wait.h>
+#include <termios.h>
 #include <time.h>
 #include <thread>
 #include <unistd.h>
