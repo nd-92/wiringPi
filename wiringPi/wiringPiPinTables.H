@@ -297,7 +297,7 @@ namespace WiringPi
         // Create the pin map for a given wiringPi mode
         // For now, fails compilation on modes other than PINS, GPIO and PHYS
         // Fails compilation if layout is not 1 or 2
-        template <const int layout, const int mode>
+        template <const int layout, const wiringPiModes::type mode>
         [[nodiscard]] inline consteval const pinTable pinMap()
         {
             static_assert(layoutCheck(layout));
@@ -305,30 +305,30 @@ namespace WiringPi
 
             switch (mode)
             {
-            case wiringPiModes::pins():
+            case wiringPiModes::pins:
             {
                 return pinToGpio<layout>();
             }
-            case wiringPiModes::gpio():
+            case wiringPiModes::gpio:
             {
                 return gpioToGpio<layout>();
             }
-            case wiringPiModes::phys():
+            case wiringPiModes::phys:
             {
                 return physToGpio<layout>();
             }
-            default:
-            {
-                return pinTable{
-                    nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
-                    nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
-                    nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
-                    nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
-                    nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
-                    nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
-                    nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
-                    nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>()};
-            }
+                // default:
+                // {
+                //     return pinTable{
+                //         nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+                //         nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+                //         nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+                //         nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+                //         nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+                //         nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+                //         nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(),
+                //         nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>(), nullPin<pin_t>()};
+                // }
             }
         }
 
@@ -345,9 +345,9 @@ namespace WiringPi
                 14, 14, 14, 14, 14, 14, 14, 14};
         }
 
-        [[nodiscard]] inline constexpr const pinTable sysFds(const int mode)
+        [[nodiscard]] inline constexpr const pinTable sysFds(const wiringPiModes::type mode)
         {
-            if (mode == wiringPiModes::gpioSys())
+            if (mode == wiringPiModes::gpioSys)
             {
                 char fName[128];
                 pinTable arr = pinTable{

@@ -21,7 +21,7 @@ namespace WiringPi
         const bool usingGpioMem;
     };
 
-    template <const int model>
+    template <const Pi::models::type Model>
     class piMemory
     {
     public:
@@ -193,56 +193,56 @@ namespace WiringPi
         [[nodiscard]] inline constexpr T piGpioBase(const bool usingGpioMem) const
         {
             // Check for a valid model
-            static_assert(piModelCheck(model), "Invalid Raspberry Pi model");
+            static_assert(piModelCheck(Model), "Invalid Raspberry Pi model");
 
             if (usingGpioMem)
             {
                 return 0;
             }
 
-            switch (model)
+            switch (Model)
             {
-            case Pi::models::PiA():
-            {
-                return 0;
-            }
-            case Pi::models::PiB():
+            case Pi::models::PiA:
             {
                 return 0;
             }
-            case Pi::models::PiAP():
+            case Pi::models::PiB:
             {
                 return 0;
             }
-            case Pi::models::PiBP():
+            case Pi::models::PiAP:
             {
                 return 0;
             }
-            case Pi::models::PiAlpha():
+            case Pi::models::PiBP:
             {
                 return 0;
             }
-            case Pi::models::PiCM():
+            case Pi::models::PiAlpha:
             {
                 return 0;
             }
-            case Pi::models::PiZero():
+            case Pi::models::PiCM:
             {
                 return 0;
             }
-            case Pi::models::PiZero_W():
+            case Pi::models::PiZero:
+            {
+                return 0;
+            }
+            case Pi::models::PiZero_W:
             {
                 return GPIO::PERI::BASE_OLD<T>();
             }
-            case Pi::models::Pi4B():
+            case Pi::models::Pi4B:
             {
                 return 0;
             }
-            case Pi::models::Pi400():
+            case Pi::models::Pi400:
             {
                 return 0;
             }
-            case Pi::models::PiCM4():
+            case Pi::models::PiCM4:
             {
                 return GPIO::PERI::BASE_2711<T>();
             }

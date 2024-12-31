@@ -3,15 +3,6 @@
 
 namespace WiringPi
 {
-    // Handy define to do the unit tests for all modes
-    namespace wiringPiModes
-    {
-        [[nodiscard]] inline consteval int all()
-        {
-            return 100;
-        }
-    }
-
     class argHandler
     {
     public:
@@ -118,8 +109,8 @@ namespace WiringPi
         }
 
         // Check the supplied mode
-        const int wiringPiMode_;
-        [[nodiscard]] int wiringPiModeCheck(const int argc, const char *argv[]) const
+        const wiringPiModes::type wiringPiMode_;
+        [[nodiscard]] wiringPiModes::type wiringPiModeCheck(const int argc, const char *argv[]) const
         {
             if (argc > 0)
             {
@@ -132,44 +123,44 @@ namespace WiringPi
                         {
                             if (strcmp(argv[i + 1], "pins") == 0)
                             {
-                                return wiringPiModes::pins();
+                                return wiringPiModes::pins;
                             }
                             else if (strcmp(argv[i + 1], "gpio") == 0)
                             {
-                                return wiringPiModes::gpio();
+                                return wiringPiModes::gpio;
                             }
                             else if (strcmp(argv[i + 1], "gpioSys") == 0)
                             {
-                                return wiringPiModes::gpioSys();
+                                return wiringPiModes::gpioSys;
                             }
                             else if (strcmp(argv[i + 1], "phys") == 0)
                             {
-                                return wiringPiModes::phys();
+                                return wiringPiModes::phys;
                             }
                             else if (strcmp(argv[i + 1], "piFace") == 0)
                             {
-                                return wiringPiModes::piFace();
+                                return wiringPiModes::piFace;
                             }
                             else if (strcmp(argv[i + 1], "all") == 0)
                             {
-                                return wiringPiModes::all();
+                                return wiringPiModes::all;
                             }
                             else
                             {
                                 std::cout << "Invalid mode " << argv[i + 1] << " supplied" << std::endl;
                                 std::cout << "Valid modes are: pins, gpio, gpioSys, phys, piFace, all" << std::endl;
-                                return -1;
+                                return wiringPiModes::uninitialised;
                             }
                         }
                         // Otherwise it is out of bounds: default to Pins
                         else
                         {
-                            return 0;
+                            return wiringPiModes::pins;
                         }
                     }
                 }
             }
-            return -1;
+            return wiringPiModes::uninitialised;
         }
     };
 }

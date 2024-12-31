@@ -39,50 +39,50 @@ namespace WiringPi
 
     // Check that the mode is valid
     // This is currently identical to pwmModeCheck as no other setup modes have been implemented yet
-    [[nodiscard]] inline consteval bool setupModeCheck(const int mode)
+    [[nodiscard]] inline consteval bool setupModeCheck(const wiringPiModes::type mode)
     {
-        return (mode == wiringPiModes::pins() || mode == wiringPiModes::gpio() || mode == wiringPiModes::phys());
+        return (mode == wiringPiModes::pins || mode == wiringPiModes::gpio || mode == wiringPiModes::phys);
     }
 
     // Assert that the mode must be valid
-    template <const int mode_>
-    inline void setupModeAssert(const mode_constant<mode_> mode)
+    template <const wiringPiModes::type mode_>
+    inline void setupModeAssert(const wiringPiModes::constant<mode_> mode)
     {
         static_assert(setupModeCheck(mode()), "Invalid wiringPiMode: valid modes are PINS, PHYS, GPIO.");
     }
 
     // Check that the mode works for PWM
     // This is currently identical to setupModeCheck as no other setup modes have been implemented yet
-    [[nodiscard]] inline consteval bool pwmModeCheck(const int mode)
+    [[nodiscard]] inline consteval bool pwmModeCheck(const wiringPiModes::type mode)
     {
-        return (mode == wiringPiModes::pins() || mode == wiringPiModes::gpio() || mode == wiringPiModes::phys());
+        return (mode == wiringPiModes::pins || mode == wiringPiModes::gpio || mode == wiringPiModes::phys);
     }
 
     // Assert that the mode must work for PWM
-    template <const int mode_>
-    inline void pwmModeAssert(const mode_constant<mode_> mode)
+    template <const wiringPiModes::type mode_>
+    inline void pwmModeAssert(const wiringPiModes::constant<mode_> mode)
     {
         static_assert(pwmModeCheck(mode()), "Invalid wiringPiMode for PWM operation: valid modes are PINS, PHYS, GPIO.");
     }
 
     // Assert that the mode must be GPIO on certain models
-    template <const int model_, const int mode_>
-    inline void computeModelAssert(const pi_model_constant<model_> model, const mode_constant<mode_> mode)
+    template <const Pi::models::type model_, const wiringPiModes::type mode_>
+    inline void computeModelAssert(const Pi::models::constant<model_> model, const wiringPiModes::constant<mode_> mode)
     {
-        static_assert(!(model() == Pi::models::PiCM() && mode() != wiringPiModes::gpio()), "Only WPI_MODE_GPIO available on Pi::models::PiCM");
-        static_assert(!(model() == Pi::models::PiCM3() && mode() != wiringPiModes::gpio()), "Only WPI_MODE_GPIO available on Pi::models::PiCM3");
-        static_assert(!(model() == Pi::models::PiCM3P() && mode() != wiringPiModes::gpio()), "Only WPI_MODE_GPIO available on Pi::models::PiCM3P");
+        static_assert(!(model() == Pi::models::PiCM && mode() != wiringPiModes::gpio), "Only WPI_MODE_GPIO available on Pi::models::PiCM");
+        static_assert(!(model() == Pi::models::PiCM3 && mode() != wiringPiModes::gpio), "Only WPI_MODE_GPIO available on Pi::models::PiCM3");
+        static_assert(!(model() == Pi::models::PiCM3P && mode() != wiringPiModes::gpio), "Only WPI_MODE_GPIO available on Pi::models::PiCM3P");
     }
 
     // Check that the model must be valid
-    [[nodiscard]] inline consteval bool piModelCheck(const int model)
+    [[nodiscard]] inline consteval bool piModelCheck(const Pi::models::type model)
     {
-        return (model == Pi::models::PiA() || model == Pi::models::PiB() || model == Pi::models::PiAP() || model == Pi::models::PiBP() || model == Pi::models::Pi2() || model == Pi::models::PiAlpha() || model == Pi::models::PiCM() || model == Pi::models::Pi07() || model == Pi::models::Pi3B() || model == Pi::models::PiZero() || model == Pi::models::PiCM3() || model == Pi::models::PiZero_W() || model == Pi::models::Pi3BP() || model == Pi::models::Pi3AP() || model == Pi::models::PiCM3P() || model == Pi::models::Pi4B() || model == Pi::models::PiZero_2W() || model == Pi::models::Pi400() || model == Pi::models::PiCM4() || model == Pi::models::PiCM4S() || model == Pi::models::Pi5());
+        return (model == Pi::models::PiA || model == Pi::models::PiB || model == Pi::models::PiAP || model == Pi::models::PiBP || model == Pi::models::Pi2 || model == Pi::models::PiAlpha || model == Pi::models::PiCM || model == Pi::models::Pi07 || model == Pi::models::Pi3B || model == Pi::models::PiZero || model == Pi::models::PiCM3 || model == Pi::models::PiZero_W || model == Pi::models::Pi3BP || model == Pi::models::Pi3AP || model == Pi::models::PiCM3P || model == Pi::models::Pi4B || model == Pi::models::PiZero_2W || model == Pi::models::Pi400 || model == Pi::models::PiCM4 || model == Pi::models::PiCM4S || model == Pi::models::Pi5);
     }
 
     // Assert that the model must be valid
-    template <const int model_>
-    inline void piModelAssert(const pi_model_constant<model_> model)
+    template <const Pi::models::type model_>
+    inline void piModelAssert(const Pi::models::constant<model_> model)
     {
         static_assert(piModelCheck(model()), "Invalid model of Raspberry pi");
     }

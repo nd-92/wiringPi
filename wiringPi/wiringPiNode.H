@@ -36,7 +36,7 @@ namespace WiringPi
         }
 
         // Sets the mode of a pin to be input, output or PWM output
-        virtual inline void pinMode([[maybe_unused]] volatile gpio_t *gpioPtr, [[maybe_unused]] const gpio_t mode, [[maybe_unused]] const pin_t fSel, [[maybe_unused]] const pin_t shift) const
+        virtual inline void pinMode([[maybe_unused]] volatile gpio_t *gpioPtr, [[maybe_unused]] const pinModes::type mode, [[maybe_unused]] const pin_t fSel, [[maybe_unused]] const pin_t shift) const
         {
             return;
         }

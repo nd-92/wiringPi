@@ -19,8 +19,6 @@ namespace WiringPi
     {
     public:
         [[nodiscard]] inline constexpr onboardPins() : pinMode_(pinTables::pinMode()) {};
-        // [[nodiscard]] inline constexpr onboardPins(const gpioTable &pinModes)
-        //     : pinMode_(pinModes) {};
 
         // Read the value of a given pin, returns either HIGH or LOW
         template <const pin_t pin_>
@@ -37,18 +35,18 @@ namespace WiringPi
         }
 
         // Sets the mode of a pin to be input, output or PWM output
-        template <const pin_t pin_, const gpio_t mode_, const pin_t fSel_, const pin_t shift_>
-        inline void pinMode(volatile gpio_t *gpioPtr, const pin_constant<pin_> pin, const gpio_constant<mode_> mode, const pin_constant<fSel_> fSel, const pin_constant<shift_> shift)
+        template <const pin_t pin_, const pinModes::type mode_, const pin_t fSel_, const pin_t shift_>
+        inline void pinMode(volatile gpio_t *gpioPtr, const pin_constant<pin_> pin, const pinModes::constant<mode_> mode, const pin_constant<fSel_> fSel, const pin_constant<shift_> shift)
         {
             // Check that the pin is valid
             static_assert(nullPinCheck(pin()));
 
             // Continue
-            if constexpr (mode() == input() || mode() == pwmOff())
+            if constexpr (mode() == pinModes::input || mode() == pinModes::pwmOff)
             {
                 *(gpioPtr + fSel()) = (*(gpioPtr + fSel()) & static_cast<gpio_t>(~(7 << shift())));
             }
-            else if constexpr (mode() == output())
+            else if constexpr (mode() == pinModes::output)
             {
                 *(gpioPtr + fSel()) = (*(gpioPtr + fSel()) & static_cast<gpio_t>(~(7 << shift()))) | (1 << shift());
             }

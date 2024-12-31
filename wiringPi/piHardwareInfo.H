@@ -15,106 +15,47 @@
 
 namespace WiringPi
 {
-    // Initialise piGpioBase and piGpioPupOffset from board model - default vals 1 and 0
-    // Must be defined at namespace scope
-    template <typename T, const int model>
-    [[nodiscard]] inline consteval T piGpioPupOffset()
-    {
-        static_assert(piModelCheck(model), "Invalid Raspberry Pi model");
-
-        switch (model)
-        {
-        case Pi::models::PiA():
-        {
-            return 0;
-        }
-        case Pi::models::PiB():
-        {
-            return 0;
-        }
-        case Pi::models::PiAP():
-        {
-            return 0;
-        }
-        case Pi::models::PiBP():
-        {
-            return 0;
-        }
-        case Pi::models::PiAlpha():
-        {
-            return 0;
-        }
-        case Pi::models::PiCM():
-        {
-            return 0;
-        }
-        case Pi::models::PiZero():
-        {
-            return 0;
-        }
-        case Pi::models::PiZero_W():
-        {
-            return GPPUD<T>();
-        }
-        case Pi::models::Pi4B():
-        {
-            return 0;
-        }
-        case Pi::models::Pi400():
-        {
-            return 0;
-        }
-        case Pi::models::PiCM4():
-        {
-            return GPPUPPDN0<T>();
-        }
-        default:
-        {
-            return GPPUD<T>();
-        }
-        }
-    }
-
+    template <const Pi::models::type Model, const Pi::layout::type Layout>
     class piHardware
     {
     public:
         [[nodiscard]] inline constexpr piHardware() {};
 
         // Returns the model code
-        [[nodiscard]] inline consteval int model() const
+        [[nodiscard]] static inline consteval Pi::models::type model()
         {
             return piModel_;
         }
 
         // Returns the GPIO pin layout code
-        [[nodiscard]] static inline consteval int gpioLayout()
+        [[nodiscard]] static inline consteval Pi::layout::type gpioLayout()
         {
             return gpioLayout_;
         }
 
-        // Returns the revision code
-        [[nodiscard]] inline consteval int revision() const
-        {
-            return piRev_;
-        }
+        // // Returns the revision code
+        // [[nodiscard]] inline consteval int revision() const
+        // {
+        //     return piRev_;
+        // }
 
-        // Returns the memory code
-        [[nodiscard]] inline consteval int memory() const
-        {
-            return piMem_;
-        }
+        // // Returns the memory code
+        // [[nodiscard]] inline consteval int memory() const
+        // {
+        //     return piMem_;
+        // }
 
-        // Returns the maker code
-        [[nodiscard]] inline consteval int maker() const
-        {
-            return piMaker_;
-        }
+        // // Returns the maker code
+        // [[nodiscard]] inline consteval int maker() const
+        // {
+        //     return piMaker_;
+        // }
 
-        // Returns the warranty code
-        [[nodiscard]] inline consteval int warranty() const
-        {
-            return piWarranty_;
-        }
+        // // Returns the warranty code
+        // [[nodiscard]] inline consteval int warranty() const
+        // {
+        //     return piWarranty_;
+        // }
 
         // Returns a string_view of the model
         [[nodiscard]] inline consteval name_t modelString() const
@@ -143,13 +84,70 @@ namespace WiringPi
 
     private:
         // Pi hardware info
-        static constexpr const int piModel_ = PI_MODEL<int>();
-        static constexpr const int gpioLayout_ = GPIO_LAYOUT<int>();
-        static constexpr const int piRev_ = PI_REV<int>();
-        static constexpr const int piMem_ = PI_MEM<int>();
-        static constexpr const int piMaker_ = PI_MAKER<int>();
-        static constexpr const int piWarranty_ = PI_WARRANTY<int>();
-        static constexpr const pin_t piGpioPupOffset_ = piGpioPupOffset<pin_t, piModel_>();
+        static constexpr const Pi::models::type piModel_ = Model;
+        static constexpr const Pi::layout::type gpioLayout_ = Layout;
+
+        [[nodiscard]] static inline consteval pin_t piGpioPupOffset()
+        {
+            static_assert(piModelCheck(piModel_), "Invalid Raspberry Pi model");
+
+            switch (piModel_)
+            {
+            case Pi::models::PiA:
+            {
+                return 0;
+            }
+            case Pi::models::PiB:
+            {
+                return 0;
+            }
+            case Pi::models::PiAP:
+            {
+                return 0;
+            }
+            case Pi::models::PiBP:
+            {
+                return 0;
+            }
+            case Pi::models::PiAlpha:
+            {
+                return 0;
+            }
+            case Pi::models::PiCM:
+            {
+                return 0;
+            }
+            case Pi::models::PiZero:
+            {
+                return 0;
+            }
+            case Pi::models::PiZero_W:
+            {
+                return GPPUD<pin_t>();
+            }
+            case Pi::models::Pi4B:
+            {
+                return 0;
+            }
+            case Pi::models::Pi400:
+            {
+                return 0;
+            }
+            case Pi::models::PiCM4:
+            {
+                return GPPUPPDN0<pin_t>();
+            }
+            default:
+            {
+                return GPPUD<pin_t>();
+            }
+            }
+        }
+        // static constexpr const int piRev_ = PI_REV<int>();
+        // static constexpr const int piMem_ = PI_MEM<int>();
+        // static constexpr const int piMaker_ = PI_MAKER<int>();
+        // static constexpr const int piWarranty_ = PI_WARRANTY<int>();
+        static constexpr const pin_t piGpioPupOffset_ = piGpioPupOffset();
         static constexpr const name_t modelString_ = Pi::models::names(piModel_);
         static constexpr const pin_t numPhysicalPins_ = pinTables::numPhysicalPins<gpioLayout_>();
     };

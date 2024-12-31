@@ -13,13 +13,12 @@
 
 namespace WiringPi
 {
-    template <const pin_t devID, const int wiringPiMode>
+    template <const pin_t devID, const Pi::models::type Model, const Pi::layout::type Layout, const wiringPiModes::type wiringPiMode>
     class i2c
     {
     public:
-        [[nodiscard]] inline i2c(wiringPi<wiringPiMode> &RaspberryPi)
-            : RaspberryPi_(RaspberryPi),
-              fd_(setupInterface()) {};
+        // Default constructor: take a reference to the wiringPi object
+        [[nodiscard]] inline i2c(wiringPi<Model, Layout, wiringPiMode> &RaspberryPi) : RaspberryPi_(RaspberryPi), fd_(setupInterface()) {};
 
         // Simple read
         [[nodiscard]] uint8_t read() const
@@ -148,7 +147,7 @@ namespace WiringPi
         }
 
     private:
-        wiringPi<wiringPiMode> &RaspberryPi_;
+        wiringPi<Model, Layout, wiringPiMode> &RaspberryPi_;
         const int fd_;
 
         [[nodiscard]] inline int setupInterface() const
@@ -180,9 +179,9 @@ namespace WiringPi
 
         // This should really be constexpr
         // Need to figure out how to supply layout from RaspberryPi_ at compile time despite it not being constexpr!
-        [[nodiscard]] const name_t deviceDirName(const int layout) const
+        [[nodiscard]] const name_t deviceDirName(const Pi::layout::type layout) const
         {
-            if (layout == 1)
+            if (layout == Pi::layout::PI1_REV1)
             {
                 return "/dev/i2c-0";
             }

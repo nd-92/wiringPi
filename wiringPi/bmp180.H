@@ -15,12 +15,12 @@
 
 namespace WiringPi
 {
-    template <const pin_t pinBase, const int wiringPiMode>
+    template <const pin_t pinBase, const Pi::models::type Model, const Pi::layout::type Layout, const wiringPiModes::type wiringPiMode>
     class bmp180 : public wiringPiNode
     {
     public:
-        [[nodiscard]] bmp180(wiringPi<wiringPiMode> &RaspberryPi)
-            : i2c_(i2c<0x77, wiringPiMode>(RaspberryPi)) {};
+        // Default constructor: take a reference to the wiringPi object
+        [[nodiscard]] bmp180(wiringPi<Model, Layout, wiringPiMode> &RaspberryPi) : i2c_(i2c<0x77, Model, Layout, wiringPiMode>(RaspberryPi)) {};
 
         ~bmp180() {};
 
@@ -67,7 +67,7 @@ namespace WiringPi
 
     private:
         static constexpr const pin_t BMP180_OSS = 0;
-        i2c<0x77, wiringPiMode> i2c_;
+        i2c<0x77, Model, Layout, wiringPiMode> i2c_;
         static constexpr const pin_t pinBase_ = pinBase;
         static constexpr const pin_t nPins_ = 4;
 

@@ -27,7 +27,7 @@
 
 namespace WiringPi
 {
-    template <const int wiringPiMode>
+    template <const Pi::models::type Model, const Pi::layout::type Layout, const wiringPiModes::type wiringPiMode>
     class wiringPi
     {
     public:
@@ -39,16 +39,16 @@ namespace WiringPi
               epochMicro_(initialiseEpochMicro())
         {
             // Check for a valid mode
-            setupModeAssert(mode_constant<wiringPiMode_>());
+            setupModeAssert(wiringPiModes::constant<wiringPiMode_>());
 
             // Check for non-GPIO mode on certain models
-            computeModelAssert(pi_model_constant<piHardware_.model()>(), mode_constant<wiringPiMode_>());
+            computeModelAssert(Pi::models::constant<piHardware_.model()>(), wiringPiModes::constant<wiringPiMode_>());
 
             // Check that the board layout is correct
             layoutAssert(layout_constant<piHardware_.gpioLayout()>());
 
             // Check that the Pi model is correct
-            piModelAssert(pi_model_constant<piHardware_.model()>());
+            piModelAssert(Pi::models::constant<piHardware_.model()>());
 
             // Debug messages
 #ifdef WIRINGPI_DEBUG
@@ -235,10 +235,10 @@ namespace WiringPi
             threadSwitches_[pin_] = true;
 
             // Set the pin to output
-            pinModeOnboard(pin_constant<pin_>(), output());
+            pinModeOnboard(pin_constant<pin_>(), pinModes::constant_output());
 
             // Assign the thread
-            threadRegistry_[pin_] = std::thread(&wiringPi<wiringPiMode>::softPwmThread<pin_>, this);
+            threadRegistry_[pin_] = std::thread(&wiringPi<Model, Layout, wiringPiMode>::softPwmThread<pin_>, this);
         }
 
         // Create a softTone thread
@@ -255,10 +255,10 @@ namespace WiringPi
             threadSwitches_[pin_] = true;
 
             // Set the pin to output
-            pinModeOnboard(pin_constant<pin_>(), output());
+            pinModeOnboard(pin_constant<pin_>(), pinModes::constant_output());
 
             // Assign the thread
-            threadRegistry_[pin_] = std::thread(&wiringPi<wiringPiMode>::softToneThread<pin_>, this);
+            threadRegistry_[pin_] = std::thread(&wiringPi<Model, Layout, wiringPiMode>::softToneThread<pin_>, this);
         }
 
         // End a softPwm thread
@@ -279,7 +279,7 @@ namespace WiringPi
             softPwmRange_[pin_] = 0;
 
             // Reset the pin to input
-            pinModeOnboard(pin_constant<pin_>(), input());
+            pinModeOnboard(pin_constant<pin_>(), pinModes::constant_input());
         }
 
         // End a softTone thread
@@ -299,7 +299,7 @@ namespace WiringPi
             softToneFreq_[pin_] = 0;
 
             // Reset the pin to input
-            pinModeOnboard(pin_constant<pin_>(), input());
+            pinModeOnboard(pin_constant<pin_>(), pinModes::constant_input());
         }
 
         // Read an input bit
@@ -322,7 +322,7 @@ namespace WiringPi
         }
 
         // Write an output bit
-        template <const pin_t pin, const gpio_t value>
+        template <const pin_t pin_, const gpio_t value>
 #ifndef WIRINGPI_DEBUG
         inline void digitalWriteOnboard() const
 #else
@@ -330,22 +330,22 @@ namespace WiringPi
 #endif
         {
             // Check that we are operating on a valid pin
-            validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin]>());
+            validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin_]>());
 
 #ifdef WIRINGPI_DEBUG
             std::cout << "Writing " << value << " to pin " << pinMap_[pin] << std::endl;
 #endif
 
             // Call the method on the onboard pin
-            onboardPins_.digitalWrite<pinMap_[pin], value>(piMemory_.gpioPtr());
+            onboardPins_.digitalWrite<pinMap_[pin_], value>(piMemory_.gpioPtr());
         }
 
         // Sets the mode of a pin to be input, output or PWM output
-        template <const pin_t pin_, const gpio_t mode_>
+        template <const pin_t pin_, const pinModes::type mode_>
 #ifndef WIRINGPI_DEBUG
-        inline void pinModeOnboard(const pin_constant<pin_> pin, const gpio_constant<mode_> mode)
+        inline void pinModeOnboard(const pin_constant<pin_> pin, const pinModes::constant<mode_> mode)
 #else
-        void pinModeOnboard(const pin_constant<pin_> pin, const gpio_constant<mode_> mode)
+        void pinModeOnboard(const pin_constant<pin_> pin, const constant<mode_> mode)
 #endif
         {
             // Check that we are operating on a valid pin
@@ -356,7 +356,7 @@ namespace WiringPi
 #endif
 
             // Call the method on the onboard pin
-            onboardPins_.pinMode(piMemory_.gpioPtr(), pin_constant<pinMap_[pin()]>(), gpio_constant<mode()>(), pin_constant<gpioToGPFSEL_[pinMap_[pin()]]>(), pin_constant<gpioToShift_[pinMap_[pin()]]>());
+            onboardPins_.pinMode(piMemory_.gpioPtr(), pin_constant<pinMap_[pin()]>(), pinModes::constant<mode()>(), pin_constant<gpioToGPFSEL_[pinMap_[pin()]]>(), pin_constant<gpioToShift_[pinMap_[pin()]]>());
         }
 
         // Control the internal pull-up/down resistors on a GPIO pin
@@ -380,7 +380,7 @@ namespace WiringPi
         {
             // Safety checks
             validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin()]>());
-            static_assert(wiringPiMode_ == wiringPiModes::gpio(), "wiringPi not initialised in GPIO mode: pwmWriteOnboard cannot be called");
+            static_assert(wiringPiMode_ == wiringPiModes::gpio, "wiringPi not initialised in GPIO mode: pwmWriteOnboard cannot be called");
             if (piMemory_.gpioBase() != 0)
             {
                 failure("GPIO base address must be 0: pwmWriteOnboard cannot be called");
@@ -416,7 +416,7 @@ namespace WiringPi
         template <const int mode_>
         inline void pwmSetMode(const pwm_mode_constant<mode_> mode) const
         {
-            pwmModeAssert(mode_constant<wiringPiMode>());
+            pwmModeAssert(wiringPiModes::constant<wiringPiMode>());
             static_assert(((mode() == PWM::mode::MS()) || (mode() == PWM::mode::BAL())), "Invalid mode for pwmSetMode: valid modes are MS, BAL.");
             if constexpr (mode() == PWM::mode::MS())
             {
@@ -431,7 +431,7 @@ namespace WiringPi
         // Set the PWM range register
         inline void pwmSetRange(const pwm_t range) const
         {
-            pwmModeAssert(mode_constant<wiringPiMode>());
+            pwmModeAssert(wiringPiModes::constant<wiringPiMode>());
 
             *(piMemory_.pwmPtr() + PWM0::RANGE<pwm_t>()) = range;
             std::this_thread::sleep_for(std::chrono::microseconds(10));
@@ -444,7 +444,7 @@ namespace WiringPi
         template <const timer_t divisor_>
         inline void pwmSetClock(const timer_constant<divisor_> divisor) const
         {
-            pwmModeAssert(mode_constant<wiringPiMode>());
+            pwmModeAssert(wiringPiModes::constant<wiringPiMode>());
 
             // Preserve PWM_CONTROL
             const timer_t pwmControl = *(piMemory_.pwmPtr() + PWM::CONTROL<pwm_t>());
@@ -475,7 +475,7 @@ namespace WiringPi
         template <const pin_t pin_>
         inline void gpioClockSet(const pin_constant<pin_> pin, const timer_t freq) const
         {
-            setupModeAssert(mode_constant<wiringPiMode>());
+            setupModeAssert(wiringPiModes::constant<wiringPiMode>());
             validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin()]>());
             nullPinAssert(pin_constant<gpioToClkDiv_[pinMap_[pin()]]>());
             nullPinAssert(pin_constant<gpioToClkCon_[pinMap_[pin()]]>());
@@ -510,7 +510,7 @@ namespace WiringPi
         template <const pin_t group_>
         inline void setPadDrive(const pin_constant<group_> group, const pwm_t value) const
         {
-            setupModeAssert(mode_constant<wiringPiMode>());
+            setupModeAssert(wiringPiModes::constant<wiringPiMode>());
             static_assert(((group() == 0) || (group() == 1) || (group() == 2)), "Invalid group for setPadDrive: valid groups are 0, 1, 2.");
 
             const pwm_t reducedValue = value & 7;
@@ -559,7 +559,7 @@ namespace WiringPi
             return (ts.tv_sec * 1000L) + (ts.tv_nsec / 1000000L) - epochMilli();
         }
 
-        [[nodiscard]] inline consteval int mode() const
+        [[nodiscard]] inline consteval wiringPiModes::type mode() const
         {
             return wiringPiMode_;
         }
@@ -581,7 +581,7 @@ namespace WiringPi
         }
 
         // Return access to the Pi hardware info
-        [[nodiscard]] static inline consteval const piHardware &piHardwareInfo()
+        [[nodiscard]] static inline consteval const piHardware<Model, Layout> &piHardwareInfo()
         {
             return piHardware_;
         }
@@ -790,21 +790,21 @@ namespace WiringPi
             else
             {
                 // Set the pin to output and set value to 1
-                pinModeOnboard(pin_constant<pin()>(), output());
+                pinModeOnboard(pin_constant<pin()>(), pinModes::constant_output());
                 // digitalWriteOnboard(pin_constant<pin()>(), high());
                 digitalWriteOnboard<pin(), high()>();
 
                 // Set the pin to input and read the value
-                pinModeOnboard(pin_constant<pin()>(), input());
+                pinModeOnboard(pin_constant<pin()>(), pinModes::constant_input());
                 const gpio_t firstRead = digitalReadOnboard<pin_>();
 
                 // Set the pin to output and set value to 0
-                pinModeOnboard(pin_constant<pin()>(), output());
+                pinModeOnboard(pin_constant<pin()>(), pinModes::constant_output());
                 // digitalWriteOnboard(pin_constant<pin()>(), low());
                 digitalWriteOnboard<pin(), low()>();
 
                 // Set the pin to input and read the value
-                pinModeOnboard(pin_constant<pin()>(), input());
+                pinModeOnboard(pin_constant<pin()>(), pinModes::constant_input());
                 const gpio_t secondRead = digitalReadOnboard<pin_>();
 
                 // Pass condition is that we returned 1 and then 0
@@ -870,7 +870,7 @@ namespace WiringPi
         }
 
         // Pi hardware info
-        static constexpr const piHardware piHardware_ = piHardware();
+        static constexpr const piHardware piHardware_ = piHardware<Model, Layout>();
 
         // Pi memory addresses
         const piMemory<piHardware_.model()> piMemory_;
@@ -889,9 +889,9 @@ namespace WiringPi
 #endif
             if constexpr (pinMap_[pin_] != nullPin<pin_t>())
             {
-                pinModeOnboard(pin_constant<pin_>(), output());
+                pinModeOnboard(pin_constant<pin_>(), pinModes::constant_output());
                 digitalWriteOnboard<pin_, low()>();
-                pinModeOnboard(pin_constant<pin_>(), input());
+                pinModeOnboard(pin_constant<pin_>(), pinModes::constant_input());
             }
             if constexpr (pin_ < MAX_PINS<pin_t>() - 1)
             {
@@ -906,7 +906,7 @@ namespace WiringPi
         // static constexpr const int wiringPiSetuped_ = static_cast<int>(true);
         // const int wiringPiDebug_;
         // const int wiringPiReturnCodes_;
-        static constexpr const int wiringPiMode_ = wiringPiMode;
+        static constexpr const wiringPiModes::type wiringPiMode_ = wiringPiMode;
 
         // Map a BCM_GPIO pin to its function selection control port. (GPFSEL 0-5)
         // Groups of 10 - 3 bits per Function - 30 bits per port

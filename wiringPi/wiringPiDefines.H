@@ -39,10 +39,6 @@ namespace WiringPi
     using timer_constant = const std::integral_constant<timer_t, timer_>;
     template <const I2C_t I2C_>
     using I2C_constant = const std::integral_constant<I2C_t, I2C_>;
-    template <const int mode_>
-    using mode_constant = const std::integral_constant<int, mode_>;
-    template <const int pi_model_>
-    using pi_model_constant = const std::integral_constant<int, pi_model_>;
     template <const int layout_>
     using layout_constant = const std::integral_constant<int, layout_>;
     template <const int pwm_mode_>
@@ -102,38 +98,25 @@ namespace WiringPi
     // Pin modes
     namespace pinModes
     {
-        [[nodiscard]] inline consteval gpio_t input()
+        // This is an enumerated type because the pin mode can only be one of a few select values
+        typedef enum Enum : gpio_t
         {
-            return 0;
-        }
-        [[nodiscard]] inline consteval gpio_t output()
-        {
-            return 1;
-        }
-        [[nodiscard]] inline consteval gpio_t pwmOutput()
-        {
-            return 2;
-        }
-        [[nodiscard]] inline consteval gpio_t gpioClock()
-        {
-            return 3;
-        }
-        [[nodiscard]] inline consteval gpio_t softPwmOutput()
-        {
-            return 4;
-        }
-        [[nodiscard]] inline consteval gpio_t softToneOutput()
-        {
-            return 5;
-        }
-        [[nodiscard]] inline consteval gpio_t pwmToneOutput()
-        {
-            return 6;
-        }
-        [[nodiscard]] inline consteval gpio_t pwmOff()
-        {
-            return 7;
-        }
+            input = 0,
+            output = 1,
+            pwmOutput = 2,
+            gpioClock = 3,
+            softPwmOutput = 4,
+            softToneOutput = 5,
+            pwmToneOutput = 6,
+            pwmOff = 7
+        } type;
+
+        template <const type pinMode_>
+        using constant = const std::integral_constant<type, pinMode_>;
+
+        using constant_input = constant<input>;
+        using constant_output = constant<output>;
+
         [[nodiscard]] inline consteval std::array<name_t, 8> pinModes()
         {
             return std::array<name_t, 8>{
@@ -159,18 +142,8 @@ namespace WiringPi
                 "PWM_OFF"};
         }
     }
-    using input = const gpio_constant<pinModes::input()>;
-    using output = const gpio_constant<pinModes::output()>;
-    using pwmOutput = const gpio_constant<pinModes::pwmOutput()>;
-    using gpioClock = const gpio_constant<pinModes::gpioClock()>;
-    using softPwmOutput = const gpio_constant<pinModes::softPwmOutput()>;
-    using softToneOutput = const gpio_constant<pinModes::softToneOutput()>;
-    using pwmToneOutput = const gpio_constant<pinModes::pwmToneOutput()>;
-    using pwmOff = const gpio_constant<pinModes::pwmOff()>;
 
     // Return values
-    // namespace returnValues
-    // {
     [[nodiscard]] inline consteval gpio_t high()
     {
         return 1;
@@ -179,37 +152,25 @@ namespace WiringPi
     {
         return 0;
     }
-    // }
-    // using high = const gpio_constant<returnValues::high<gpio_t>()>;
-    // using low = const gpio_constant<returnValues::low<gpio_t>()>;
 
     // wiringPi modes
     namespace wiringPiModes
     {
-        [[nodiscard]] inline consteval int pins()
+        // This is an enumerated type because the mode can only be one of a few select values
+        typedef enum Enum : int
         {
-            return 0;
-        }
-        [[nodiscard]] inline consteval int gpio()
-        {
-            return 1;
-        }
-        [[nodiscard]] inline consteval int gpioSys()
-        {
-            return 2;
-        }
-        [[nodiscard]] inline consteval int phys()
-        {
-            return 3;
-        }
-        [[nodiscard]] inline consteval int piFace()
-        {
-            return 4;
-        }
-        [[nodiscard]] inline consteval int uninitialised()
-        {
-            return -1;
-        }
+            pins = 0,
+            gpio = 1,
+            gpioSys = 2,
+            phys = 3,
+            piFace = 4,
+            uninitialised = -1,
+            all = 100
+        } type;
+
+        template <const type mode_>
+        using constant = const std::integral_constant<type, mode_>;
+
         [[nodiscard]] inline consteval name_t names(const pin_t mode)
         {
             constexpr const std::array<name_t, 6> arr{
@@ -228,90 +189,34 @@ namespace WiringPi
         // Pi models
         namespace models
         {
-            [[nodiscard]] inline consteval int PiA()
+            typedef enum Enum : int
             {
-                return 0;
-            }
-            [[nodiscard]] inline consteval int PiB()
-            {
-                return 1;
-            }
-            [[nodiscard]] inline consteval int PiAP()
-            {
-                return 2;
-            }
-            [[nodiscard]] inline consteval int PiBP()
-            {
-                return 3;
-            }
-            [[nodiscard]] inline consteval int Pi2()
-            {
-                return 4;
-            }
-            [[nodiscard]] inline consteval int PiAlpha()
-            {
-                return 5;
-            }
-            [[nodiscard]] inline consteval int PiCM()
-            {
-                return 6;
-            }
-            [[nodiscard]] inline consteval int Pi07()
-            {
-                return 7;
-            }
-            [[nodiscard]] inline consteval int Pi3B()
-            {
-                return 8;
-            }
-            [[nodiscard]] inline consteval int PiZero()
-            {
-                return 9;
-            }
-            [[nodiscard]] inline consteval int PiCM3()
-            {
-                return 10;
-            }
-            [[nodiscard]] inline consteval int PiZero_W()
-            {
-                return 12;
-            }
-            [[nodiscard]] inline consteval int Pi3BP()
-            {
-                return 13;
-            }
-            [[nodiscard]] inline consteval int Pi3AP()
-            {
-                return 14;
-            }
-            [[nodiscard]] inline consteval int PiCM3P()
-            {
-                return 16;
-            }
-            [[nodiscard]] inline consteval int Pi4B()
-            {
-                return 17;
-            }
-            [[nodiscard]] inline consteval int PiZero_2W()
-            {
-                return 18;
-            }
-            [[nodiscard]] inline consteval int Pi400()
-            {
-                return 19;
-            }
-            [[nodiscard]] inline consteval int PiCM4()
-            {
-                return 20;
-            }
-            [[nodiscard]] inline consteval int PiCM4S()
-            {
-                return 21;
-            }
-            [[nodiscard]] inline consteval int Pi5()
-            {
-                return 23;
-            }
+                PiA = 0,
+                PiB = 1,
+                PiAP = 2,
+                PiBP = 3,
+                Pi2 = 4,
+                PiAlpha = 5,
+                PiCM = 6,
+                Pi07 = 7,
+                Pi3B = 8,
+                PiZero = 9,
+                PiCM3 = 10,
+                PiZero_W = 12,
+                Pi3BP = 13,
+                Pi3AP = 14,
+                PiCM3P = 16,
+                Pi4B = 17,
+                PiZero_2W = 18,
+                Pi400 = 19,
+                PiCM4 = 20,
+                PiCM4S = 21,
+                Pi5 = 23
+            } type;
+
+            template <const type pi_model_>
+            using constant = const std::integral_constant<type, pi_model_>;
+
             [[nodiscard]] inline consteval name_t names(const size_t model)
             {
                 constexpr const std::array<name_t, 21> arr{
@@ -384,6 +289,15 @@ namespace WiringPi
             {
                 return 3;
             }
+        }
+
+        namespace layout
+        {
+            typedef enum Enum : int
+            {
+                PI1_REV1 = 1,
+                DEFAULT = 2
+            } type;
         }
     }
 
@@ -793,7 +707,6 @@ namespace WiringPi
             return 1;
         }
     }
-
 }
 
 #endif

@@ -1,10 +1,11 @@
 #include "wiringPi.H"
 #include "wiringSerial.H"
 #include "argHandler.H"
-// #include "mcp23008.H"
 #include "bmp180.H"
 
 using namespace WiringPi;
+
+#define COMPILE_WIRINGPI_TESTS
 
 #ifdef COMPILE_WIRINGPI_TESTS
 int main(const int argc, const char *argv[])
@@ -12,6 +13,11 @@ int main(const int argc, const char *argv[])
 int main()
 #endif
 {
+
+    // constexpr const gpio_t A = a;
+
+    // std::cout << A << std::endl;
+
     // Try wiringShift
     // {
     //     // Create the wiringPi object
@@ -23,18 +29,20 @@ int main()
     //     std::cout << "j = " << j << std::endl;
     // }
 
+#ifndef COMPILE_WIRINGPI_TESTS
+
     // Try mcp23008
     {
         // Define a pin
-        constexpr const pin_t myPin = 70;
-        constexpr const pin_t temperatureChannel = 70;
-        constexpr const pin_t pressureChannel = 71;
+        constexpr const pin_t myPin = 0x77;
+        constexpr const pin_t temperatureChannel = myPin;
+        constexpr const pin_t pressureChannel = myPin + 1;
 
         // Initialise wiringPi on the correct mode
-        wiringPi<wiringPiModes::pins()> RaspberryPi;
+        wiringPi<Pi::models::Pi4B, Pi::layout::DEFAULT, wiringPiModes::pins> RaspberryPi;
 
         // Create a bmp180 sensor
-        bmp180<myPin, RaspberryPi.mode()> sensor(RaspberryPi);
+        bmp180<myPin, RaspberryPi.piHardwareInfo().model(), RaspberryPi.piHardwareInfo().gpioLayout(), RaspberryPi.mode()> sensor(RaspberryPi);
 
         // Set the altitude to 100
         sensor.analogWrite(pin_constant<myPin>(), 100);
@@ -48,6 +56,8 @@ int main()
         std::cout << "Pressure: " << pressure << " Pa" << std::endl;
     }
 
+#endif
+
 #ifdef COMPILE_WIRINGPI_TESTS
 
     // Handle the input arguments
@@ -60,10 +70,10 @@ int main()
         constexpr const pin_t initialValue = 10;
         constexpr const pin_t writeValue = 50;
         constexpr const pin_t pwmRange = 100;
-        if ((args.wiringPiMode() == wiringPiModes::pins()) | (args.wiringPiMode() == wiringPiModes::all()))
+        if ((args.wiringPiMode() == wiringPiModes::pins) | (args.wiringPiMode() == wiringPiModes::all))
         {
             // Create the wiringPi object
-            wiringPi<wiringPiModes::pins()> RaspberryPi;
+            wiringPi<Pi::models::Pi4B, Pi::layout::DEFAULT, wiringPiModes::pins> RaspberryPi;
 
             // Create a softPwm thread
             RaspberryPi.softPwm<myPin>(initialValue, pwmRange);
@@ -77,10 +87,10 @@ int main()
             RaspberryPi.softPwmEnd<myPin>();
             std::cout << "Software PWM thread test on mode pins passed on pin " << myPin << std::endl;
         }
-        if ((args.wiringPiMode() == wiringPiModes::gpio()) | (args.wiringPiMode() == wiringPiModes::all()))
+        if ((args.wiringPiMode() == wiringPiModes::gpio) | (args.wiringPiMode() == wiringPiModes::all))
         {
             // Create the wiringPi object
-            wiringPi<wiringPiModes::gpio()> RaspberryPi;
+            wiringPi<Pi::models::Pi4B, Pi::layout::DEFAULT, wiringPiModes::gpio> RaspberryPi;
 
             // Create a softPwm thread
             RaspberryPi.softPwm<myPin>(initialValue, pwmRange);
@@ -94,10 +104,10 @@ int main()
             RaspberryPi.softPwmEnd<myPin>();
             std::cout << "Software PWM thread test on mode gpio passed on pin " << myPin << std::endl;
         }
-        if ((args.wiringPiMode() == wiringPiModes::phys()) | (args.wiringPiMode() == wiringPiModes::all()))
+        if ((args.wiringPiMode() == wiringPiModes::phys) | (args.wiringPiMode() == wiringPiModes::all))
         {
             // Create the wiringPi object
-            wiringPi<wiringPiModes::phys()> RaspberryPi;
+            wiringPi<Pi::models::Pi4B, Pi::layout::DEFAULT, wiringPiModes::phys> RaspberryPi;
 
             // Create a softPwm thread
             RaspberryPi.softPwm<myPin>(initialValue, pwmRange);
@@ -116,19 +126,19 @@ int main()
     // Write the pin layout
     if (args.pinLayout())
     {
-        if ((args.wiringPiMode() == wiringPiModes::pins()) | (args.wiringPiMode() == wiringPiModes::all()))
+        if ((args.wiringPiMode() == wiringPiModes::pins) | (args.wiringPiMode() == wiringPiModes::all))
         {
-            wiringPi<wiringPiModes::pins()> RaspberryPi;
+            wiringPi<Pi::models::Pi4B, Pi::layout::DEFAULT, wiringPiModes::pins> RaspberryPi;
             RaspberryPi.pinLayout();
         }
-        if ((args.wiringPiMode() == wiringPiModes::gpio()) | (args.wiringPiMode() == wiringPiModes::all()))
+        if ((args.wiringPiMode() == wiringPiModes::gpio) | (args.wiringPiMode() == wiringPiModes::all))
         {
-            wiringPi<wiringPiModes::gpio()> RaspberryPi;
+            wiringPi<Pi::models::Pi4B, Pi::layout::DEFAULT, wiringPiModes::gpio> RaspberryPi;
             RaspberryPi.pinLayout();
         }
-        if ((args.wiringPiMode() == wiringPiModes::phys()) | (args.wiringPiMode() == wiringPiModes::all()))
+        if ((args.wiringPiMode() == wiringPiModes::phys) | (args.wiringPiMode() == wiringPiModes::all))
         {
-            wiringPi<wiringPiModes::phys()> RaspberryPi;
+            wiringPi<Pi::models::Pi4B, Pi::layout::DEFAULT, wiringPiModes::phys> RaspberryPi;
             RaspberryPi.pinLayout();
         }
     }
@@ -136,9 +146,9 @@ int main()
     // Perform the read/write unit test
     if (args.readWriteTest())
     {
-        if ((args.wiringPiMode() == wiringPiModes::pins()) | (args.wiringPiMode() == wiringPiModes::all()))
+        if ((args.wiringPiMode() == wiringPiModes::pins) | (args.wiringPiMode() == wiringPiModes::all))
         {
-            wiringPi<wiringPiModes::pins()> RaspberryPi;
+            wiringPi<Pi::models::Pi4B, Pi::layout::DEFAULT, wiringPiModes::pins> RaspberryPi;
             if (RaspberryPi.readWriteTest() == unit_test_pass())
             {
                 std::cout << "Unit test passed on mode PINS" << std::endl;
@@ -148,9 +158,9 @@ int main()
                 std::cout << "Unit test failed on mode PINS" << std::endl;
             }
         }
-        if ((args.wiringPiMode() == wiringPiModes::gpio()) | (args.wiringPiMode() == wiringPiModes::all()))
+        if ((args.wiringPiMode() == wiringPiModes::gpio) | (args.wiringPiMode() == wiringPiModes::all))
         {
-            wiringPi<wiringPiModes::gpio()> RaspberryPi;
+            wiringPi<Pi::models::Pi4B, Pi::layout::DEFAULT, wiringPiModes::gpio> RaspberryPi;
             if (RaspberryPi.readWriteTest() == unit_test_pass())
             {
                 std::cout << "Unit test passed on mode GPIO" << std::endl;
@@ -160,9 +170,9 @@ int main()
                 std::cout << "Unit test failed on mode GPIO" << std::endl;
             }
         }
-        if ((args.wiringPiMode() == wiringPiModes::phys()) | (args.wiringPiMode() == wiringPiModes::all()))
+        if ((args.wiringPiMode() == wiringPiModes::phys) | (args.wiringPiMode() == wiringPiModes::all))
         {
-            wiringPi<wiringPiModes::phys()> RaspberryPi;
+            wiringPi<Pi::models::Pi4B, Pi::layout::DEFAULT, wiringPiModes::phys> RaspberryPi;
             if (RaspberryPi.readWriteTest() == unit_test_pass())
             {
                 std::cout << "Unit test passed on mode PHYS" << std::endl;
