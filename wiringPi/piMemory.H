@@ -132,7 +132,7 @@ namespace WiringPi
             T0 *ptr = static_cast<T0 *>(mmap(0, memory::blockSize<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, devMem_.fd, static_cast<__off_t>(offset)));
 
             // Check that it didn't fail
-            assert((ptr != MAP_FAILED));
+            fatalAssert(ptr != MAP_FAILED, "Hardware pointer map failed");
 
             // Return the pointer
             return ptr;
@@ -142,11 +142,12 @@ namespace WiringPi
         [[nodiscard]] timer_t *mapTimer(const gpio_t offset) const
         {
             timer_t *ptr = static_cast<timer_t *>(mmap(0, memory::blockSize<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, devMem_.fd, static_cast<__off_t>(offset)));
-            *(ptr + timer::control()) = 0x0000280;
-            *(ptr + timer::preDiv()) = 0x00000F9;
 
             // Check that it didn't fail
-            assert((ptr != MAP_FAILED));
+            fatalAssert(ptr != MAP_FAILED, "Timer pointer map failed");
+
+            *(ptr + timer::control()) = 0x0000280;
+            *(ptr + timer::preDiv()) = 0x00000F9;
 
             return ptr;
         }

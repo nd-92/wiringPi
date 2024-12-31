@@ -23,6 +23,7 @@ namespace WiringPi
     typedef ssize_t I2C_t;
     typedef uint64_t frequency_t;
     typedef std::string_view name_t;
+    typedef double scalar_t;
 
     template <const pin_t pin_>
     using pin_constant = const std::integral_constant<pin_t, pin_>;

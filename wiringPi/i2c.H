@@ -13,144 +13,163 @@
 
 namespace WiringPi
 {
-    template <const int layout, const pin_t devID>
+    template <const pin_t devID, const int wiringPiMode>
     class i2c
     {
     public:
-        [[nodiscard]] inline i2c()
-            : fd_(setupInterface(std::string(deviceName_)))
-        {
-            static_assert(layoutCheck(layout));
-
-            assert((!(fd_ < 0)));
-            std::cout << "fd = " << fd_ << std::endl;
-
-            assert((!(ioctl(fd_, I2C::slave<unsigned long int>(), devID) < 0)));
-            std::cout << "ioctl = " << (ioctl(fd_, I2C::slave<unsigned long int>(), devID) < 0) << std::endl;
-        };
+        [[nodiscard]] inline i2c(wiringPi<wiringPiMode> &RaspberryPi)
+            : RaspberryPi_(RaspberryPi),
+              fd_(setupInterface()) {};
 
         // Simple read
-        [[nodiscard]] inline I2C_t read() const
+        [[nodiscard]] uint8_t read() const
         {
             union i2c_smbus_data data;
 
-            if (I2C_smbus_access(I2C::smbusRead<uint8_t>(), 0, I2C::smbusByte<uint32_t>(), &data))
+            // Perform the read and check for failure
+            if (I2C_smbus_access(I2C::smbusRead<uint8_t>(), 0, I2C::smbusByte<uint32_t>(), &data) == -1)
             {
-                return static_cast<I2C_t>(-1);
+                RaspberryPi_.failure("Failed to read data from i2c smbus");
             }
-            else
-            {
-                return static_cast<I2C_t>(data.byte & 0xFF);
-            }
+
+            // Return the data
+            return (data.byte & std::numeric_limits<uint8_t>::max());
         }
 
         // Read an 8 bit value from a register
-        [[nodiscard]] inline I2C_t read8(const uint8_t reg) const
+        [[nodiscard]] uint8_t read8(const uint8_t reg) const
         {
             union i2c_smbus_data data;
 
-            if (I2C_smbus_access(I2C::smbusRead<uint8_t>(), reg, I2C::smbusByteData<uint32_t>(), &data))
+            // Perform the read and check for failure
+            if (I2C_smbus_access(I2C::smbusRead<uint8_t>(), reg, I2C::smbusByteData<uint32_t>(), &data) == -1)
             {
-                return static_cast<I2C_t>(-1);
+                RaspberryPi_.failure("Failed to read uint8_t data from i2c smbus");
             }
-            else
-            {
-                return static_cast<I2C_t>(data.byte & 0xFF);
-            }
+
+            // Return the data
+            return (data.byte & std::numeric_limits<uint8_t>::max());
         }
 
         // Read a 16 bit value from a register
-        [[nodiscard]] inline I2C_t read16(const uint8_t reg) const
+        [[nodiscard]] uint16_t read16(const uint8_t reg) const
         {
             union i2c_smbus_data data;
 
-            if (I2C_smbus_access(I2C::smbusRead<uint8_t>(), reg, I2C::smbusWordData<uint32_t>(), &data))
+            // Perform the read and check for failure
+            if (I2C_smbus_access(I2C::smbusRead<uint8_t>(), reg, I2C::smbusWordData<uint32_t>(), &data) == -1)
             {
-                return static_cast<I2C_t>(-1);
+                RaspberryPi_.failure("Failed to read uint16_t data from i2c smbus");
             }
-            else
-            {
-                return static_cast<I2C_t>(data.word & 0xFFFF);
-            }
+
+            // Return the data
+            return (data.word & std::numeric_limits<uint16_t>::max());
         }
 
         // Read the block data
-        [[nodiscard]] inline I2C_t readBlockData(const uint8_t reg, uint8_t *values, const uint8_t size) const
+        [[nodiscard]] I2C_t readBlockData(const uint8_t reg, uint8_t *values, const uint8_t size) const
         {
             union i2c_smbus_data data;
 
             const uint8_t blockSize = std::min(size, I2C::smbusBlockMax<uint8_t>());
 
             data.block[0] = blockSize;
-            const I2C_t result = static_cast<I2C_t>(I2C_smbus_access(I2C::smbusRead<uint8_t>(), reg, I2C::smbusI2CBlockData<uint32_t>(), &data));
-            if (result == static_cast<I2C_t>(-1))
+
+            // Perform the read and check for failure
+            if (I2C_smbus_access(I2C::smbusRead<uint8_t>(), reg, I2C::smbusI2CBlockData<uint32_t>(), &data) == -1)
             {
-                return result;
+                RaspberryPi_.failure("Failed to read block data from i2c smbus");
             }
             memcpy(values, &data.block[1], blockSize);
-            return static_cast<I2C_t>(data.block[0]);
-        }
 
-        [[nodiscard]] inline I2C_t readRaw(uint8_t *values, const size_t size) const
-        {
-            return read(fd_, values, size);
+            // Return the data
+            return static_cast<I2C_t>(data.block[0]);
         }
 
         [[nodiscard]] inline consteval name_t deviceName() const
         {
-            return deviceName_;
+            return "i2c";
         }
 
-        // Write functions
         // Simple write
-        [[nodiscard]] inline I2C_t write(const uint8_t data) const
+        void write(const uint8_t data) const
         {
-            return I2C_smbus_access(I2C::smbusWrite<uint8_t>(), data, I2C::smbusByte<uint32_t>(), NULL);
+            if (I2C_smbus_access(I2C::smbusWrite<uint8_t>(), data, I2C::smbusByte<uint32_t>(), NULL))
+            {
+                RaspberryPi_.failure("Failed to write data to i2c smbus");
+            }
         }
 
         // Write an 8 bit value to a register
-        [[nodiscard]] inline I2C_t write8(const uint8_t reg, const uint8_t value) const
+        void write8(const uint8_t reg, const uint8_t value) const
         {
             union i2c_smbus_data data;
-
             data.byte = value;
-            return I2C_smbus_access(I2C::smbusWrite<uint8_t>(), reg, I2C::smbusByteData<uint32_t>(), &data);
+
+            // Perform the write and check for failure
+            if (I2C_smbus_access(I2C::smbusWrite<uint8_t>(), reg, I2C::smbusByteData<uint32_t>(), &data) == -1)
+            {
+                RaspberryPi_.failure("Failed to write uint8_t data to i2c smbus");
+            }
         }
 
-        // Write a 18 bit value to a register
-        [[nodiscard]] inline I2C_t write16(const uint8_t reg, const uint16_t value) const
+        // Write a 16 bit value to a register
+        void write16(const uint8_t reg, const uint16_t value) const
         {
             union i2c_smbus_data data;
-
             data.word = value;
-            return I2C_smbus_access(I2C::smbusWrite<uint8_t>(), reg, I2C::smbusWordData<uint32_t>(), &data);
+
+            // Perform the write and check for failure
+            if (I2C_smbus_access(I2C::smbusWrite<uint8_t>(), reg, I2C::smbusWordData<uint32_t>(), &data) == -1)
+            {
+                RaspberryPi_.failure("Failed to write uint16_t data to i2c smbus");
+            }
         }
 
         // Write the block data
-        [[nodiscard]] inline I2C_t writeBlock(const uint8_t reg, const uint8_t *values, const uint8_t size) const
+        void writeBlock(const uint8_t reg, const uint8_t *values, const uint8_t size) const
         {
             union i2c_smbus_data data;
 
             const uint8_t blockSize = std::min(size, I2C::smbusBlockMax<uint8_t>());
-
             data.block[0] = blockSize;
             memcpy(&data.block[1], values, blockSize);
-            return I2C_smbus_access(I2C::smbusWrite<uint8_t>(), reg, I2C::smbusBlockData<uint32_t>(), &data);
+
+            // Perform the write and check for failure
+            if (I2C_smbus_access(I2C::smbusWrite<uint8_t>(), reg, I2C::smbusBlockData<uint32_t>(), &data) == -1)
+            {
+                RaspberryPi_.failure("Failed to write block data to i2c smbus");
+            }
         }
 
-        [[nodiscard]] inline I2C_t writeRaw(const uint8_t *values, const size_t size) const
+        [[nodiscard]] inline int fd() const
         {
-            return write(fd_, values, size);
+            return fd_;
         }
 
     private:
+        wiringPi<wiringPiMode> &RaspberryPi_;
         const int fd_;
-        [[nodiscard]] inline int setupInterface(const std::string device) const
+
+        [[nodiscard]] inline int setupInterface() const
         {
-            return open(device.c_str(), O_RDWR);
+            int fd = -1;
+            const std::string deviceName_ = std::string(deviceDirName(RaspberryPi_.piHardwareInfo().gpioLayout()));
+
+            if ((fd = open(deviceName_.c_str(), O_RDWR)) < 0)
+            {
+                RaspberryPi_.failure("Failed to setup i2c interface");
+            }
+
+            if (ioctl(fd, I2C::slave<unsigned long>(), devID) < 0)
+            {
+                RaspberryPi_.failure(("Unable to select I2C device: " + deviceName_));
+            }
+
+            return fd;
         }
 
-        inline int I2C_smbus_access(const uint8_t rw, const uint8_t command, const uint32_t size, union i2c_smbus_data *data) const
+        [[nodiscard]] inline int I2C_smbus_access(const uint8_t rw, const uint8_t command, const uint32_t size, union i2c_smbus_data *data) const
         {
             struct i2c_smbus_ioctl_data args
             {
@@ -159,7 +178,19 @@ namespace WiringPi
             return ioctl(fd_, I2C::smbus<unsigned long>(), &args);
         }
 
-        static constexpr const name_t deviceName_ = I2C::deviceName<layout>();
+        // This should really be constexpr
+        // Need to figure out how to supply layout from RaspberryPi_ at compile time despite it not being constexpr!
+        [[nodiscard]] const name_t deviceDirName(const int layout) const
+        {
+            if (layout == 1)
+            {
+                return "/dev/i2c-0";
+            }
+            else
+            {
+                return "/dev/i2c-1";
+            }
+        }
     };
 }
 

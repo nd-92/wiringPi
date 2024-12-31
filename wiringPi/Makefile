@@ -8,6 +8,7 @@ WFLAGS = -Wall -Wextra -Wpedantic -Werror -Wattributes -Wbuiltin-macro-redefined
 -Wlogical-op -Woverflow -Wpointer-arith -Wredundant-decls -Wshadow -Wsign-conversion \
 -Wsign-promo -Wstrict-aliasing=3 -Wstringop-overflow=4 -Wwrite-strings
 # EXTRA_CXXFLAGS = -DWIRINGPI_DEBUG
+# EXTRA_CXXFLAGS = -DWIRINGPI_DEBUG -DCOMPILE_WIRINGPI_TESTS
 
 CXXFLAGS = $(CXXSTANDARD) $(OPTFLAGS) $(MFLAGS) $(WFLAGS) -pipe -fPIC $(EXTRA_CXXFLAGS)
 

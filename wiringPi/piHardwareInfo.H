@@ -87,7 +87,7 @@ namespace WiringPi
         }
 
         // Returns the GPIO pin layout code
-        [[nodiscard]] inline consteval int gpioLayout() const
+        [[nodiscard]] static inline consteval int gpioLayout()
         {
             return gpioLayout_;
         }
@@ -130,7 +130,7 @@ namespace WiringPi
         }
 
         // Returns the number of physical pins
-        [[nodiscard]] inline consteval pin_t numPins() const
+        [[nodiscard]] inline consteval pin_t nPins() const
         {
             return numPhysicalPins_;
         }

@@ -1,21 +1,54 @@
 #include "wiringPi.H"
 #include "wiringSerial.H"
 #include "argHandler.H"
+// #include "mcp23008.H"
+#include "bmp180.H"
 
 using namespace WiringPi;
 
+#ifdef COMPILE_WIRINGPI_TESTS
 int main(const int argc, const char *argv[])
+#else
+int main()
+#endif
 {
     // Try wiringShift
-    {
-        // Create the wiringPi object
-        wiringPi<wiringPiModes::pins()> Pi;
-        const gpio_t i = Pi.shiftIn<0, 1, shift::MSBFIRST()>();
-        std::cout << "i = " << i << std::endl;
+    // {
+    //     // Create the wiringPi object
+    //     wiringPi<wiringPiModes::pins()> RaspberryPi;
+    //     const gpio_t i = RaspberryPi.shiftIn<0, 1, shift::MSBFIRST()>();
+    //     std::cout << "i = " << i << std::endl;
 
-        const gpio_t j = Pi.shiftIn<0, 1, shift::LSBFIRST()>();
-        std::cout << "j = " << j << std::endl;
+    //     const gpio_t j = RaspberryPi.shiftIn<0, 1, shift::LSBFIRST()>();
+    //     std::cout << "j = " << j << std::endl;
+    // }
+
+    // Try mcp23008
+    {
+        // Define a pin
+        constexpr const pin_t myPin = 70;
+        constexpr const pin_t temperatureChannel = 70;
+        constexpr const pin_t pressureChannel = 71;
+
+        // Initialise wiringPi on the correct mode
+        wiringPi<wiringPiModes::pins()> RaspberryPi;
+
+        // Create a bmp180 sensor
+        bmp180<myPin, RaspberryPi.mode()> sensor(RaspberryPi);
+
+        // Set the altitude to 100
+        sensor.analogWrite(pin_constant<myPin>(), 100);
+
+        // Get the temperature
+        const gpio_t temperature = sensor.analogRead(pin_constant<temperatureChannel>());
+        std::cout << "Temperature: " << (temperature - 273.15) * 0.1 << " K" << std::endl;
+
+        // Get the pressure
+        const gpio_t pressure = sensor.analogRead(pin_constant<pressureChannel>());
+        std::cout << "Pressure: " << pressure << " Pa" << std::endl;
     }
+
+#ifdef COMPILE_WIRINGPI_TESTS
 
     // Handle the input arguments
     const argHandler args(argc, argv);
@@ -30,52 +63,52 @@ int main(const int argc, const char *argv[])
         if ((args.wiringPiMode() == wiringPiModes::pins()) | (args.wiringPiMode() == wiringPiModes::all()))
         {
             // Create the wiringPi object
-            wiringPi<wiringPiModes::pins()> Pi;
+            wiringPi<wiringPiModes::pins()> RaspberryPi;
 
             // Create a softPwm thread
-            Pi.softPwm<myPin>(initialValue, pwmRange);
+            RaspberryPi.softPwm<myPin>(initialValue, pwmRange);
 
             // Wait for 2 seconds and then write
             std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-            Pi.softPwmWrite<myPin>(writeValue);
+            RaspberryPi.softPwmWrite<myPin>(writeValue);
 
             // Wait for 2 seconds and then end
             std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-            Pi.softPwmEnd<myPin>();
+            RaspberryPi.softPwmEnd<myPin>();
             std::cout << "Software PWM thread test on mode pins passed on pin " << myPin << std::endl;
         }
         if ((args.wiringPiMode() == wiringPiModes::gpio()) | (args.wiringPiMode() == wiringPiModes::all()))
         {
             // Create the wiringPi object
-            wiringPi<wiringPiModes::gpio()> Pi;
+            wiringPi<wiringPiModes::gpio()> RaspberryPi;
 
             // Create a softPwm thread
-            Pi.softPwm<myPin>(initialValue, pwmRange);
+            RaspberryPi.softPwm<myPin>(initialValue, pwmRange);
 
             // Wait for 2 seconds and then write
             std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-            Pi.softPwmWrite<myPin>(writeValue);
+            RaspberryPi.softPwmWrite<myPin>(writeValue);
 
             // Wait for 2 seconds and then end
             std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-            Pi.softPwmEnd<myPin>();
+            RaspberryPi.softPwmEnd<myPin>();
             std::cout << "Software PWM thread test on mode gpio passed on pin " << myPin << std::endl;
         }
         if ((args.wiringPiMode() == wiringPiModes::phys()) | (args.wiringPiMode() == wiringPiModes::all()))
         {
             // Create the wiringPi object
-            wiringPi<wiringPiModes::phys()> Pi;
+            wiringPi<wiringPiModes::phys()> RaspberryPi;
 
             // Create a softPwm thread
-            Pi.softPwm<myPin>(initialValue, pwmRange);
+            RaspberryPi.softPwm<myPin>(initialValue, pwmRange);
 
             // Wait for 2 seconds and then write
             std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-            Pi.softPwmWrite<myPin>(writeValue);
+            RaspberryPi.softPwmWrite<myPin>(writeValue);
 
             // Wait for 2 seconds and then end
             std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-            Pi.softPwmEnd<myPin>();
+            RaspberryPi.softPwmEnd<myPin>();
             std::cout << "Software PWM thread test on mode phys passed on pin " << myPin << std::endl;
         }
     }
@@ -85,18 +118,18 @@ int main(const int argc, const char *argv[])
     {
         if ((args.wiringPiMode() == wiringPiModes::pins()) | (args.wiringPiMode() == wiringPiModes::all()))
         {
-            wiringPi<wiringPiModes::pins()> Pi;
-            Pi.pinLayout();
+            wiringPi<wiringPiModes::pins()> RaspberryPi;
+            RaspberryPi.pinLayout();
         }
         if ((args.wiringPiMode() == wiringPiModes::gpio()) | (args.wiringPiMode() == wiringPiModes::all()))
         {
-            wiringPi<wiringPiModes::gpio()> Pi;
-            Pi.pinLayout();
+            wiringPi<wiringPiModes::gpio()> RaspberryPi;
+            RaspberryPi.pinLayout();
         }
         if ((args.wiringPiMode() == wiringPiModes::phys()) | (args.wiringPiMode() == wiringPiModes::all()))
         {
-            wiringPi<wiringPiModes::phys()> Pi;
-            Pi.pinLayout();
+            wiringPi<wiringPiModes::phys()> RaspberryPi;
+            RaspberryPi.pinLayout();
         }
     }
 
@@ -105,8 +138,8 @@ int main(const int argc, const char *argv[])
     {
         if ((args.wiringPiMode() == wiringPiModes::pins()) | (args.wiringPiMode() == wiringPiModes::all()))
         {
-            wiringPi<wiringPiModes::pins()> Pi;
-            if (Pi.readWriteTest() == unit_test_pass())
+            wiringPi<wiringPiModes::pins()> RaspberryPi;
+            if (RaspberryPi.readWriteTest() == unit_test_pass())
             {
                 std::cout << "Unit test passed on mode PINS" << std::endl;
             }
@@ -117,8 +150,8 @@ int main(const int argc, const char *argv[])
         }
         if ((args.wiringPiMode() == wiringPiModes::gpio()) | (args.wiringPiMode() == wiringPiModes::all()))
         {
-            wiringPi<wiringPiModes::gpio()> Pi;
-            if (Pi.readWriteTest() == unit_test_pass())
+            wiringPi<wiringPiModes::gpio()> RaspberryPi;
+            if (RaspberryPi.readWriteTest() == unit_test_pass())
             {
                 std::cout << "Unit test passed on mode GPIO" << std::endl;
             }
@@ -129,8 +162,8 @@ int main(const int argc, const char *argv[])
         }
         if ((args.wiringPiMode() == wiringPiModes::phys()) | (args.wiringPiMode() == wiringPiModes::all()))
         {
-            wiringPi<wiringPiModes::phys()> Pi;
-            if (Pi.readWriteTest() == unit_test_pass())
+            wiringPi<wiringPiModes::phys()> RaspberryPi;
+            if (RaspberryPi.readWriteTest() == unit_test_pass())
             {
                 std::cout << "Unit test passed on mode PHYS" << std::endl;
             }
@@ -140,6 +173,12 @@ int main(const int argc, const char *argv[])
             }
         }
     }
+
+#endif
+
+    // No matter what, create a wiringPi object and reset all pins before exit
+    // wiringPi<wiringPiModes::pins()> RaspberryPi;
+    // RaspberryPi.resetPins();
 
     return 0;
 }

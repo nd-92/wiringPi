@@ -16,6 +16,7 @@
 #include <atomic>
 #include <cassert>
 #include <chrono>
+#include <cmath>
 #include <cstddef>
 #include <cstring>
 #include <ctype.h>
@@ -48,5 +49,8 @@
 #include <unistd.h>
 #include <utility>
 #include <vector>
+
+#include "../piInfo.H"
+#include "../version.H"
 
 #endif

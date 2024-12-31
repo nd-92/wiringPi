@@ -13,8 +13,8 @@
 
 #include "wiringPiIncludes.H"
 #include "wiringPiDefines.H"
+#include "wiringPiSignals.H"
 #include "wiringPiStaticAsserts.H"
-#include "wiringPiMisc.H"
 #include "wiringPiPinTables.H"
 #include "wiringPiNode.H"
 #include "piOnboardPins.H"
@@ -23,20 +23,10 @@
 #include "wiringPiNode.H"
 #include "piThread.H"
 #include "piHiPriority.H"
-#include "i2c.H"
+// #include "i2c.H"
 
 namespace WiringPi
 {
-    // #define WIRINGPI_DEBUG 1
-
-    static constinit std::atomic<bool> quit(false);
-
-    inline void signalHandler(int)
-    {
-        quit.store(true);
-    }
-
-    // Templated, but at present only works correctly in GPIO mode
     template <const int wiringPiMode>
     class wiringPi
     {
@@ -96,6 +86,17 @@ namespace WiringPi
             std::cout << std::endl;
 #endif
         };
+
+        void failure(const name_t errorMessage = "Undefined exception")
+        {
+            std::cerr << "WiringPi failure:" << std::endl;
+            std::cerr << errorMessage << std::endl;
+            std::cerr << "Resetting all pins" << std::endl;
+            resetPins();
+            std::cerr << "Successfully reset all pins" << std::endl;
+            std::cerr << "Exiting on code EXIT_FAILURE" << std::endl;
+            std::exit(EXIT_FAILURE);
+        }
 
         // Shift data in from a clocked source
         template <const pin_t dPin, const pin_t cPin, const int order>
@@ -192,7 +193,7 @@ namespace WiringPi
         inline void softPwmWrite(const frequency_t value)
         {
             // Check that we are operating on a valid pin
-            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
+            validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin_]>());
 
             // Set the mark value no greater than the range
             softPwmMarks_[pin_] = std::min(value, softPwmRange_[pin_]);
@@ -208,7 +209,7 @@ namespace WiringPi
         inline void softToneWrite(const frequency_t value)
         {
             // Check that we are operating on a valid pin
-            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
+            validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin_]>());
 
             // Set the mark value no greater than 5 kHz
             softToneFreq_[pin_] = std::min(value, maxFrequency());
@@ -224,7 +225,7 @@ namespace WiringPi
         inline void softPwm(const frequency_t initialValue, const frequency_t pwmRange)
         {
             // Check that we are operating on a valid pin
-            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
+            validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin_]>());
 
             // Set the value and range
             softPwmMarks_[pin_] = initialValue;
@@ -245,7 +246,7 @@ namespace WiringPi
         inline void softTone(const frequency_t initialValue)
         {
             // Check that we are operating on a valid pin
-            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
+            validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin_]>());
 
             // Set the value and range
             softToneFreq_[pin_] = initialValue;
@@ -265,7 +266,7 @@ namespace WiringPi
         inline void softPwmEnd()
         {
             // Check that we are operating on a valid pin
-            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
+            validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin_]>());
 
             // Set the thread switch to false
             threadSwitches_[pin_] = false;
@@ -286,7 +287,7 @@ namespace WiringPi
         inline void softToneEnd()
         {
             // Check that we are operating on a valid pin
-            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
+            validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin_]>());
 
             // Set the thread switch to false
             threadSwitches_[pin_] = false;
@@ -310,10 +311,10 @@ namespace WiringPi
 #endif
         {
             // Check that we are operating on a valid pin
-            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
+            validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin_]>());
 
 #ifdef WIRINGPI_DEBUG
-            std::cout << "Reading " << onboardPins_.digitalRead(piMemory_.gpioPtr(), pin_constant<pinMap_[pin()]>()) << " from pin " << pinMap_[pin()] << std::endl;
+            std::cout << "Reading " << onboardPins_.digitalRead(piMemory_.gpioPtr(), pin_constant<pinMap_[pin_]>()) << " from pin " << pinMap_[pin_] << std::endl;
 #endif
 
             // Call the method on the onboard pin
@@ -329,7 +330,7 @@ namespace WiringPi
 #endif
         {
             // Check that we are operating on a valid pin
-            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin]>());
+            validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin]>());
 
 #ifdef WIRINGPI_DEBUG
             std::cout << "Writing " << value << " to pin " << pinMap_[pin] << std::endl;
@@ -348,7 +349,7 @@ namespace WiringPi
 #endif
         {
             // Check that we are operating on a valid pin
-            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin()]>());
+            validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin()]>());
 
 #ifdef WIRINGPI_DEBUG
             std::cout << "Setting pin " << pinMap_[pin()] << " to mode " << mode() << std::endl;
@@ -363,7 +364,7 @@ namespace WiringPi
         inline void pullUpDnControlOnboard(const pin_constant<pin_> pin, const gpio_constant<pud_> pud) const
         {
             // Check that we are operating on a valid pin
-            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin()]>());
+            validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin()]>());
 
 #ifdef WIRINGPI_DEBUG
             std::cout << "Setting PUD to " << pud() << " on pin " << pinMap_[pin()] << std::endl;
@@ -378,10 +379,19 @@ namespace WiringPi
         inline void pwmWriteOnboard(const pin_constant<pin_> pin, const pwm_t value) const
         {
             // Safety checks
-            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin()]>());
+            validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin()]>());
             static_assert(wiringPiMode_ == wiringPiModes::gpio(), "wiringPi not initialised in GPIO mode: pwmWriteOnboard cannot be called");
-            assert((piMemory_.gpioBase() == 0) && "GPIO base address must be 0: pwmWriteOnboard cannot be called");
-            assert((!piMemory_.usingGpioMemory()) && "Application is using GPIO memory. Unable to do this when using /dev/gpiomem. Try sudo?");
+            if (piMemory_.gpioBase() != 0)
+            {
+                failure("GPIO base address must be 0: pwmWriteOnboard cannot be called");
+            }
+            if (piMemory_.usingGpioMemory())
+            {
+                failure("Application is using GPIO memory. Unable to do this when using /dev/gpiomem. Try sudo?");
+            }
+
+            // assert((piMemory_.gpioBase() == 0) && "GPIO base address must be 0: pwmWriteOnboard cannot be called");
+            // assert((!piMemory_.usingGpioMemory()) && "Application is using GPIO memory. Unable to do this when using /dev/gpiomem. Try sudo?");
 
             // Call the method on the onboard pin
             onboardPins_.pwmWrite(piMemory_.pwmPtr(), pin_constant<pinMap_[pin()]>(), value);
@@ -466,10 +476,14 @@ namespace WiringPi
         inline void gpioClockSet(const pin_constant<pin_> pin, const timer_t freq) const
         {
             setupModeAssert(mode_constant<wiringPiMode>());
-            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin()]>());
+            validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin()]>());
             nullPinAssert(pin_constant<gpioToClkDiv_[pinMap_[pin()]]>());
             nullPinAssert(pin_constant<gpioToClkCon_[pinMap_[pin()]]>());
-            assert((!piMemory_.usingGpioMemory()) && "Application is using GPIO memory. Unable to do this when using /dev/gpiomem. Try sudo?");
+
+            if (piMemory_.usingGpioMemory())
+            {
+                failure("Application is using GPIO memory. Unable to do this when using /dev/gpiomem. Try sudo?");
+            }
 
             const timer_t divi = std::min(19200000 / freq, static_cast<timer_t>(4095));
             const timer_t divr = 19200000 % freq;
@@ -509,7 +523,7 @@ namespace WiringPi
         template <const pin_t pin_>
         [[nodiscard]] inline constexpr gpio_t getAlt(const pin_constant<pin_> pin) const
         {
-            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin()]>());
+            validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin()]>());
             return (*(piMemory_.gpioPtr() + gpioToGPFSEL_[pinMap_[pin()]]) >> gpioToShift_[pinMap_[pin()]]) & 7;
         }
 
@@ -566,6 +580,12 @@ namespace WiringPi
             resetAllPins();
         }
 
+        // Return access to the Pi hardware info
+        [[nodiscard]] static inline consteval const piHardware &piHardwareInfo()
+        {
+            return piHardware_;
+        }
+
     private:
         // Default initialised to 0
         // Must by definition be mutable
@@ -591,7 +611,7 @@ namespace WiringPi
         inline void softPwmThread() const
         {
             // Check that we are operating on a valid pin
-            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
+            validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin_]>());
 
             while (threadSwitches_[pin_] && run())
             {
@@ -625,7 +645,7 @@ namespace WiringPi
         inline void softToneThread() const
         {
             // Check that we are operating on a valid pin
-            validPinAssert(pin_constant<piHardware_.numPins()>(), pin_constant<pinMap_[pin_]>());
+            validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin_]>());
 
             while (threadSwitches_[pin_] && run())
             {
@@ -815,7 +835,7 @@ namespace WiringPi
             {
             };
             memset(&sa, 0, sizeof(sa));
-            sa.sa_handler = signalHandler;
+            sa.sa_handler = sigHandler;
 
             const int sigfillset_return = sigfillset(&sa.sa_mask);
             assert((sigfillset_return == 0) && "sigfillset returned non-zero on initialisation of wiringPi class");

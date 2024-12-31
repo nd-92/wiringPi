@@ -9,6 +9,9 @@
 #ifndef __WIRING_PI_nullDevice_H
 #define __WIRING_PI_nullDevice_H
 
+#include "wiringPiIncludes.H"
+#include "wiringPiDefines.H"
+
 namespace WiringPi
 {
     class nullDevice : public wiringPiNode
@@ -30,8 +33,8 @@ namespace WiringPi
     private:
         const pin_t pinMode_;
         const pin_t pinBase_;
-        const pin_t numPins_ = 1;
-        const pin_t pinMax_ = pinBase_ + numPins_ - 1;
+        const pin_t nPins_ = 1;
+        const pin_t pinMax_ = pinBase_ + nPins_ - 1;
     };
 }
 
