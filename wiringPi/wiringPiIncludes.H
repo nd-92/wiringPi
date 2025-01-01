@@ -22,6 +22,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <fstream>
 #include <functional>
 #include <iostream>
 #include <memory>

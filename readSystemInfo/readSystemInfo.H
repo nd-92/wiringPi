@@ -9,34 +9,18 @@
 #define __WIRING_PI_readSystemInfo_H
 
 // Header includes
-#include <array>
-#include <asm/ioctl.h>
-#include <cassert>
-#include <chrono>
-#include <ctype.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <fstream>
-#include <iostream>
-#include <poll.h>
-#include <pthread.h>
-#include <stdarg.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <string_view>
-#include <sys/ioctl.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <sys/wait.h>
-#include <time.h>
-#include <unistd.h>
-#include <vector>
-
 #include "../wiringPi/wiringPiIncludes.H"
 #include "../wiringPi/wiringPiDefines.H"
+
+struct piInfoSpec
+{
+    const WiringPi::Pi::layout::type layout;
+    const WiringPi::Pi::model::type model;
+    const WiringPi::Pi::version::type version;
+    const WiringPi::Pi::memory::type mem;
+    const WiringPi::Pi::manufacturer::type manufacturer;
+    const WiringPi::Pi::warranty::type warranty;
+};
 
 [[nodiscard]] inline WiringPi::Pi::layout::type __piGpioLayout()
 {
@@ -110,16 +94,6 @@
         return WiringPi::Pi::layout::DEFAULT;
     }
 }
-
-struct piInfoSpec
-{
-    const WiringPi::Pi::layout::type layout;
-    const WiringPi::Pi::model::type model;
-    const WiringPi::Pi::version::type version;
-    const WiringPi::Pi::memory::type mem;
-    const WiringPi::Pi::manufacturer::type manufacturer;
-    const WiringPi::Pi::warranty::type warranty;
-};
 
 [[nodiscard]] inline piInfoSpec readSysInfo()
 {
@@ -295,8 +269,6 @@ struct piInfoSpec
         {
             return piInfoSpec{layout, WiringPi::Pi::model::PiA, WiringPi::Pi::version::V1, WiringPi::Pi::memory::MB256, WiringPi::Pi::manufacturer::Sony_UK, warranty};
         }
-
-        // return piInfoSpec{layout, model, rev, mem, maker, warranty};
     }
 }
 
