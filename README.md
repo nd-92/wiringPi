@@ -17,4 +17,6 @@ This is still a very early work in progress and doesn't contain anything close t
 - [x] Implement wiringShift
 - [ ] Implement drcNet
 - [ ] Implement pseudoPins
+- [x] Implement i2c
+- [ ] Implement SPI
 - [ ] Implement wpiExtensions
