@@ -82,11 +82,11 @@ namespace WiringPi
         [[nodiscard]] threadTable threadRegistry()
         {
             threadTable threads;
-            for (size_t i = 0; i < MAX_PINS<size_t>(); i++)
+            for (std::size_t i = 0; i < MAX_PINS<std::size_t>(); i++)
             {
                 threads[i] = std::thread(nullFunc);
             }
-            for (size_t i = 0; i < MAX_PINS<size_t>(); i++)
+            for (std::size_t i = 0; i < MAX_PINS<std::size_t>(); i++)
             {
                 threads[i].join();
             }
@@ -94,9 +94,9 @@ namespace WiringPi
         }
 
         // Returns 2 ^ (pin & 31)
-        [[nodiscard]] inline consteval pin_t digitalReadModulo(const pin_t pin)
+        [[nodiscard]] inline consteval gpio_t digitalReadModulo(const pin_t pin)
         {
-            return static_cast<pin_t>(1 << (pin & 31));
+            return static_cast<gpio_t>(1 << (pin & 31));
         }
 
         // Offset to the Pull Up Down Clock regsiter
@@ -135,11 +135,11 @@ namespace WiringPi
 
         // Get the number of physical pins for the board layout
         // Fails compilation if layout is not 1 or 2
-        template <const int layout>
+        template <const Pi::layout::type layout>
         [[nodiscard]] inline consteval pin_t numPhysicalPins()
         {
             static_assert(layoutCheck(layout));
-            if (layout == 1)
+            if constexpr (layout == 1)
             {
                 return 17;
             }
@@ -189,11 +189,11 @@ namespace WiringPi
         }
 
         // Fails compilation if layout is not 1 or 2
-        template <const int layout>
+        template <const Pi::layout::type layout>
         [[nodiscard]] inline consteval const pinTable pinToGpio()
         {
             static_assert(layoutCheck(layout));
-            if (layout == 1) // A, B, Rev 1, 1.1
+            if constexpr (layout == 1) // A, B, Rev 1, 1.1
             {
                 return pinTable{
                     17, 18, 21, 22, 23, 24, 25, 4,
@@ -220,7 +220,7 @@ namespace WiringPi
         }
 
         // Fails compilation if layout is not 1 or 2
-        template <const int layout>
+        template <const Pi::layout::type layout>
         [[nodiscard]] inline consteval const pinTable physToGpio()
         {
             static_assert(layoutCheck(layout));
@@ -251,7 +251,7 @@ namespace WiringPi
         }
 
         // Fails compilation if layout is not 1 or 2
-        template <const int layout>
+        template <const Pi::layout::type layout>
         [[nodiscard]] inline consteval const pinTable gpioToGpio()
         {
             static_assert(layoutCheck(layout));
@@ -297,7 +297,7 @@ namespace WiringPi
         // Create the pin map for a given wiringPi mode
         // For now, fails compilation on modes other than PINS, GPIO and PHYS
         // Fails compilation if layout is not 1 or 2
-        template <const int layout, const wiringPiModes::type mode>
+        template <const Pi::layout::type layout, const wiringPiModes::type mode>
         [[nodiscard]] inline consteval const pinTable pinMap()
         {
             static_assert(layoutCheck(layout));
@@ -483,32 +483,6 @@ namespace WiringPi
                 -1, -1, -1, -1, -1, -1, -1, -1,
                 -1, -1, -1, -1, -1, -1, -1, -1};
         }
-
-        // [[nodiscard]] inline constexpr pinTable softPwmMarks()
-        // {
-        //     return pinTable{
-        //         0, 0, 0, 0, 0, 0, 0, 0,
-        //         0, 0, 0, 0, 0, 0, 0, 0,
-        //         0, 0, 0, 0, 0, 0, 0, 0,
-        //         0, 0, 0, 0, 0, 0, 0, 0,
-        //         0, 0, 0, 0, 0, 0, 0, 0,
-        //         0, 0, 0, 0, 0, 0, 0, 0,
-        //         0, 0, 0, 0, 0, 0, 0, 0,
-        //         0, 0, 0, 0, 0, 0, 0, 0};
-        // }
-
-        // [[nodiscard]] inline constexpr pinTable softPwmRange()
-        // {
-        //     return pinTable{
-        //         0, 0, 0, 0, 0, 0, 0, 0,
-        //         0, 0, 0, 0, 0, 0, 0, 0,
-        //         0, 0, 0, 0, 0, 0, 0, 0,
-        //         0, 0, 0, 0, 0, 0, 0, 0,
-        //         0, 0, 0, 0, 0, 0, 0, 0,
-        //         0, 0, 0, 0, 0, 0, 0, 0,
-        //         0, 0, 0, 0, 0, 0, 0, 0,
-        //         0, 0, 0, 0, 0, 0, 0, 0};
-        // }
     }
 }
 

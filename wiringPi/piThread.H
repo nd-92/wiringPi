@@ -22,7 +22,7 @@ namespace WiringPi
     //     [[nodiscard]] inline constexpr piThread() {};
 
     //     // Activate a mutex
-    //     template <const size_t key>
+    //     template <const std::size_t key>
     //     inline void lock()
     //     {
     //         static_assert(key < 5);
@@ -30,7 +30,7 @@ namespace WiringPi
     //     }
 
     //     // Deactivate a mutex
-    //     template <const size_t key>
+    //     template <const std::size_t key>
     //     inline void unlock()
     //     {
     //         static_assert(key < 5);

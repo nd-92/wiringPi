@@ -400,10 +400,10 @@ struct piInfoSpec
     const std::time_t end_time = std::chrono::system_clock::to_time_t(end);
     const std::string generatedString = "// Header generated on " + std::string(strtok(std::ctime(&end_time), "\n"));
     const std::string lineString = "// ======================================================================== //";
-    const size_t toPad = lineString.length() - generatedString.length();
+    const std::size_t toPad = lineString.length() - generatedString.length();
 
     std::string padString = "//";
-    for (size_t i = 0; i < toPad - 2; i++)
+    for (std::size_t i = 0; i < toPad - 2; i++)
     {
         padString = " " + padString;
     }

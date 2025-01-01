@@ -45,7 +45,7 @@ namespace WiringPi
             computeModelAssert(Pi::model::constant<piHardware_.model()>(), wiringPiModes::constant<wiringPiMode_>());
 
             // Check that the board layout is correct
-            layoutAssert(layout_constant<piHardware_.gpioLayout()>());
+            layoutAssert(Pi::layout::constant<piHardware_.gpioLayout()>());
 
             // Check that the Pi model is correct
             piModelAssert(Pi::model::constant<piHardware_.model()>());
@@ -413,16 +413,16 @@ namespace WiringPi
         }
 
         // Select the native "balanced" mode, or standard mark:space mode
-        template <const int mode_>
-        inline void pwmSetMode(const pwm_mode_constant<mode_> mode) const
+        template <const PWM::mode::type mode_>
+        inline void pwmSetMode(const PWM::mode::constant<mode_> mode) const
         {
             pwmModeAssert(wiringPiModes::constant<wiringPiMode>());
-            static_assert(((mode() == PWM::mode::MS()) || (mode() == PWM::mode::BAL())), "Invalid mode for pwmSetMode: valid modes are MS, BAL.");
-            if constexpr (mode() == PWM::mode::MS())
+            static_assert(((mode() == PWM::mode::MS) || (mode() == PWM::mode::BAL)), "Invalid mode for pwmSetMode: valid modes are MS, BAL.");
+            if constexpr (mode() == PWM::mode::MS)
             {
                 *(piMemory_.pwmPtr() + PWM::CONTROL<pwm_t>()) = PWM0::ENABLE<pwm_t>() | PWM1::ENABLE<pwm_t>() | PWM0::MS_MODE<pwm_t>() | PWM1::MS_MODE<pwm_t>();
             }
-            else if constexpr (mode() == PWM::mode::BAL())
+            else if constexpr (mode() == PWM::mode::BAL)
             {
                 *(piMemory_.pwmPtr() + PWM::CONTROL<pwm_t>()) = PWM0::ENABLE<pwm_t>() | PWM1::ENABLE<pwm_t>();
             }
@@ -569,7 +569,7 @@ namespace WiringPi
             return onboardPins_.deviceName();
         }
 
-        [[nodiscard]] inline constexpr const nameTable physNames() const
+        [[nodiscard]] inline consteval const nameTable physNames() const
         {
             return physNames_;
         }
@@ -753,18 +753,18 @@ namespace WiringPi
         template <const pin_t pin_ = 0>
         void writePinLine(const pin_constant<pin_> = pin_constant<0>()) const
         {
-            const pin_t i_1 = (2 * pin_);
-            const pin_t i_2 = (2 * pin_) + 1;
+            constexpr const pin_t i_1 = (2 * pin_);
+            constexpr const pin_t i_2 = (2 * pin_) + 1;
             std::cout << "|" << pinString(pinMap()[i_1])                   // Mapped pin
                       << "|" << pinString(physToWpi_[i_1])                 // Phys to wPi
-                      << "|" << physNames()[i_1]                           // Name
+                      << "|" << pinTables::physNames()[i_1]                // Name
                       << "|" << pinModes::modeStrings()[pinModeMap()[i_1]] // Mode
                       << "| " << readToString(pin_constant<i_1>()) << " "  // Value
                       << "|" << pinString(i_1 + 1)                         // Physical pin number
                       << "||" << pinString(i_2 + 1)                        // Physical pin number
                       << "| " << readToString(pin_constant<i_2>()) << " "  // Value
                       << "|" << pinModes::modeStrings()[pinModeMap()[i_2]] // Mode
-                      << "|" << physNames()[i_2]                           // Name
+                      << "|" << pinTables::physNames()[i_2]                // Name
                       << "|" << pinString(physToWpi_[i_2])                 // Phys to wPi
                       << "|" << pinString(pinMap()[i_2])                   // Mapped pin
                       << "|" << std::endl;                                 // End line

@@ -39,10 +39,6 @@ namespace WiringPi
     using timer_constant = const std::integral_constant<timer_t, timer_>;
     template <const I2C_t I2C_>
     using I2C_constant = const std::integral_constant<I2C_t, I2C_>;
-    template <const int layout_>
-    using layout_constant = const std::integral_constant<int, layout_>;
-    template <const int pwm_mode_>
-    using pwm_mode_constant = const std::integral_constant<int, pwm_mode_>;
 
     // Maximum number of pins
     template <typename T>
@@ -64,22 +60,14 @@ namespace WiringPi
         return 5000;
     }
 
-    // Mask for the bottom 64 pins which belong to the Raspberry Pi
-    // The others are available for the other devices
-    template <typename T>
-    [[nodiscard]] inline consteval T PI_GPIO_MASK()
-    {
-        return static_cast<T>(0xFFFFFFC0);
-    }
-
     // Pin table types
-    typedef std::array<pin_t, MAX_PINS<size_t>()> pinTable;
-    typedef std::array<frequency_t, MAX_PINS<size_t>()> frequencyTable;
-    typedef std::array<bool, MAX_PINS<size_t>()> switchTable;
-    typedef std::array<gpio_t, MAX_PINS<size_t>()> gpioTable;
-    typedef std::array<name_t, MAX_PINS<size_t>()> nameTable;
-    typedef std::array<int, MAX_PINS<size_t>()> fileDescriptorTable;
-    typedef std::array<std::thread, MAX_PINS<size_t>()> threadTable;
+    typedef std::array<pin_t, MAX_PINS<std::size_t>()> pinTable;
+    typedef std::array<frequency_t, MAX_PINS<std::size_t>()> frequencyTable;
+    typedef std::array<bool, MAX_PINS<std::size_t>()> switchTable;
+    typedef std::array<gpio_t, MAX_PINS<std::size_t>()> gpioTable;
+    typedef std::array<name_t, MAX_PINS<std::size_t>()> nameTable;
+    typedef std::array<int, MAX_PINS<std::size_t>()> fileDescriptorTable;
+    typedef std::array<std::thread, MAX_PINS<std::size_t>()> threadTable;
 
     // Environment strings - maybe unused
     [[nodiscard]] consteval const name_t ENV_DEBUG()
@@ -117,18 +105,18 @@ namespace WiringPi
         using constant_input = constant<input>;
         using constant_output = constant<output>;
 
-        [[nodiscard]] inline consteval std::array<name_t, 8> pinModes()
-        {
-            return std::array<name_t, 8>{
-                "IN",
-                "OUT",
-                "PWM_OUTPUT",
-                "GPIO_CLOCK",
-                "SOFT_PWM_OUTPUT",
-                "SOFT_TONE_OUTPUT",
-                "PWM_TONE_OUTPUT",
-                "PWM_OFF"};
-        }
+        // [[nodiscard]] inline consteval std::array<name_t, 8> pinModes()
+        // {
+        //     return std::array<name_t, 8>{
+        //         "IN",
+        //         "OUT",
+        //         "PWM_OUTPUT",
+        //         "GPIO_CLOCK",
+        //         "SOFT_PWM_OUTPUT",
+        //         "SOFT_TONE_OUTPUT",
+        //         "PWM_TONE_OUTPUT",
+        //         "PWM_OFF"};
+        // }
         [[nodiscard]] inline consteval std::array<name_t, 8> modeStrings()
         {
             return std::array<name_t, 8>{
@@ -215,10 +203,10 @@ namespace WiringPi
                 Pi5 = 23
             } type;
 
-            template <const type pi_model_>
-            using constant = const std::integral_constant<type, pi_model_>;
+            template <const type model_>
+            using constant = const std::integral_constant<type, model_>;
 
-            [[nodiscard]] inline consteval name_t names(const size_t model)
+            [[nodiscard]] inline consteval name_t names(const std::size_t model)
             {
                 constexpr const std::array<name_t, 21> arr{
                     "A",
@@ -298,6 +286,9 @@ namespace WiringPi
                 PI1_REV1 = 1,
                 DEFAULT = 2
             } type;
+
+            template <const type layout_>
+            using constant = const std::integral_constant<type, layout_>;
         }
 
         namespace warranty
@@ -315,12 +306,12 @@ namespace WiringPi
     template <typename T>
     [[nodiscard]] inline consteval T WPI_FATAL()
     {
-        return 1 == 1;
+        return (1 == 1);
     }
     template <typename T>
     [[nodiscard]] inline consteval T WPI_ALMOST()
     {
-        return 1 == 2;
+        return (1 == 2);
     }
 
     // Memory params
@@ -447,14 +438,23 @@ namespace WiringPi
         }
         namespace mode
         {
-            [[nodiscard]] inline consteval int MS()
+            // This is an enumerated type because the mode can only be one of a few select values
+            typedef enum Enum : std::size_t
             {
-                return 0;
-            }
-            [[nodiscard]] inline consteval int BAL()
-            {
-                return 1;
-            }
+                MS = 0,
+                BAL = 1
+            } type;
+
+            template <const type mode_>
+            using constant = const std::integral_constant<type, mode_>;
+            // [[nodiscard]] inline consteval int MS()
+            // {
+            //     return 0;
+            // }
+            // [[nodiscard]] inline consteval int BAL()
+            // {
+            //     return 1;
+            // }
         }
     }
 
@@ -563,39 +563,39 @@ namespace WiringPi
     {
         [[nodiscard]] inline consteval timer_t load()
         {
-            return 0x400 >> 2;
+            return (0x400 >> 2);
         }
         [[nodiscard]] inline consteval timer_t value()
         {
-            return 0x404 >> 2;
+            return (0x404 >> 2);
         }
         [[nodiscard]] inline consteval timer_t control()
         {
-            return 0x408 >> 2;
+            return (0x408 >> 2);
         }
         [[nodiscard]] inline consteval timer_t irqClr()
         {
-            return 0x40C >> 2;
+            return (0x40C >> 2);
         }
         [[nodiscard]] inline consteval timer_t irqRaw()
         {
-            return 0x410 >> 2;
+            return (0x410 >> 2);
         }
         [[nodiscard]] inline consteval timer_t irqMask()
         {
-            return 0x414 >> 2;
+            return (0x414 >> 2);
         }
         [[nodiscard]] inline consteval timer_t reload()
         {
-            return 0x418 >> 2;
+            return (0x418 >> 2);
         }
         [[nodiscard]] inline consteval timer_t preDiv()
         {
-            return 0x41C >> 2;
+            return (0x41C >> 2);
         }
         [[nodiscard]] inline consteval timer_t counter()
         {
-            return 0x420 >> 2;
+            return (0x420 >> 2);
         }
     }
 
@@ -677,10 +677,10 @@ namespace WiringPi
         {
             return 32;
         }
-        template <const int layout>
+        template <const Pi::layout::type layout>
         [[nodiscard]] consteval const name_t deviceName()
         {
-            if constexpr (layout == 1)
+            if constexpr (layout == Pi::layout::DEFAULT)
             {
                 return "/dev/i2c-0";
             }
@@ -695,7 +695,7 @@ namespace WiringPi
     {
         uint8_t byte;
         uint16_t word;
-        uint8_t block[I2C::smbusBlockMax<size_t>() + 2];
+        uint8_t block[I2C::smbusBlockMax<std::size_t>() + 2];
     };
 
     struct i2c_smbus_ioctl_data

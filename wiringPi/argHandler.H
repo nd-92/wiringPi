@@ -51,7 +51,7 @@ namespace WiringPi
         {
             if (argc > 0)
             {
-                for (size_t i = 0; i < static_cast<size_t>(argc); i++)
+                for (std::size_t i = 0; i < static_cast<std::size_t>(argc); i++)
                 {
                     if (strcmp(argv[i], argumentString) == 0)
                     {
@@ -70,7 +70,7 @@ namespace WiringPi
             if (argc > 1)
             {
                 std::cout << "Executing ";
-                for (size_t i = 0; i < static_cast<size_t>(argc); i++)
+                for (std::size_t i = 0; i < static_cast<std::size_t>(argc); i++)
                 {
                     std::cout << argv[i] << " ";
                 }
@@ -114,7 +114,7 @@ namespace WiringPi
         {
             if (argc > 0)
             {
-                for (size_t i = 0; i < static_cast<size_t>(argc); i++)
+                for (std::size_t i = 0; i < static_cast<std::size_t>(argc); i++)
                 {
                     if (strcmp(argv[i], "-mode") == 0)
                     {

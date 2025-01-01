@@ -129,7 +129,7 @@ namespace WiringPi
         [[nodiscard]] T0 *mapHardware(const T1 offset) const
         {
             // Perform mmap
-            T0 *ptr = static_cast<T0 *>(mmap(0, memory::blockSize<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, devMem_.fd, static_cast<__off_t>(offset)));
+            T0 *ptr = static_cast<T0 *>(mmap(0, memory::blockSize<std::size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, devMem_.fd, static_cast<__off_t>(offset)));
 
             // Check that it didn't fail
             fatalAssert(ptr != MAP_FAILED, "Hardware pointer map failed");
@@ -141,7 +141,7 @@ namespace WiringPi
         // Map timer
         [[nodiscard]] timer_t *mapTimer(const gpio_t offset) const
         {
-            timer_t *ptr = static_cast<timer_t *>(mmap(0, memory::blockSize<size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, devMem_.fd, static_cast<__off_t>(offset)));
+            timer_t *ptr = static_cast<timer_t *>(mmap(0, memory::blockSize<std::size_t>(), PROT_READ | PROT_WRITE, MAP_SHARED, devMem_.fd, static_cast<__off_t>(offset)));
 
             // Check that it didn't fail
             fatalAssert(ptr != MAP_FAILED, "Timer pointer map failed");
@@ -157,7 +157,7 @@ namespace WiringPi
         void unmapHardware(T *ptr) const
         {
             // I really don't like the use of the C-style cast to get rid of volatility
-            assert((munmap((void *)ptr, memory::blockSize<size_t>()) != -1));
+            assert((munmap((void *)ptr, memory::blockSize<std::size_t>()) != -1));
         }
 
         // Read the device memory

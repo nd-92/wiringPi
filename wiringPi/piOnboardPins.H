@@ -35,8 +35,8 @@ namespace WiringPi
         }
 
         // Sets the mode of a pin to be input, output or PWM output
-        template <const pin_t pin_, const pinModes::type mode_, const pin_t fSel_, const pin_t shift_>
-        inline void pinMode(volatile gpio_t *gpioPtr, const pin_constant<pin_> pin, const pinModes::constant<mode_> mode, const pin_constant<fSel_> fSel, const pin_constant<shift_> shift)
+        template <const pin_t pin_, const pinModes::type mode_, const gpio_t fSel_, const gpio_t shift_>
+        inline void pinMode(volatile gpio_t *gpioPtr, const pin_constant<pin_> pin, const pinModes::constant<mode_> mode, const gpio_constant<fSel_> fSel, const gpio_constant<shift_> shift)
         {
             // Check that the pin is valid
             static_assert(nullPinCheck(pin()));
@@ -109,7 +109,7 @@ namespace WiringPi
         static constexpr const gpioTable gpioToPwmPort_ = pinTables::gpioToPwmPort();
 
         template <const pin_t pin_, const gpio_t pud_>
-        [[nodiscard]] inline constexpr pin_t pullBits(const volatile gpio_t *gpioPtr, const pin_constant<pin_> pin, const gpio_constant<pud_> pud) const
+        [[nodiscard]] inline consteval pin_t pullBits(const volatile gpio_t *gpioPtr, const pin_constant<pin_> pin, const gpio_constant<pud_> pud) const
         {
             pin_t pullBits_ = *(gpioPtr + pinTables::pullReg(pin()));
             pullBits_ &= static_cast<gpio_t>(~(3 << pinTables::pullShift(pin())));

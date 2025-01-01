@@ -88,14 +88,14 @@ namespace WiringPi
     }
 
     // Check that the board layout must be valid
-    [[nodiscard]] inline consteval bool layoutCheck(const int layout)
+    [[nodiscard]] inline consteval bool layoutCheck(const Pi::layout::type layout)
     {
-        return (layout == 1 || layout == 2);
+        return (layout == Pi::layout::PI1_REV1 || layout == Pi::layout::DEFAULT);
     }
 
     // Assert that the mode is valid
-    template <const int layout_>
-    inline void layoutAssert(const layout_constant<layout_> layout)
+    template <const Pi::layout::type layout_>
+    inline void layoutAssert(const Pi::layout::constant<layout_> layout)
     {
         static_assert(layoutCheck(layout()), "Invalid GPIO layout");
     }
