@@ -18,7 +18,7 @@ default:
 install:
 	make
 	./readSystemInfo
-	sudo mv piInfo.H /usr/local/include/
+	sudo cp piInfo.H /usr/local/include/
 
 clean:
 	rm -rf readSystemInfo
