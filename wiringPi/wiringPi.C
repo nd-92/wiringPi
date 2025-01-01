@@ -5,33 +5,13 @@
 
 using namespace WiringPi;
 
-#define COMPILE_WIRINGPI_TESTS
-
-#ifdef COMPILE_WIRINGPI_TESTS
 int main(const int argc, const char *argv[])
-#else
-int main()
-#endif
 {
+    // Handle the input arguments
+    const argHandler args(argc, argv);
 
-    // constexpr const gpio_t A = a;
-
-    // std::cout << A << std::endl;
-
-    // Try wiringShift
-    // {
-    //     // Create the wiringPi object
-    //     wiringPi<wiringPiModes::pins()> RaspberryPi;
-    //     const gpio_t i = RaspberryPi.shiftIn<0, 1, shift::MSBFIRST()>();
-    //     std::cout << "i = " << i << std::endl;
-
-    //     const gpio_t j = RaspberryPi.shiftIn<0, 1, shift::LSBFIRST()>();
-    //     std::cout << "j = " << j << std::endl;
-    // }
-
-#ifndef COMPILE_WIRINGPI_TESTS
-
-    // Try mcp23008
+    // Do the i2c test
+    if (args.i2cTest())
     {
         // Define a pin
         constexpr const pin_t myPin = 0x77;
@@ -55,13 +35,6 @@ int main()
         const gpio_t pressure = sensor.analogRead(pin_constant<pressureChannel>());
         std::cout << "Pressure: " << pressure << " Pa" << std::endl;
     }
-
-#endif
-
-#ifdef COMPILE_WIRINGPI_TESTS
-
-    // Handle the input arguments
-    const argHandler args(argc, argv);
 
     // Test softPwm implementation
     if (args.threadTest())
@@ -183,12 +156,6 @@ int main()
             }
         }
     }
-
-#endif
-
-    // No matter what, create a wiringPi object and reset all pins before exit
-    // wiringPi<wiringPiModes::pins()> RaspberryPi;
-    // RaspberryPi.resetPins();
 
     return 0;
 }

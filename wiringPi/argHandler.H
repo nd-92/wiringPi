@@ -10,6 +10,7 @@ namespace WiringPi
             : nArgs_(nArgsCheck(argc, argv)),
               threadTest_(threadTestCheck(argc, argv)),
               readWriteTest_(readWriteTestCheck(argc, argv)),
+              i2cTest_(i2cTestCheck(argc, argv)),
               pinLayout_(pinLayoutCheck(argc, argv)),
               wiringPiMode_(wiringPiModeCheck(argc, argv)) {};
 
@@ -31,6 +32,12 @@ namespace WiringPi
         [[nodiscard]] bool readWriteTest() const
         {
             return readWriteTest_;
+        }
+
+        // Return if we are doing the i2c test
+        [[nodiscard]] bool i2cTest() const
+        {
+            return i2cTest_;
         }
 
         // Returns the specified mode
@@ -99,6 +106,13 @@ namespace WiringPi
         [[nodiscard]] bool readWriteTestCheck(const int argc, const char *argv[]) const
         {
             return argumentStringMatch(argc, argv, "-readWriteTest");
+        }
+
+        // Are we doing the i2c test
+        const bool i2cTest_;
+        [[nodiscard]] bool i2cTestCheck(const int argc, const char *argv[]) const
+        {
+            return argumentStringMatch(argc, argv, "-i2cTest");
         }
 
         // Are we doing the layout

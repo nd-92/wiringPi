@@ -50,6 +50,9 @@ namespace WiringPi
             // Check that the Pi model is correct
             piModelAssert(Pi::model::constant<piHardware_.model()>());
 
+            // Reset pin modes to input and values to 0
+            resetAllPins();
+
             // Debug messages
 #ifdef WIRINGPI_DEBUG
             // Mode info
