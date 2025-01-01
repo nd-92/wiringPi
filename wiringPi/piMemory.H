@@ -21,7 +21,7 @@ namespace WiringPi
         const bool usingGpioMem;
     };
 
-    template <const Pi::models::type Model>
+    template <const Pi::model::type Model>
     class piMemory
     {
     public:
@@ -202,47 +202,47 @@ namespace WiringPi
 
             switch (Model)
             {
-            case Pi::models::PiA:
+            case Pi::model::PiA:
             {
                 return 0;
             }
-            case Pi::models::PiB:
+            case Pi::model::PiB:
             {
                 return 0;
             }
-            case Pi::models::PiAP:
+            case Pi::model::PiAP:
             {
                 return 0;
             }
-            case Pi::models::PiBP:
+            case Pi::model::PiBP:
             {
                 return 0;
             }
-            case Pi::models::PiAlpha:
+            case Pi::model::PiAlpha:
             {
                 return 0;
             }
-            case Pi::models::PiCM:
+            case Pi::model::PiCM:
             {
                 return 0;
             }
-            case Pi::models::PiZero:
+            case Pi::model::PiZero:
             {
                 return 0;
             }
-            case Pi::models::PiZero_W:
+            case Pi::model::PiZero_W:
             {
                 return GPIO::PERI::BASE_OLD<T>();
             }
-            case Pi::models::Pi4B:
+            case Pi::model::Pi4B:
             {
                 return 0;
             }
-            case Pi::models::Pi400:
+            case Pi::model::Pi400:
             {
                 return 0;
             }
-            case Pi::models::PiCM4:
+            case Pi::model::PiCM4:
             {
                 return GPIO::PERI::BASE_2711<T>();
             }

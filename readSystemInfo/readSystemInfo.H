@@ -5,10 +5,11 @@
 // A bit messy for now, clean up later                          //
 // ************************************************************ //
 
-// #ifndef __WIRING_PI_readSystemInfo_H
-// #define __WIRING_PI_readSystemInfo_H
+#ifndef __WIRING_PI_readSystemInfo_H
+#define __WIRING_PI_readSystemInfo_H
 
 // Header includes
+#include <array>
 #include <asm/ioctl.h>
 #include <cassert>
 #include <chrono>
@@ -34,183 +35,14 @@
 #include <unistd.h>
 #include <vector>
 
-template <typename T>
-consteval T __WPI_MODE_PINS()
-{
-    return 0;
-}
-template <typename T>
-consteval T __WPI_MODE_GPIO()
-{
-    return 1;
-}
-template <typename T>
-consteval T __WPI_MODE_GPIO_SYS()
-{
-    return 2;
-}
-template <typename T>
-consteval T __WPI_MODE_PHYS()
-{
-    return 3;
-}
-template <typename T>
-consteval T __WPI_MODE_PIFACE()
-{
-    return 4;
-}
-template <typename T>
-consteval T __WPI_MODE_UNINITIALISED()
-{
-    return -1;
-}
+#include "../wiringPi/wiringPiIncludes.H"
+#include "../wiringPi/wiringPiDefines.H"
 
-template <typename T>
-consteval T __PI_MODEL_A()
-{
-    return 0;
-}
-template <typename T>
-consteval T __PI_MODEL_B()
-{
-    return 1;
-}
-template <typename T>
-consteval T __PI_MODEL_AP()
-{
-    return 2;
-}
-template <typename T>
-consteval T __PI_MODEL_BP()
-{
-    return 3;
-}
-template <typename T>
-consteval T __PI_MODEL_2()
-{
-    return 4;
-}
-template <typename T>
-consteval T __PI_ALPHA()
-{
-    return 5;
-}
-template <typename T>
-consteval T __PI_MODEL_CM()
-{
-    return 6;
-}
-template <typename T>
-consteval T __PI_MODEL_07()
-{
-    return 7;
-}
-template <typename T>
-consteval T __PI_MODEL_3B()
-{
-    return 8;
-}
-template <typename T>
-consteval T __PI_MODEL_ZERO()
-{
-    return 9;
-}
-template <typename T>
-consteval T __PI_MODEL_CM3()
-{
-    return 10;
-}
-template <typename T>
-consteval T __PI_MODEL_ZERO_W()
-{
-    return 12;
-}
-template <typename T>
-consteval T __PI_MODEL_3BP()
-{
-    return 13;
-}
-template <typename T>
-consteval T __PI_MODEL_3AP()
-{
-    return 14;
-}
-template <typename T>
-consteval T __PI_MODEL_CM3P()
-{
-    return 16;
-}
-template <typename T>
-consteval T __PI_MODEL_4B()
-{
-    return 17;
-}
-template <typename T>
-consteval T __PI_MODEL_ZERO_2W()
-{
-    return 18;
-}
-template <typename T>
-consteval T __PI_MODEL_400()
-{
-    return 19;
-}
-template <typename T>
-consteval T __PI_MODEL_CM4()
-{
-    return 20;
-}
-
-// Pi versions
-template <typename T>
-consteval T __PI_VERSION_1()
-{
-    return 0;
-}
-template <typename T>
-consteval T __PI_VERSION_1_1()
-{
-    return 1;
-}
-template <typename T>
-consteval T __PI_VERSION_1_2()
-{
-    return 2;
-}
-template <typename T>
-consteval T __PI_VERSION_2()
-{
-    return 3;
-}
-
-// Pi manufacturers
-template <typename T>
-consteval T __PI_MAKER_SONY()
-{
-    return 0;
-}
-template <typename T>
-consteval T __PI_MAKER_EGOMAN()
-{
-    return 1;
-}
-template <typename T>
-consteval T __PI_MAKER_EMBEST()
-{
-    return 2;
-}
-template <typename T>
-consteval T __PI_MAKER_UNKNOWN()
-{
-    return 3;
-}
-
-int __piGpioLayout(void)
+[[nodiscard]] inline WiringPi::Pi::layout::type __piGpioLayout()
 {
     // FILE *cpuFd;
     char line[120];
     char *c;
-    int gpioLayout = -1;
 
     // Try to open /proc/cpuinfo
     FILE *cpuFd = fopen("/proc/cpuinfo", "r");
@@ -271,20 +103,323 @@ int __piGpioLayout(void)
 
     if ((strcmp(c, "0002") == 0) || (strcmp(c, "0003") == 0))
     {
-        gpioLayout = 1;
+        return WiringPi::Pi::layout::PI1_REV1;
     }
     else
     {
-        gpioLayout = 2;
+        return WiringPi::Pi::layout::DEFAULT;
+    }
+}
+
+struct piInfoSpec
+{
+    const WiringPi::Pi::layout::type layout;
+    const WiringPi::Pi::model::type model;
+    const WiringPi::Pi::version::type version;
+    const WiringPi::Pi::memory::type mem;
+    const WiringPi::Pi::manufacturer::type manufacturer;
+    const WiringPi::Pi::warranty::type warranty;
+};
+
+[[nodiscard]] inline piInfoSpec readSysInfo()
+{
+    char line[120];
+    char *c;
+
+    const WiringPi::Pi::layout::type layout = __piGpioLayout();
+
+    {
+        FILE *cpuFd = fopen("/proc/cpuinfo", "r");
+        assert((cpuFd != NULL));
+
+        while (fgets(line, 120, cpuFd) != NULL)
+        {
+            if (strncmp(line, "Revision", 8) == 0)
+            {
+                break;
+            }
+        }
+
+        fclose(cpuFd);
     }
 
-    // Check that gpioLayout is not -1
-    assert((gpioLayout != -1));
+    assert((strncmp(line, "Revision", 8) == 0));
 
-    // Check that it's either 1 or 2
-    assert((gpioLayout == 1 || gpioLayout == 2));
+    // Chomp trailing CR/NL
 
-    return gpioLayout;
+    for (c = &line[strlen(line) - 1]; (*c == '\n') || (*c == '\r'); --c)
+    {
+        *c = 0;
+    }
+
+    // Need to work out if it's using the new or old encoding scheme:
+
+    // Scan to the first character of the revision number
+
+    for (c = line; *c; ++c)
+    {
+        if (*c == ':')
+        {
+            break;
+        }
+    }
+
+    // Chomp spaces
+
+    ++c;
+    while (isspace(*c))
+    {
+        ++c;
+    }
+
+    // Check for new way:
+    const unsigned int revision = static_cast<unsigned int>(strtol(c, NULL, 16));
+
+    if ((revision & (1 << 23)) != 0) // New way
+    {
+        const WiringPi::Pi::model::type model = static_cast<WiringPi::Pi::model::type>((revision & (0xFF << 4)) >> 4);
+        const WiringPi::Pi::version::type rev = static_cast<WiringPi::Pi::version::type>((revision & (0x0F << 0)) >> 0);
+        const WiringPi::Pi::memory::type mem = static_cast<WiringPi::Pi::memory::type>((revision & (0x07 << 20)) >> 20);
+        const WiringPi::Pi::manufacturer::type manufacturer = static_cast<WiringPi::Pi::manufacturer::type>((revision & (0x0F << 16)) >> 16);
+        const WiringPi::Pi::warranty::type warranty = static_cast<WiringPi::Pi::warranty::type>((revision & (0x03 << 24)) != 0);
+        return piInfoSpec{layout, model, rev, mem, manufacturer, warranty};
+    }
+    else // Old way
+    {
+        // Check that the revision line is valid
+        assert((isdigit(*c)));
+
+        // Make sure the revision line is long enough
+        assert((!(strlen(c) < 4)));
+
+        // If longer than 4, we'll assume it's been overvolted
+        const WiringPi::Pi::warranty::type warranty = static_cast<WiringPi::Pi::warranty::type>(strlen(c) > 4);
+
+        // Extract last 4 characters:
+        c = c + strlen(c) - 4;
+
+        // Fill out the replies as appropriate
+        if (strcmp(c, "0002") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiB, WiringPi::Pi::version::V1, WiringPi::Pi::memory::MB256, WiringPi::Pi::manufacturer::Egoman, warranty};
+        }
+        else if (strcmp(c, "0003") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiB, WiringPi::Pi::version::V1_1, WiringPi::Pi::memory::MB256, WiringPi::Pi::manufacturer::Egoman, warranty};
+        }
+        else if (strcmp(c, "0004") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiB, WiringPi::Pi::version::V1_2, WiringPi::Pi::memory::MB256, WiringPi::Pi::manufacturer::Sony_UK, warranty};
+        }
+        else if (strcmp(c, "0005") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiB, WiringPi::Pi::version::V1_2, WiringPi::Pi::memory::MB256, WiringPi::Pi::manufacturer::Egoman, warranty};
+        }
+        else if (strcmp(c, "0006") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiB, WiringPi::Pi::version::V1_2, WiringPi::Pi::memory::MB256, WiringPi::Pi::manufacturer::Egoman, warranty};
+        }
+        else if (strcmp(c, "0007") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiA, WiringPi::Pi::version::V1_2, WiringPi::Pi::memory::MB256, WiringPi::Pi::manufacturer::Egoman, warranty};
+        }
+        else if (strcmp(c, "0008") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiA, WiringPi::Pi::version::V1_2, WiringPi::Pi::memory::MB256, WiringPi::Pi::manufacturer::Sony_UK, warranty};
+        }
+        else if (strcmp(c, "0009") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiA, WiringPi::Pi::version::V1_2, WiringPi::Pi::memory::MB256, WiringPi::Pi::manufacturer::Egoman, warranty};
+        }
+        else if (strcmp(c, "000d") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiB, WiringPi::Pi::version::V1_2, WiringPi::Pi::memory::MB512, WiringPi::Pi::manufacturer::Egoman, warranty};
+        }
+        else if (strcmp(c, "000e") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiB, WiringPi::Pi::version::V1_2, WiringPi::Pi::memory::MB512, WiringPi::Pi::manufacturer::Sony_UK, warranty};
+        }
+        else if (strcmp(c, "000f") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiB, WiringPi::Pi::version::V1_2, WiringPi::Pi::memory::MB512, WiringPi::Pi::manufacturer::Egoman, warranty};
+        }
+        else if (strcmp(c, "0010") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiBP, WiringPi::Pi::version::V1_2, WiringPi::Pi::memory::MB512, WiringPi::Pi::manufacturer::Sony_UK, warranty};
+        }
+        else if (strcmp(c, "0013") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiBP, WiringPi::Pi::version::V1_2, WiringPi::Pi::memory::MB512, WiringPi::Pi::manufacturer::Embest, warranty};
+        }
+        else if (strcmp(c, "0016") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiBP, WiringPi::Pi::version::V1_2, WiringPi::Pi::memory::MB512, WiringPi::Pi::manufacturer::Sony_UK, warranty};
+        }
+        else if (strcmp(c, "0019") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiBP, WiringPi::Pi::version::V1_2, WiringPi::Pi::memory::MB512, WiringPi::Pi::manufacturer::Egoman, warranty};
+        }
+        else if (strcmp(c, "0011") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiCM, WiringPi::Pi::version::V1_1, WiringPi::Pi::memory::MB512, WiringPi::Pi::manufacturer::Sony_UK, warranty};
+        }
+        else if (strcmp(c, "0014") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiCM, WiringPi::Pi::version::V1_1, WiringPi::Pi::memory::MB512, WiringPi::Pi::manufacturer::Embest, warranty};
+        }
+        else if (strcmp(c, "0017") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiCM, WiringPi::Pi::version::V1_1, WiringPi::Pi::memory::MB512, WiringPi::Pi::manufacturer::Sony_UK, warranty};
+        }
+        else if (strcmp(c, "001a") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiCM, WiringPi::Pi::version::V1_1, WiringPi::Pi::memory::MB512, WiringPi::Pi::manufacturer::Egoman, warranty};
+        }
+        else if (strcmp(c, "0012") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiAP, WiringPi::Pi::version::V1_1, WiringPi::Pi::memory::MB256, WiringPi::Pi::manufacturer::Sony_UK, warranty};
+        }
+        else if (strcmp(c, "0015") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiAP, WiringPi::Pi::version::V1_1, WiringPi::Pi::memory::MB512, WiringPi::Pi::manufacturer::Embest, warranty};
+        }
+        else if (strcmp(c, "0018") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiAP, WiringPi::Pi::version::V1_1, WiringPi::Pi::memory::MB256, WiringPi::Pi::manufacturer::Sony_UK, warranty};
+        }
+        else if (strcmp(c, "001b") == 0)
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiAP, WiringPi::Pi::version::V1_1, WiringPi::Pi::memory::MB256, WiringPi::Pi::manufacturer::Egoman, warranty};
+        }
+        else
+        {
+            return piInfoSpec{layout, WiringPi::Pi::model::PiA, WiringPi::Pi::version::V1, WiringPi::Pi::memory::MB256, WiringPi::Pi::manufacturer::Sony_UK, warranty};
+        }
+
+        // return piInfoSpec{layout, model, rev, mem, maker, warranty};
+    }
+}
+
+[[nodiscard]] inline constexpr std::string_view modelStrings(const std::size_t model)
+{
+    if (model < 21)
+    {
+        constexpr const std::array<std::string_view, 21> arr{
+            "Pi::model::PiA",
+            "Pi::model::PiB",
+            "Pi::model::PiAP",
+            "Pi::model::PiBP",
+            "Pi::model::Pi2",
+            "Pi::model::PiALPHA",
+            "Pi::model::PiCM",
+            "Pi::model::Pi07",
+            "Pi::model::Pi3B",
+            "Pi::model::PiZERO",
+            "Pi::model::PiCM3",
+            "",
+            "Pi::model::PiZERO_W",
+            "Pi::model::Pi3BP",
+            "Pi::model::Pi3AP",
+            "",
+            "Pi::model::PiCM3P",
+            "Pi::model::Pi4B",
+            "Pi::model::PiZERO_2W",
+            "Pi::model::Pi400",
+            "Pi::model::PiCM4"};
+        return arr[model];
+    }
+    else
+    {
+        return "";
+    }
+}
+
+[[nodiscard]] inline constexpr std::string_view layoutStrings(const std::size_t layout)
+{
+    if (layout < 3)
+    {
+        constexpr const std::array<std::string_view, 3> arr{
+            "",
+            "Pi::layout::PI1_REV1",
+            "Pi::layout::DEFAULT"};
+        return arr[layout];
+    }
+    else
+    {
+        return "";
+    }
+}
+
+[[nodiscard]] inline constexpr std::string_view versionStrings(const std::size_t version)
+{
+    if (version < 6)
+    {
+        constexpr const std::array<std::string_view, 6> arr{
+            "Pi::version::V1",
+            "Pi::version::V1_1",
+            "Pi::version::V1_2",
+            "Pi::version::V2",
+            "Pi::version::V1_4",
+            "Pi::version::V1_5"};
+        return arr[version];
+    }
+    else
+    {
+        return "";
+    }
+}
+
+[[nodiscard]] inline constexpr std::string_view memoryStrings(const std::size_t memory)
+{
+    if (memory < 6)
+    {
+        constexpr const std::array<std::string_view, 6> arr{
+            "Pi::memory::MB256",
+            "Pi::memory::MB512",
+            "Pi::memory::GB1",
+            "Pi::memory::GB2",
+            "Pi::memory::GB4",
+            "Pi::memory::GB8"};
+        return arr[memory];
+    }
+    else
+    {
+        return "";
+    }
+}
+
+[[nodiscard]] inline constexpr std::string_view manufacturerStrings(const std::size_t manufacturer)
+{
+    if (manufacturer < 6)
+    {
+        constexpr const std::array<std::string_view, 6> arr{
+            "Pi::manufacturer::Sony_UK",
+            "Pi::manufacturer::Egoman",
+            "Pi::manufacturer::Embest",
+            "Pi::manufacturer::Sony_Japan",
+            "Pi::manufacturer::Embest_2",
+            "Pi::manufacturer::Stadium"};
+        return arr[manufacturer];
+    }
+    else
+    {
+        return "";
+    }
+}
+
+[[nodiscard]] inline constexpr std::string_view warrantyStrings(const std::size_t warranty)
+{
+    if (warranty < 2)
+    {
+        constexpr const std::array<std::string_view, 2> arr{
+            "Pi::warranty::valid",
+            "Pi::warranty::voided"};
+        return arr[warranty];
+    }
+    else
+    {
+        return "";
+    }
 }
 
 [[nodiscard]] const std::string generateHeaderTimeString()
@@ -305,14 +440,13 @@ int __piGpioLayout(void)
 }
 
 template <typename T>
-void writeVariableTemplate(std::ofstream &fileName, const std::string_view variableName, const T variable)
+void writeVariableTemplate(std::ofstream &fileName, const std::string_view variableType, const std::string_view variableName, const T variable)
 {
-    fileName << "    template <typename T>" << std::endl;
-    fileName << "    [[nodiscard]] inline consteval T " << variableName << "()" << std::endl;
+    fileName << "    [[nodiscard]] inline consteval " << variableType << " " << variableName << "()" << std::endl;
     fileName << "    {" << std::endl;
     fileName << "        return " << variable << ";" << std::endl;
     fileName << "    }" << std::endl;
-    fileName << std::endl;
+    // fileName << std::endl;
 }
 
-// #endif
+#endif

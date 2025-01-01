@@ -15,7 +15,7 @@
 
 namespace WiringPi
 {
-    template <const pin_t pinBase, const Pi::models::type Model, const Pi::layout::type Layout, const wiringPiModes::type wiringPiMode>
+    template <const pin_t pinBase, const Pi::model::type Model, const Pi::layout::type Layout, const wiringPiModes::type wiringPiMode>
     class bmp180 : public wiringPiNode
     {
     public:

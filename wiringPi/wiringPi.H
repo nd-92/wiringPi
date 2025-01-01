@@ -13,6 +13,7 @@
 
 #include "wiringPiIncludes.H"
 #include "wiringPiDefines.H"
+#include <piInfo.H>
 #include "wiringPiSignals.H"
 #include "wiringPiStaticAsserts.H"
 #include "wiringPiPinTables.H"
@@ -23,11 +24,10 @@
 #include "wiringPiNode.H"
 #include "piThread.H"
 #include "piHiPriority.H"
-// #include "i2c.H"
 
 namespace WiringPi
 {
-    template <const Pi::models::type Model, const Pi::layout::type Layout, const wiringPiModes::type wiringPiMode>
+    template <const Pi::model::type Model, const Pi::layout::type Layout, const wiringPiModes::type wiringPiMode>
     class wiringPi
     {
     public:
@@ -42,13 +42,13 @@ namespace WiringPi
             setupModeAssert(wiringPiModes::constant<wiringPiMode_>());
 
             // Check for non-GPIO mode on certain models
-            computeModelAssert(Pi::models::constant<piHardware_.model()>(), wiringPiModes::constant<wiringPiMode_>());
+            computeModelAssert(Pi::model::constant<piHardware_.model()>(), wiringPiModes::constant<wiringPiMode_>());
 
             // Check that the board layout is correct
             layoutAssert(layout_constant<piHardware_.gpioLayout()>());
 
             // Check that the Pi model is correct
-            piModelAssert(Pi::models::constant<piHardware_.model()>());
+            piModelAssert(Pi::model::constant<piHardware_.model()>());
 
             // Debug messages
 #ifdef WIRINGPI_DEBUG
@@ -958,9 +958,9 @@ namespace WiringPi
         }
 
         // Software version info
-        static constexpr name_t version_ = VERSION();
-        static constexpr const int versionMajor_ = VERSION_MAJOR<int>();
-        static constexpr const int versionMinor_ = VERSION_MINOR<int>();
+        // static constexpr name_t version_ = VERSION();
+        // static constexpr const int versionMajor_ = VERSION_MAJOR<int>();
+        // static constexpr const int versionMinor_ = VERSION_MINOR<int>();
 
         // Implements the logic of the MSBFIRST loop of shiftIn
         // Loops from 7 to 0

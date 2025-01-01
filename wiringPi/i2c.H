@@ -13,7 +13,7 @@
 
 namespace WiringPi
 {
-    template <const pin_t devID, const Pi::models::type Model, const Pi::layout::type Layout, const wiringPiModes::type wiringPiMode>
+    template <const pin_t devID, const Pi::model::type Model, const Pi::layout::type Layout, const wiringPiModes::type wiringPiMode>
     class i2c
     {
     public:

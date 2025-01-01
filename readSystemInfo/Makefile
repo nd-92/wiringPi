@@ -14,10 +14,14 @@ LIBS = -lm -lpthread -lrt -lcrypt
 default:
 	make clean
 	$(CXX) $(CXXFLAGS) readSystemInfo.C -o readSystemInfo
-	sudo ./readSystemInfo
-	mv piInfo.H ../
+
+install:
+	make
+	./readSystemInfo
+	sudo mv piInfo.H /usr/local/include/
 
 clean:
 	rm -rf readSystemInfo
-	rm -rf piInfo.H
-	rm -rf ../piInfo.H
+
+uninstall:
+	sudo rm -rf /usr/local/include/piInfo.H

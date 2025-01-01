@@ -15,14 +15,14 @@
 
 namespace WiringPi
 {
-    template <const Pi::models::type Model, const Pi::layout::type Layout>
+    template <const Pi::model::type Model, const Pi::layout::type Layout>
     class piHardware
     {
     public:
         [[nodiscard]] inline constexpr piHardware() {};
 
         // Returns the model code
-        [[nodiscard]] static inline consteval Pi::models::type model()
+        [[nodiscard]] static inline consteval Pi::model::type model()
         {
             return piModel_;
         }
@@ -84,7 +84,7 @@ namespace WiringPi
 
     private:
         // Pi hardware info
-        static constexpr const Pi::models::type piModel_ = Model;
+        static constexpr const Pi::model::type piModel_ = Model;
         static constexpr const Pi::layout::type gpioLayout_ = Layout;
 
         [[nodiscard]] static inline consteval pin_t piGpioPupOffset()
@@ -93,47 +93,47 @@ namespace WiringPi
 
             switch (piModel_)
             {
-            case Pi::models::PiA:
+            case Pi::model::PiA:
             {
                 return 0;
             }
-            case Pi::models::PiB:
+            case Pi::model::PiB:
             {
                 return 0;
             }
-            case Pi::models::PiAP:
+            case Pi::model::PiAP:
             {
                 return 0;
             }
-            case Pi::models::PiBP:
+            case Pi::model::PiBP:
             {
                 return 0;
             }
-            case Pi::models::PiAlpha:
+            case Pi::model::PiAlpha:
             {
                 return 0;
             }
-            case Pi::models::PiCM:
+            case Pi::model::PiCM:
             {
                 return 0;
             }
-            case Pi::models::PiZero:
+            case Pi::model::PiZero:
             {
                 return 0;
             }
-            case Pi::models::PiZero_W:
+            case Pi::model::PiZero_W:
             {
                 return GPPUD<pin_t>();
             }
-            case Pi::models::Pi4B:
+            case Pi::model::Pi4B:
             {
                 return 0;
             }
-            case Pi::models::Pi400:
+            case Pi::model::Pi400:
             {
                 return 0;
             }
-            case Pi::models::PiCM4:
+            case Pi::model::PiCM4:
             {
                 return GPPUPPDN0<pin_t>();
             }
@@ -148,7 +148,7 @@ namespace WiringPi
         // static constexpr const int piMaker_ = PI_MAKER<int>();
         // static constexpr const int piWarranty_ = PI_WARRANTY<int>();
         static constexpr const pin_t piGpioPupOffset_ = piGpioPupOffset();
-        static constexpr const name_t modelString_ = Pi::models::names(piModel_);
+        static constexpr const name_t modelString_ = Pi::model::names(piModel_);
         static constexpr const pin_t numPhysicalPins_ = pinTables::numPhysicalPins<gpioLayout_>();
     };
 }

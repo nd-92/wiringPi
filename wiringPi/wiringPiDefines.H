@@ -187,9 +187,10 @@ namespace WiringPi
     namespace Pi
     {
         // Pi models
-        namespace models
+        namespace model
         {
-            typedef enum Enum : int
+            // This is an enumerated type because the model can only be one of a few select values
+            typedef enum Enum : std::size_t
             {
                 PiA = 0,
                 PiB = 1,
@@ -246,57 +247,66 @@ namespace WiringPi
         }
 
         // Pi versions
-        namespace versions
+        namespace version
         {
-            template <typename T>
-            [[nodiscard]] inline consteval T V1()
+            // This is an enumerated type because the version can only be one of a few select values
+            typedef enum Enum : std::size_t
             {
-                return 0;
-            }
-            template <typename T>
-            [[nodiscard]] inline consteval T V1_1()
-            {
-                return 1;
-            }
-            template <typename T>
-            [[nodiscard]] inline consteval T V1_2()
-            {
-                return 2;
-            }
-            template <typename T>
-            [[nodiscard]] inline consteval T V_2()
-            {
-                return 3;
-            }
+                V1 = 0,   // Revision 1.0
+                V1_1 = 1, // Revision 1.1
+                V1_2 = 2, // Revision 1.2
+                V2 = 3,   // Revision 2.0
+                V1_4 = 4, // Revision 1.4
+                V1_5 = 5  // Revision 1.5
+            } type;
         }
 
         // Pi manufacturers
-        namespace manufacturers
+        namespace manufacturer
         {
-            [[nodiscard]] inline consteval int Sony()
+            // This is an enumerated type because the manufacturer can only be one of a few select values
+            typedef enum Enum : std::size_t
             {
-                return 0;
-            }
-            [[nodiscard]] inline consteval int Egoman()
+                Sony_UK = 0,
+                Egoman = 1,
+                Embest = 2,
+                Sony_Japan = 3,
+                Embest_2 = 4,
+                Stadium = 5
+            } type;
+        }
+
+        namespace memory
+        {
+            // This is an enumerated type because the memory can only be one of a few select values
+            typedef enum Enum : std::size_t
             {
-                return 1;
-            }
-            [[nodiscard]] inline consteval int Embest()
-            {
-                return 2;
-            }
-            [[nodiscard]] inline consteval int unknown()
-            {
-                return 3;
-            }
+                MB256 = 0,
+                MB512 = 1,
+                GB1 = 2,
+                GB2 = 3,
+                GB4 = 4,
+                GB8 = 5
+            } type;
         }
 
         namespace layout
         {
-            typedef enum Enum : int
+            // This is an enumerated type because the layout can only be one of a few select values
+            typedef enum Enum : std::size_t
             {
                 PI1_REV1 = 1,
                 DEFAULT = 2
+            } type;
+        }
+
+        namespace warranty
+        {
+            // This is an enumerated type because the warranty can only be valid or voided
+            typedef enum Enum : std::size_t
+            {
+                valid = 0,
+                voided = 1
             } type;
         }
     }
