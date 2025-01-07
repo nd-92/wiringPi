@@ -264,6 +264,7 @@ namespace WiringPi
             } type;
         }
 
+        // Memory capacity
         namespace memory
         {
             // This is an enumerated type because the memory can only be one of a few select values
@@ -278,6 +279,7 @@ namespace WiringPi
             } type;
         }
 
+        // GPIO board layout
         namespace layout
         {
             // This is an enumerated type because the layout can only be one of a few select values
@@ -289,8 +291,22 @@ namespace WiringPi
 
             template <const type layout_>
             using constant = const std::integral_constant<type, layout_>;
+
+            template <typename T, const Pi::layout::type layout>
+            [[nodiscard]] constexpr T deviceName()
+            {
+                if constexpr (layout == Pi::layout::PI1_REV1)
+                {
+                    return "/dev/i2c-0";
+                }
+                else
+                {
+                    return "/dev/i2c-1";
+                }
+            }
         }
 
+        // Warranty
         namespace warranty
         {
             // This is an enumerated type because the warranty can only be valid or voided
@@ -447,14 +463,6 @@ namespace WiringPi
 
             template <const type mode_>
             using constant = const std::integral_constant<type, mode_>;
-            // [[nodiscard]] inline consteval int MS()
-            // {
-            //     return 0;
-            // }
-            // [[nodiscard]] inline consteval int BAL()
-            // {
-            //     return 1;
-            // }
         }
     }
 
@@ -689,6 +697,87 @@ namespace WiringPi
                 return "/dev/i2c-1";
             }
         }
+    }
+
+    namespace spi
+    {
+        // Modes of execution
+        namespace mode
+        {
+            // This is an enumerated type because the memory can only be one of a few select values
+            typedef enum Enum : std::size_t
+            {
+                MODE_0 = 0,
+                MODE_1 = 1,
+                MODE_2 = 2
+            } type;
+
+            template <const type mode_>
+            using constant = const std::integral_constant<type, mode_>;
+        }
+
+        // SPI numbers
+        namespace number
+        {
+            typedef enum Enum : std::size_t
+            {
+                n_0 = 0,
+                n_1 = 1,
+                n_2 = 2,
+                n_3 = 3,
+                n_4 = 4,
+                n_5 = 5,
+                n_6 = 6
+            } type;
+
+            template <const type mode_>
+            using constant = const std::integral_constant<type, mode_>;
+        }
+
+        // SPI channels
+        namespace channel
+        {
+            typedef enum Enum : std::size_t
+            {
+                c_0 = 0,
+                c_1 = 1,
+                c_2 = 2
+            } type;
+
+            template <const type mode_>
+            using constant = const std::integral_constant<type, mode_>;
+        }
+
+        template <typename T>
+        [[nodiscard]] inline consteval T BPW()
+        {
+            return 8;
+        }
+        template <typename T>
+        [[nodiscard]] inline consteval T delay()
+        {
+            return 0;
+        }
+
+        template <typename T>
+        [[nodiscard]] inline consteval T maxSPINumbers()
+        {
+            return 7;
+        }
+        template <typename T>
+        [[nodiscard]] inline consteval T maxSPIChannels()
+        {
+            return 3;
+        }
+
+        // template <const std::size_t number_>
+        // using number_constant = const std::integral_constant<std::size_t, number_>;
+
+        // template <const std::size_t channel_>
+        // using channel_constant = const std::integral_constant<std::size_t, channel_>;
+
+        template <const uint32_t speed_>
+        using speed_constant = const std::integral_constant<uint32_t, speed_>;
     }
 
     union i2c_smbus_data

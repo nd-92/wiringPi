@@ -1,6 +1,6 @@
 // ======================================================================== //
 //                                                                          //
-// mcp23008.H                                                               //
+// bmp180.H                                                                 //
 //                                                                          //
 // ======================================================================== //
 // Extend wiringPi with the BMP180 I2C Pressure and Temperature	sensor      //
@@ -20,7 +20,12 @@ namespace WiringPi
     {
     public:
         // Default constructor: take a reference to the wiringPi object
-        [[nodiscard]] bmp180(wiringPi<Model, Layout, wiringPiMode> &RaspberryPi) : i2c_(i2c<0x77, Model, Layout, wiringPiMode>(RaspberryPi)) {};
+        [[nodiscard]] bmp180([[maybe_unused]] const pin_constant<pinBase> devicePin, wiringPi<Model, Layout, wiringPiMode> &RaspberryPi) : i2c_(i2c<0x77, Model, Layout, wiringPiMode>(RaspberryPi))
+        {
+#ifdef WIRINGPI_DEBUG
+            std::cout << "BMP180 initialised on pin " << devicePin() << std::endl;
+#endif
+        };
 
         ~bmp180() {};
 

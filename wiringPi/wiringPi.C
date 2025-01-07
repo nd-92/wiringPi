@@ -2,13 +2,31 @@
 #include "wiringSerial.H"
 #include "argHandler.H"
 #include "bmp180.H"
+#include "SPI.H"
 
 using namespace WiringPi;
 
+#define DO_THIS_BIT
+
+#ifdef DO_THIS_BIT
 int main(const int argc, const char *argv[])
+#else
+int main()
+#endif
 {
     // Handle the input arguments
     const argHandler args(argc, argv);
+
+    // SPI test
+    {
+        // Initialise wiringPi on the correct mode
+        wiringPi<Pi::model::Pi4B, Pi::layout::DEFAULT, wiringPiModes::pins> RaspberryPi;
+
+        // Create an SPI handler
+        SPI spi(RaspberryPi);
+    }
+
+#ifdef DO_THIS_BIT
 
     // Do the i2c test
     if (args.i2cTest())
@@ -22,7 +40,7 @@ int main(const int argc, const char *argv[])
         wiringPi<Pi::model::Pi4B, Pi::layout::DEFAULT, wiringPiModes::pins> RaspberryPi;
 
         // Create a bmp180 sensor
-        bmp180<myPin, RaspberryPi.piHardwareInfo().model(), RaspberryPi.piHardwareInfo().gpioLayout(), RaspberryPi.mode()> sensor(RaspberryPi);
+        bmp180 sensor(pin_constant<myPin>(), RaspberryPi);
 
         // Set the altitude to 100
         sensor.analogWrite(pin_constant<myPin>(), 100);
@@ -156,6 +174,8 @@ int main(const int argc, const char *argv[])
             }
         }
     }
+
+#endif
 
     return 0;
 }

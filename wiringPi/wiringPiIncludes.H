@@ -25,6 +25,7 @@
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <linux/spi/spidev.h>
 #include <memory>
 #include <mutex>
 #include <poll.h>

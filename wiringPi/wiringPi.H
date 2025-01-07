@@ -97,7 +97,7 @@ namespace WiringPi
             std::cerr << "Resetting all pins" << std::endl;
             resetPins();
             std::cerr << "Successfully reset all pins" << std::endl;
-            std::cerr << "Exiting on code EXIT_FAILURE" << std::endl;
+            std::cerr << "Exiting on code " << EXIT_FAILURE << std::endl;
             std::exit(EXIT_FAILURE);
         }
 
