@@ -38,30 +38,29 @@ namespace WiringPi
             spiModeAssert<mode_>();
 
             const std::string spiDevString = "/dev/spidev" + std::to_string(number) + "." + std::to_string(channel);
-            // std::cout << spiDevString << std::endl;
 
             if ((fd = open(spiDevString.c_str(), O_RDWR)) < 0)
             {
-                RaspberryPi_.failure(name_t("Unable to open SPI device " + spiDevString + ": " + strerror(errno)));
+                RaspberryPi_.failure(name_t("Unable to open SPI device " + spiDevString + ": "));
             }
 
             // Set SPI parameters.
             if (ioctl(fd, SPI_IOC_WR_MODE, &mode) < 0)
             {
-                RaspberryPi_.failure(name_t("SPI mode change failure: " + std::string(strerror(errno))));
+                RaspberryPi_.failure("SPI mode change failure: ");
             }
 
             constexpr const uint8_t spiBPW = spi::BPW<uint8_t>();
             // const int tempInt_1 = ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &spiBPW);
             if (ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &spiBPW) < 0)
             {
-                RaspberryPi_.failure(name_t("SPI BPW change failure: " + std::string(strerror(errno))));
+                RaspberryPi_.failure("SPI BPW change failure: ");
             }
 
             // const int tempInt_2 = ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed);
             if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) < 0)
             {
-                RaspberryPi_.failure(name_t("SPI speed change failure: " + std::string(strerror(errno))));
+                RaspberryPi_.failure("SPI speed change failure: ");
             }
 
             speeds_[number][channel] = speed;
@@ -80,7 +79,7 @@ namespace WiringPi
             {
                 if (close(fds_[number][channel]) != 0)
                 {
-                    RaspberryPi_.failure();
+                    RaspberryPi_.failure("Failed to close SPI device: ");
                 }
             }
 
@@ -107,22 +106,12 @@ namespace WiringPi
             spiChannelAssert<number_, channel_>();
             if (fds_[number][channel] == -1)
             {
-                RaspberryPi_.failure("wiringPiSPI: Invalid SPI number/channel (need to call setup before read/write)");
+                RaspberryPi_.failure("wiringPiSPI: Invalid SPI number/channel (need to call setup before read/write): ");
             }
 
             struct spi_ioc_transfer spi_
             {
-                data,                         // tx_buf
-                    data,                     // rx_buf
-                    len,                      // len
-                    speeds_[number][channel], // speed_hz
-                    spi::delay<__u16>(),      // delay_usecs
-                    spi::BPW<__u8>(),         // bits_per_word
-                    0,                        // cs_change
-                    0,                        // tx_nbits
-                    0,                        // rx_nbits
-                    0,                        // word_delay_usecs
-                    0                         // pad
+                data, data, len, speeds_[number][channel], spi::delay<__u16>(), spi::BPW<__u8>(), 0, 0, 0, 0, 0
             };
 
             return ioctl(fds_[number][channel], SPI_IOC_MESSAGE(1), &spi_);

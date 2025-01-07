@@ -47,7 +47,7 @@ int main()
 
         // Get the temperature
         const gpio_t temperature = sensor.analogRead(pin_constant<temperatureChannel>());
-        std::cout << "Temperature: " << (temperature - 273.15) * 0.1 << " K" << std::endl;
+        std::cout << "Temperature: " << temperature * 10.0 << " K" << std::endl;
 
         // Get the pressure
         const gpio_t pressure = sensor.analogRead(pin_constant<pressureChannel>());

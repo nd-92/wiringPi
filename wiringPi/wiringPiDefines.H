@@ -800,6 +800,42 @@ namespace WiringPi
             return 1;
         }
     }
+
+    namespace drc
+    {
+        template <typename T>
+        [[nodiscard]] inline consteval T defaultServerPort()
+        {
+            return 6124;
+        }
+
+        // DRC commands
+        namespace command
+        {
+            typedef enum Enum : uint32_t
+            {
+                PIN_MODE = 1,
+                PULL_UP_DN = 2,
+                DIGITAL_WRITE = 3,
+                DIGITAL_WRITE8 = 4,
+                ANALOG_WRITE = 5,
+                PWM_WRITE = 6,
+                DIGITAL_READ = 7,
+                DIGITAL_READ8 = 8,
+                ANALOG_READ = 9
+            } type;
+
+            template <const type command_>
+            using constant = const std::integral_constant<type, command_>;
+        }
+    }
+
+    struct drcNetComStruct
+    {
+        uint32_t pin;
+        uint32_t cmd;
+        uint32_t data;
+    };
 }
 
 #endif

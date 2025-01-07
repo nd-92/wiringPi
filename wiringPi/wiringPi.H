@@ -93,7 +93,7 @@ namespace WiringPi
         void failure(const name_t errorMessage = "Undefined exception")
         {
             std::cerr << "WiringPi failure:" << std::endl;
-            std::cerr << errorMessage << std::endl;
+            std::cerr << errorMessage << strerror(errno) << std::endl;
             std::cerr << "Resetting all pins" << std::endl;
             resetPins();
             std::cerr << "Successfully reset all pins" << std::endl;

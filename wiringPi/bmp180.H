@@ -6,8 +6,8 @@
 // Extend wiringPi with the BMP180 I2C Pressure and Temperature	sensor      //
 // ======================================================================== //
 
-#ifndef __WIRING_PI_nullDevice_H
-#define __WIRING_PI_nullDevice_H
+#ifndef __WIRING_PI_BMP180_H
+#define __WIRING_PI_BMP180_H
 
 #include "wiringPiIncludes.H"
 #include "wiringPiDefines.H"
@@ -28,6 +28,11 @@ namespace WiringPi
         };
 
         ~bmp180() {};
+
+        [[nodiscard]] inline int fd() const
+        {
+            return i2c_.fd();
+        }
 
         [[nodiscard]] inline consteval name_t deviceName() const
         {
@@ -62,7 +67,7 @@ namespace WiringPi
             }
             else if constexpr (chan == 2) // Pressure in mB
             {
-                return cPress_ / pow(1 - (static_cast<scalar_t>(altitude_) / 44330.0), 5.255);
+                return cPress_ / pow(1.0 - (static_cast<scalar_t>(altitude_) / 44330.0), 5.255);
             }
             else
             {
@@ -83,7 +88,7 @@ namespace WiringPi
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
             // Read the raw data and calculate
-            const scalar_t tu = (static_cast<scalar_t>(static_cast<uint8_t>(-1)) * 256.0) + static_cast<scalar_t>(static_cast<uint8_t>(-1));
+            const scalar_t tu = (static_cast<scalar_t>(i2c_.read8(0xF6)) * 256.0) + static_cast<scalar_t>(i2c_.read8(0xF7));
             const scalar_t a = c5_ * (tu - c6_);
             const scalar_t fTemp = a + (mc_ / (a + md_));
             cTemp_ = static_cast<gpio_t>(rint(((100.0 * fTemp) + 0.5) / 10.0));
@@ -92,8 +97,8 @@ namespace WiringPi
             i2c_.write8(0xF4, 0x34 | (BMP180_OSS << 6));
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
-            // Read the raw data nd calculate
-            const scalar_t pu = (static_cast<scalar_t>(static_cast<uint8_t>(-1)) * 256.0) + static_cast<scalar_t>(static_cast<uint8_t>(-1)) + (static_cast<scalar_t>(static_cast<uint8_t>(-1)) / 256.0);
+            // Read the raw data and calculate
+            const scalar_t pu = (static_cast<scalar_t>(i2c_.read8(0xF6)) * 256.0) + static_cast<scalar_t>(i2c_.read8(0xF7)) + (static_cast<scalar_t>(i2c_.read8(0xF8)) / 256.0);
             const scalar_t s = fTemp - 25.0;
             const scalar_t x = (x2_ * pow(s, 2.0)) + (x1_ * s) + x0_;
             const scalar_t y = (yy2_ * pow(s, 2.0)) + (yy1_ * s) + yy0_;
