@@ -608,7 +608,7 @@ namespace WiringPi
     }
 
     // I2C defines
-    namespace I2C
+    namespace i2c
     {
         template <typename T>
         [[nodiscard]] inline consteval T slave()
@@ -699,6 +699,21 @@ namespace WiringPi
         }
     }
 
+    union i2c_smbus_data
+    {
+        uint8_t byte;
+        uint16_t word;
+        uint8_t block[i2c::smbusBlockMax<std::size_t>() + 2];
+    };
+
+    struct i2c_smbus_ioctl_data
+    {
+        const uint8_t read_write;
+        const uint8_t command;
+        const uint32_t size;
+        union i2c_smbus_data *data;
+    };
+
     namespace spi
     {
         // Modes of execution
@@ -770,30 +785,9 @@ namespace WiringPi
             return 3;
         }
 
-        // template <const std::size_t number_>
-        // using number_constant = const std::integral_constant<std::size_t, number_>;
-
-        // template <const std::size_t channel_>
-        // using channel_constant = const std::integral_constant<std::size_t, channel_>;
-
         template <const uint32_t speed_>
         using speed_constant = const std::integral_constant<uint32_t, speed_>;
     }
-
-    union i2c_smbus_data
-    {
-        uint8_t byte;
-        uint16_t word;
-        uint8_t block[I2C::smbusBlockMax<std::size_t>() + 2];
-    };
-
-    struct i2c_smbus_ioctl_data
-    {
-        const uint8_t read_write;
-        const uint8_t command;
-        const uint32_t size;
-        union i2c_smbus_data *data;
-    };
 
     namespace shift
     {

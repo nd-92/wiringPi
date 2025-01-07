@@ -1,6 +1,6 @@
 // ======================================================================== //
 //                                                                          //
-// i2c.H                                                                    //
+// I2C.H                                                                    //
 //                                                                          //
 // ======================================================================== //
 // Implements access to I2C                                                 //
@@ -14,11 +14,11 @@
 namespace WiringPi
 {
     template <const pin_t devID, const Pi::model::type Model, const Pi::layout::type Layout, const wiringPiModes::type wiringPiMode>
-    class i2c
+    class I2C
     {
     public:
         // Default constructor: take a reference to the wiringPi object
-        [[nodiscard]] inline i2c(wiringPi<Model, Layout, wiringPiMode> &RaspberryPi) : RaspberryPi_(RaspberryPi), fd_(setupInterface()) {};
+        [[nodiscard]] inline I2C(wiringPi<Model, Layout, wiringPiMode> &RaspberryPi) : RaspberryPi_(RaspberryPi), fd_(setupInterface()) {};
 
         // Simple read
         [[nodiscard]] uint8_t read() const
@@ -26,9 +26,9 @@ namespace WiringPi
             union i2c_smbus_data data;
 
             // Perform the read and check for failure
-            if (I2C_smbus_access(I2C::smbusRead<uint8_t>(), 0, I2C::smbusByte<uint32_t>(), &data) == -1)
+            if (I2C_smbus_access(i2c::smbusRead<uint8_t>(), 0, i2c::smbusByte<uint32_t>(), &data) == -1)
             {
-                RaspberryPi_.failure(name_t("Failed to read data from i2c smbus: " + std::string(strerror(errno))));
+                RaspberryPi_.failure(name_t("Failed to read data from I2C smbus: " + std::string(strerror(errno))));
             }
 
             // Return the data
@@ -41,9 +41,9 @@ namespace WiringPi
             union i2c_smbus_data data;
 
             // Perform the read and check for failure
-            if (I2C_smbus_access(I2C::smbusRead<uint8_t>(), reg, I2C::smbusByteData<uint32_t>(), &data) == -1)
+            if (I2C_smbus_access(i2c::smbusRead<uint8_t>(), reg, i2c::smbusByteData<uint32_t>(), &data) == -1)
             {
-                RaspberryPi_.failure(name_t("Failed to read uint8_t data from i2c smbus: " + std::string(strerror(errno))));
+                RaspberryPi_.failure(name_t("Failed to read uint8_t data from I2C smbus: " + std::string(strerror(errno))));
             }
 
             // Return the data
@@ -56,9 +56,9 @@ namespace WiringPi
             union i2c_smbus_data data;
 
             // Perform the read and check for failure
-            if (I2C_smbus_access(I2C::smbusRead<uint8_t>(), reg, I2C::smbusWordData<uint32_t>(), &data) == -1)
+            if (I2C_smbus_access(i2c::smbusRead<uint8_t>(), reg, i2c::smbusWordData<uint32_t>(), &data) == -1)
             {
-                RaspberryPi_.failure(name_t("Failed to read uint16_t data from i2c smbus" + std::string(strerror(errno))));
+                RaspberryPi_.failure(name_t("Failed to read uint16_t data from I2C smbus" + std::string(strerror(errno))));
             }
 
             // Return the data
@@ -70,14 +70,14 @@ namespace WiringPi
         {
             union i2c_smbus_data data;
 
-            const uint8_t blockSize = std::min(size, I2C::smbusBlockMax<uint8_t>());
+            const uint8_t blockSize = std::min(size, i2c::smbusBlockMax<uint8_t>());
 
             data.block[0] = blockSize;
 
             // Perform the read and check for failure
-            if (I2C_smbus_access(I2C::smbusRead<uint8_t>(), reg, I2C::smbusI2CBlockData<uint32_t>(), &data) == -1)
+            if (I2C_smbus_access(i2c::smbusRead<uint8_t>(), reg, i2c::smbusI2CBlockData<uint32_t>(), &data) == -1)
             {
-                RaspberryPi_.failure(name_t("Failed to read block data from i2c smbus" + std::string(strerror(errno))));
+                RaspberryPi_.failure(name_t("Failed to read block data from I2C smbus" + std::string(strerror(errno))));
             }
             memcpy(values, &data.block[1], blockSize);
 
@@ -87,15 +87,15 @@ namespace WiringPi
 
         [[nodiscard]] inline consteval name_t deviceName() const
         {
-            return "i2c";
+            return "I2C";
         }
 
         // Simple write
         void write(const uint8_t data) const
         {
-            if (I2C_smbus_access(I2C::smbusWrite<uint8_t>(), data, I2C::smbusByte<uint32_t>(), NULL))
+            if (I2C_smbus_access(i2c::smbusWrite<uint8_t>(), data, i2c::smbusByte<uint32_t>(), NULL))
             {
-                RaspberryPi_.failure(name_t("Failed to write data to i2c smbus" + std::string(strerror(errno))));
+                RaspberryPi_.failure(name_t("Failed to write data to I2C smbus" + std::string(strerror(errno))));
             }
         }
 
@@ -106,7 +106,7 @@ namespace WiringPi
             data.byte = value;
 
             // Perform the write and check for failure
-            if (I2C_smbus_access(I2C::smbusWrite<uint8_t>(), reg, I2C::smbusByteData<uint32_t>(), &data) == -1)
+            if (I2C_smbus_access(i2c::smbusWrite<uint8_t>(), reg, i2c::smbusByteData<uint32_t>(), &data) == -1)
             {
                 RaspberryPi_.failure(name_t("Failed to write uint8_t data to i2c smbus" + std::string(strerror(errno))));
             }
@@ -119,9 +119,9 @@ namespace WiringPi
             data.word = value;
 
             // Perform the write and check for failure
-            if (I2C_smbus_access(I2C::smbusWrite<uint8_t>(), reg, I2C::smbusWordData<uint32_t>(), &data) == -1)
+            if (I2C_smbus_access(i2c::smbusWrite<uint8_t>(), reg, i2c::smbusWordData<uint32_t>(), &data) == -1)
             {
-                RaspberryPi_.failure(name_t("Failed to write uint16_t data to i2c smbus" + std::string(strerror(errno))));
+                RaspberryPi_.failure(name_t("Failed to write uint16_t data to I2C smbus" + std::string(strerror(errno))));
             }
         }
 
@@ -130,14 +130,14 @@ namespace WiringPi
         {
             union i2c_smbus_data data;
 
-            const uint8_t blockSize = std::min(size, I2C::smbusBlockMax<uint8_t>());
+            const uint8_t blockSize = std::min(size, i2c::smbusBlockMax<uint8_t>());
             data.block[0] = blockSize;
             memcpy(&data.block[1], values, blockSize);
 
             // Perform the write and check for failure
-            if (I2C_smbus_access(I2C::smbusWrite<uint8_t>(), reg, I2C::smbusBlockData<uint32_t>(), &data) == -1)
+            if (I2C_smbus_access(i2c::smbusWrite<uint8_t>(), reg, i2c::smbusBlockData<uint32_t>(), &data) == -1)
             {
-                RaspberryPi_.failure(name_t("Failed to write block data to i2c smbus" + std::string(strerror(errno))));
+                RaspberryPi_.failure(name_t("Failed to write block data to I2C smbus" + std::string(strerror(errno))));
             }
         }
 
@@ -156,10 +156,10 @@ namespace WiringPi
 
             if ((fd = open(Pi::layout::deviceName<const char *, Layout>(), O_RDWR)) < 0)
             {
-                RaspberryPi_.failure("Failed to setup i2c interface");
+                RaspberryPi_.failure("Failed to setup I2C interface");
             }
 
-            if (ioctl(fd, I2C::slave<unsigned long>(), devID) < 0)
+            if (ioctl(fd, i2c::slave<unsigned long>(), devID) < 0)
             {
                 RaspberryPi_.failure(name_t("Unable to select I2C device " + Pi::layout::deviceName<std::string, Layout>() + ": " + std::string(strerror(errno))));
             }
@@ -173,7 +173,7 @@ namespace WiringPi
             {
                 rw, command, size, data
             };
-            return ioctl(fd_, I2C::smbus<unsigned long>(), &args);
+            return ioctl(fd_, i2c::smbus<unsigned long>(), &args);
         }
     };
 }

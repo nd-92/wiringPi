@@ -20,9 +20,9 @@ namespace WiringPi
         // Default constructor: take a reference to the wiringPi object
         [[nodiscard]] inline SPI(wiringPi<Model, Layout, wiringPiMode> &RaspberryPi) : RaspberryPi_(RaspberryPi) {};
 
-        // Close all the files on exit
         ~SPI()
         {
+            // Close all the files on exit
             closeAll();
         };
 

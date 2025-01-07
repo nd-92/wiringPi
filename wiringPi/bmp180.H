@@ -11,7 +11,7 @@
 
 #include "wiringPiIncludes.H"
 #include "wiringPiDefines.H"
-#include "i2c.H"
+#include "I2C.H"
 
 namespace WiringPi
 {
@@ -20,7 +20,7 @@ namespace WiringPi
     {
     public:
         // Default constructor: take a reference to the wiringPi object
-        [[nodiscard]] bmp180([[maybe_unused]] const pin_constant<pinBase> devicePin, wiringPi<Model, Layout, wiringPiMode> &RaspberryPi) : i2c_(i2c<0x77, Model, Layout, wiringPiMode>(RaspberryPi))
+        [[nodiscard]] bmp180([[maybe_unused]] const pin_constant<pinBase> devicePin, wiringPi<Model, Layout, wiringPiMode> &RaspberryPi) : i2c_(I2C<0x77, Model, Layout, wiringPiMode>(RaspberryPi))
         {
 #ifdef WIRINGPI_DEBUG
             std::cout << "BMP180 initialised on pin " << devicePin() << std::endl;
@@ -72,7 +72,7 @@ namespace WiringPi
 
     private:
         static constexpr const pin_t BMP180_OSS = 0;
-        i2c<0x77, Model, Layout, wiringPiMode> i2c_;
+        I2C<0x77, Model, Layout, wiringPiMode> i2c_;
         static constexpr const pin_t pinBase_ = pinBase;
         static constexpr const pin_t nPins_ = 4;
 

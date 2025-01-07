@@ -13,10 +13,9 @@ This is still a very early work in progress and doesn't contain anything close t
 **TO DO**
 - [x] Implement softTone
 - [x] Implement wiringSerial
-- [ ] Implement wiringSerial printf
 - [x] Implement wiringShift
 - [ ] Implement drcNet
 - [ ] Implement pseudoPins
-- [x] Implement i2c
-- [ ] Implement SPI
-- [ ] Implement wpiExtensions
+- [x] Implement I2C
+- [x] Implement SPI
+- [ ] Implement wpiExtensions - requires I2C, SPI, drcNet and pseudoPins first

@@ -28,7 +28,7 @@ int main()
 
 #ifdef DO_THIS_BIT
 
-    // Do the i2c test
+    // Do the I2C test
     if (args.i2cTest())
     {
         // Define a pin

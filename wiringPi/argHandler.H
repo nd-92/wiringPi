@@ -34,7 +34,7 @@ namespace WiringPi
             return readWriteTest_;
         }
 
-        // Return if we are doing the i2c test
+        // Return if we are doing the I2C test
         [[nodiscard]] bool i2cTest() const
         {
             return i2cTest_;
@@ -108,7 +108,7 @@ namespace WiringPi
             return argumentStringMatch(argc, argv, "-readWriteTest");
         }
 
-        // Are we doing the i2c test
+        // Are we doing the I2C test
         const bool i2cTest_;
         [[nodiscard]] bool i2cTestCheck(const int argc, const char *argv[]) const
         {
