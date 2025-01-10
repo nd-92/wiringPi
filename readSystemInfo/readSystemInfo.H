@@ -22,7 +22,7 @@ struct piInfoSpec
     const WiringPi::Pi::warranty::type warranty;
 };
 
-[[nodiscard]] inline WiringPi::Pi::layout::type __piGpioLayout()
+[[nodiscard]] inline WiringPi::Pi::layout::type piGpioLayout()
 {
     // FILE *cpuFd;
     char line[120];
@@ -100,7 +100,7 @@ struct piInfoSpec
     char line[120];
     char *c;
 
-    const WiringPi::Pi::layout::type layout = __piGpioLayout();
+    const WiringPi::Pi::layout::type layout = piGpioLayout();
 
     {
         FILE *cpuFd = fopen("/proc/cpuinfo", "r");

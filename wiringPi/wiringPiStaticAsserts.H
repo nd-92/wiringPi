@@ -99,20 +99,6 @@ namespace WiringPi
     {
         static_assert(layoutCheck(layout()), "Invalid GPIO layout");
     }
-
-    template <const spi::number::type number_, const spi::channel::type channel_>
-    inline void spiChannelAssert()
-    {
-        static_assert((channel_ == spi::channel::c_0 || channel_ == spi::channel::c_1 || channel_ == spi::channel::c_2), "wiringPiSPI: Invalid SPI channel: valid range 0-2");
-
-        static_assert((number_ == spi::number::n_0 || number_ == spi::number::n_1 || number_ == spi::number::n_2 || number_ == spi::number::n_3 || number_ == spi::number::n_4 || number_ == spi::number::n_5 || number_ == spi::number::n_6), "wiringPiSPI: Invalid SPI channel: valid range 0-2");
-    }
-
-    template <const spi::mode::type mode_>
-    inline void spiModeAssert()
-    {
-        static_assert((mode_ == 0 || mode_ == 1 || mode_ == 2 || mode_ == 3), "wiringPiSPI: Invalid mode: valid range 0-3");
-    }
 }
 
 #endif

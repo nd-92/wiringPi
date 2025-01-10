@@ -1,12 +1,9 @@
 #include "wiringPi.H"
-#include "wiringSerial.H"
 #include "argHandler.H"
-#include "bmp180.H"
-#include "SPI.H"
 
 using namespace WiringPi;
 
-#define DO_THIS_BIT
+// #define DO_THIS_BIT
 
 #ifdef DO_THIS_BIT
 int main(const int argc, const char *argv[])
@@ -14,33 +11,53 @@ int main(const int argc, const char *argv[])
 int main()
 #endif
 {
-    // Handle the input arguments
-    const argHandler args(argc, argv);
-
-    // SPI test
+    // ADS1115 test
     {
+        // Define a pin
+        constexpr const pin_constant<70> myPin;
+
         // Initialise wiringPi on the correct mode
         wiringPi<Pi::model::Pi4B, Pi::layout::DEFAULT, wiringPiModes::pins> RaspberryPi;
 
-        // Create an SPI handler
-        SPI spi(RaspberryPi);
+        ADS1115 sensor(myPin, RaspberryPi);
+
+        std::cout << sensor.data(pin_constant<0>()) << std::endl;
+        std::cout << sensor.data(pin_constant<1>()) << std::endl;
+        std::cout << sensor.dataRate(pin_constant<6>()) << std::endl;
+
+        sensor.analogWrite(myPin, 0);
+        sensor.digitalWrite(myPin, 0);
+
+        std::cout << sensor.analogRead(myPin) << std::endl;
     }
 
+    // SPI test
+    // {
+    //     // Initialise wiringPi on the correct mode
+    //     wiringPi<Pi::model::Pi4B, Pi::layout::DEFAULT, wiringPiModes::pins> RaspberryPi;
+
+    //     // Create an SPI handler
+    //     SPI spi(RaspberryPi);
+    // }
+
 #ifdef DO_THIS_BIT
+
+    // Handle the input arguments
+    const argHandler args(argc, argv);
 
     // Do the I2C test
     if (args.i2cTest())
     {
         // Define a pin
-        constexpr const pin_t myPin = 0x77;
+        constexpr const pin_constant<0x77> myPin;
         constexpr const pin_t temperatureChannel = myPin;
         constexpr const pin_t pressureChannel = myPin + 1;
 
         // Initialise wiringPi on the correct mode
         wiringPi<Pi::model::Pi4B, Pi::layout::DEFAULT, wiringPiModes::pins> RaspberryPi;
 
-        // Create a bmp180 sensor
-        bmp180 sensor(pin_constant<myPin>(), RaspberryPi);
+        // Create a BMP180 sensor
+        BMP180 sensor(pin_constant<myPin>(), RaspberryPi);
 
         // Set the altitude to 100
         sensor.analogWrite(pin_constant<myPin>(), 100);

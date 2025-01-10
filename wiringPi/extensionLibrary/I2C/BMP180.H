@@ -1,6 +1,6 @@
 // ======================================================================== //
 //                                                                          //
-// bmp180.H                                                                 //
+// BMP180.H                                                                 //
 //                                                                          //
 // ======================================================================== //
 // Extend wiringPi with the BMP180 I2C Pressure and Temperature	sensor      //
@@ -9,25 +9,29 @@
 #ifndef __WIRING_PI_BMP180_H
 #define __WIRING_PI_BMP180_H
 
-#include "wiringPiIncludes.H"
-#include "wiringPiDefines.H"
-#include "I2C.H"
-
 namespace WiringPi
 {
+    namespace bmp180
+    {
+        [[nodiscard]] inline consteval pin_t oss()
+        {
+            return 0;
+        }
+    }
     template <const pin_t pinBase, const Pi::model::type Model, const Pi::layout::type Layout, const wiringPiModes::type wiringPiMode>
-    class bmp180 : public wiringPiNode
+    class BMP180 : public wiringPiNode
     {
     public:
         // Default constructor: take a reference to the wiringPi object
-        [[nodiscard]] bmp180([[maybe_unused]] const pin_constant<pinBase> devicePin, wiringPi<Model, Layout, wiringPiMode> &RaspberryPi) : i2c_(I2C<0x77, Model, Layout, wiringPiMode>(RaspberryPi))
+        // The BMP180 always sets up on I2C address 0x77, so devicePin is unused unless in debug mode
+        [[nodiscard]] BMP180([[maybe_unused]] const pin_constant<pinBase> devicePin, wiringPi<Model, Layout, wiringPiMode> &RaspberryPi) : i2c_(I2C<0x77, Model, Layout, wiringPiMode>(RaspberryPi))
         {
 #ifdef WIRINGPI_DEBUG
             std::cout << "BMP180 initialised on pin " << devicePin() << std::endl;
 #endif
         };
 
-        ~bmp180() {};
+        ~BMP180() {};
 
         [[nodiscard]] inline int fd() const
         {
@@ -36,7 +40,7 @@ namespace WiringPi
 
         [[nodiscard]] inline consteval name_t deviceName() const
         {
-            return "bmp180";
+            return deviceName_;
         }
 
         // Write to a fake register to represent the height above sea level
@@ -76,10 +80,10 @@ namespace WiringPi
         }
 
     private:
-        static constexpr const pin_t BMP180_OSS = 0;
-        I2C<0x77, Model, Layout, wiringPiMode> i2c_;
+        const I2C<0x77, Model, Layout, wiringPiMode> i2c_;
         static constexpr const pin_t pinBase_ = pinBase;
         static constexpr const pin_t nPins_ = 4;
+        static constexpr const name_t deviceName_ = "BMP180";
 
         void readTempPress()
         {
@@ -94,7 +98,7 @@ namespace WiringPi
             cTemp_ = static_cast<gpio_t>(rint(((100.0 * fTemp) + 0.5) / 10.0));
 
             // Start a pressure sensor reading
-            i2c_.write8(0xF4, 0x34 | (BMP180_OSS << 6));
+            i2c_.write8(0xF4, 0x34 | (bmp180::oss() << 6));
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
             // Read the raw data and calculate
@@ -183,9 +187,6 @@ namespace WiringPi
         const scalar_t yy0_ = static_cast<scalar_t>(c4()) * std::pow(2.0, 15.0);
         const scalar_t yy1_ = static_cast<scalar_t>(c4()) * static_cast<scalar_t>(c3());
         const scalar_t yy2_ = static_cast<scalar_t>(c4()) * static_cast<scalar_t>(b1());
-        // static constexpr const scalar_t p0_ = (3791.0 - 8.0) / 1600.0;
-        // static constexpr const scalar_t p1_ = 1.0 - 7357.0 * std::pow(2.0, -20.0);
-        // static constexpr const scalar_t p2_ = 3038.0 * 100.0 * std::pow(2.0, -36.0);
         static constexpr const scalar_t p0_ = 3783.0 / 1600.0;
         static constexpr const scalar_t p1_ = 1041219.0 / 1048576.0;
         static constexpr const scalar_t p2_ = 37975.0 / 8589934592.0;

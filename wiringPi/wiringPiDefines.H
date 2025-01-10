@@ -20,7 +20,6 @@ namespace WiringPi
     typedef uint32_t clk_t;
     typedef uint32_t pads_t;
     typedef uint32_t timer_t;
-    typedef ssize_t I2C_t;
     typedef uint64_t frequency_t;
     typedef std::string_view name_t;
     typedef double scalar_t;
@@ -37,8 +36,6 @@ namespace WiringPi
     using pads_constant = const std::integral_constant<pads_t, pads_>;
     template <const timer_t timer_>
     using timer_constant = const std::integral_constant<timer_t, timer_>;
-    template <const I2C_t I2C_>
-    using I2C_constant = const std::integral_constant<I2C_t, I2C_>;
 
     // Maximum number of pins
     template <typename T>
@@ -69,20 +66,6 @@ namespace WiringPi
     typedef std::array<int, MAX_PINS<std::size_t>()> fileDescriptorTable;
     typedef std::array<std::thread, MAX_PINS<std::size_t>()> threadTable;
 
-    // Environment strings - maybe unused
-    [[nodiscard]] consteval const name_t ENV_DEBUG()
-    {
-        return "WIRINGPI_DEBUG";
-    }
-    [[nodiscard]] consteval const name_t ENV_CODES()
-    {
-        return "WIRINGPI_CODES";
-    }
-    [[nodiscard]] consteval const name_t ENV_GPIOMEM()
-    {
-        return "WIRINGPI_GPIOMEM";
-    }
-
     // Pin modes
     namespace pinModes
     {
@@ -105,18 +88,6 @@ namespace WiringPi
         using constant_input = constant<input>;
         using constant_output = constant<output>;
 
-        // [[nodiscard]] inline consteval std::array<name_t, 8> pinModes()
-        // {
-        //     return std::array<name_t, 8>{
-        //         "IN",
-        //         "OUT",
-        //         "PWM_OUTPUT",
-        //         "GPIO_CLOCK",
-        //         "SOFT_PWM_OUTPUT",
-        //         "SOFT_TONE_OUTPUT",
-        //         "PWM_TONE_OUTPUT",
-        //         "PWM_OFF"};
-        // }
         [[nodiscard]] inline consteval std::array<name_t, 8> modeStrings()
         {
             return std::array<name_t, 8>{
@@ -316,18 +287,6 @@ namespace WiringPi
                 voided = 1
             } type;
         }
-    }
-
-    // Error codes
-    template <typename T>
-    [[nodiscard]] inline consteval T WPI_FATAL()
-    {
-        return (1 == 1);
-    }
-    template <typename T>
-    [[nodiscard]] inline consteval T WPI_ALMOST()
-    {
-        return (1 == 2);
     }
 
     // Memory params
@@ -607,188 +566,6 @@ namespace WiringPi
         }
     }
 
-    // I2C defines
-    namespace i2c
-    {
-        template <typename T>
-        [[nodiscard]] inline consteval T slave()
-        {
-            return 0x0703;
-        }
-        template <typename T>
-        [[nodiscard]] inline consteval T smbus()
-        {
-            return 0x0720;
-        }
-        template <typename T>
-        [[nodiscard]] inline consteval T smbusRead()
-        {
-            return 1;
-        }
-        template <typename T>
-        [[nodiscard]] inline consteval T smbusWrite()
-        {
-            return 0;
-        }
-        template <typename T>
-        [[nodiscard]] inline consteval T smbusQuick()
-        {
-            return 0;
-        }
-        template <typename T>
-        [[nodiscard]] inline consteval T smbusByte()
-        {
-            return 1;
-        }
-        template <typename T>
-        [[nodiscard]] inline consteval T smbusByteData()
-        {
-            return 2;
-        }
-        template <typename T>
-        [[nodiscard]] inline consteval T smbusWordData()
-        {
-            return 3;
-        }
-        template <typename T>
-        [[nodiscard]] inline consteval T smbusProcCall()
-        {
-            return 4;
-        }
-        template <typename T>
-        [[nodiscard]] inline consteval T smbusBlockData()
-        {
-            return 5;
-        }
-        template <typename T>
-        [[nodiscard]] inline consteval T smbusI2CBlockBroken()
-        {
-            return 6;
-        }
-        template <typename T>
-        [[nodiscard]] inline consteval T smbusBlockProcCall()
-        {
-            return 7;
-        }
-        template <typename T>
-        [[nodiscard]] inline consteval T smbusI2CBlockData()
-        {
-            return 8;
-        }
-        template <typename T>
-        [[nodiscard]] inline consteval T smbusBlockMax()
-        {
-            return 32;
-        }
-        template <typename T>
-        [[nodiscard]] inline consteval T smbusI2CBlockMax()
-        {
-            return 32;
-        }
-        template <const Pi::layout::type layout>
-        [[nodiscard]] consteval const name_t deviceName()
-        {
-            if constexpr (layout == Pi::layout::DEFAULT)
-            {
-                return "/dev/i2c-0";
-            }
-            else
-            {
-                return "/dev/i2c-1";
-            }
-        }
-    }
-
-    union i2c_smbus_data
-    {
-        uint8_t byte;
-        uint16_t word;
-        uint8_t block[i2c::smbusBlockMax<std::size_t>() + 2];
-    };
-
-    struct i2c_smbus_ioctl_data
-    {
-        const uint8_t read_write;
-        const uint8_t command;
-        const uint32_t size;
-        union i2c_smbus_data *data;
-    };
-
-    namespace spi
-    {
-        // Modes of execution
-        namespace mode
-        {
-            // This is an enumerated type because the memory can only be one of a few select values
-            typedef enum Enum : std::size_t
-            {
-                MODE_0 = 0,
-                MODE_1 = 1,
-                MODE_2 = 2
-            } type;
-
-            template <const type mode_>
-            using constant = const std::integral_constant<type, mode_>;
-        }
-
-        // SPI numbers
-        namespace number
-        {
-            typedef enum Enum : std::size_t
-            {
-                n_0 = 0,
-                n_1 = 1,
-                n_2 = 2,
-                n_3 = 3,
-                n_4 = 4,
-                n_5 = 5,
-                n_6 = 6
-            } type;
-
-            template <const type mode_>
-            using constant = const std::integral_constant<type, mode_>;
-        }
-
-        // SPI channels
-        namespace channel
-        {
-            typedef enum Enum : std::size_t
-            {
-                c_0 = 0,
-                c_1 = 1,
-                c_2 = 2
-            } type;
-
-            template <const type mode_>
-            using constant = const std::integral_constant<type, mode_>;
-        }
-
-        template <typename T>
-        [[nodiscard]] inline consteval T BPW()
-        {
-            return 8;
-        }
-        template <typename T>
-        [[nodiscard]] inline consteval T delay()
-        {
-            return 0;
-        }
-
-        template <typename T>
-        [[nodiscard]] inline consteval T maxSPINumbers()
-        {
-            return 7;
-        }
-        template <typename T>
-        [[nodiscard]] inline consteval T maxSPIChannels()
-        {
-            return 3;
-        }
-
-        template <const uint32_t speed_>
-        using speed_constant = const std::integral_constant<uint32_t, speed_>;
-    }
-
     namespace shift
     {
         [[nodiscard]] inline consteval int LSBFIRST()
@@ -800,42 +577,6 @@ namespace WiringPi
             return 1;
         }
     }
-
-    namespace drc
-    {
-        template <typename T>
-        [[nodiscard]] inline consteval T defaultServerPort()
-        {
-            return 6124;
-        }
-
-        // DRC commands
-        namespace command
-        {
-            typedef enum Enum : uint32_t
-            {
-                PIN_MODE = 1,
-                PULL_UP_DN = 2,
-                DIGITAL_WRITE = 3,
-                DIGITAL_WRITE8 = 4,
-                ANALOG_WRITE = 5,
-                PWM_WRITE = 6,
-                DIGITAL_READ = 7,
-                DIGITAL_READ8 = 8,
-                ANALOG_READ = 9
-            } type;
-
-            template <const type command_>
-            using constant = const std::integral_constant<type, command_>;
-        }
-    }
-
-    struct drcNetComStruct
-    {
-        uint32_t pin;
-        uint32_t cmd;
-        uint32_t data;
-    };
 }
 
 #endif

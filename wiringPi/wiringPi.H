@@ -22,7 +22,7 @@
 #include "piHardwareInfo.H"
 #include "piMemory.H"
 #include "wiringPiNode.H"
-#include "piThread.H"
+// #include "piThread.H"
 #include "piHiPriority.H"
 
 namespace WiringPi
@@ -613,7 +613,7 @@ namespace WiringPi
         template <const pin_t pin_>
         inline void softPwmThread() const
         {
-            // Check that we are operating on a valid pin
+            // Check that we are operating on a valid onboard pin
             validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin_]>());
 
             while (threadSwitches_[pin_] && run())
@@ -647,7 +647,7 @@ namespace WiringPi
         template <const pin_t pin_>
         inline void softToneThread() const
         {
-            // Check that we are operating on a valid pin
+            // Check that we are operating on a valid onboard pin
             validPinAssert(pin_constant<piHardware_.nPins()>(), pin_constant<pinMap_[pin_]>());
 
             while (threadSwitches_[pin_] && run())
@@ -1046,5 +1046,9 @@ namespace WiringPi
         }
     };
 }
+
+#include "wiringSerial.H"
+#include "extensionLibrary/SPI.H"
+#include "extensionLibrary/I2C.H"
 
 #endif

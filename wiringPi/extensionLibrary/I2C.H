@@ -4,15 +4,127 @@
 //                                                                          //
 // ======================================================================== //
 // Implements access to I2C                                                 //
+// Includes all devices under the I2C/ folder                               //
 // ======================================================================== //
 
 #ifndef __WIRING_PI_I2C_H
 #define __WIRING_PI_I2C_H
 
-#include "wiringPi.H"
+#include "../wiringPi.H"
 
 namespace WiringPi
 {
+    typedef ssize_t I2C_t;
+    template <const I2C_t I2C_>
+    using I2C_constant = const std::integral_constant<I2C_t, I2C_>;
+
+    // I2C defines
+    namespace i2c
+    {
+        template <typename T>
+        [[nodiscard]] inline consteval T slave()
+        {
+            return 0x0703;
+        }
+        template <typename T>
+        [[nodiscard]] inline consteval T smbus()
+        {
+            return 0x0720;
+        }
+        template <typename T>
+        [[nodiscard]] inline consteval T smbusRead()
+        {
+            return 1;
+        }
+        template <typename T>
+        [[nodiscard]] inline consteval T smbusWrite()
+        {
+            return 0;
+        }
+        template <typename T>
+        [[nodiscard]] inline consteval T smbusQuick()
+        {
+            return 0;
+        }
+        template <typename T>
+        [[nodiscard]] inline consteval T smbusByte()
+        {
+            return 1;
+        }
+        template <typename T>
+        [[nodiscard]] inline consteval T smbusByteData()
+        {
+            return 2;
+        }
+        template <typename T>
+        [[nodiscard]] inline consteval T smbusWordData()
+        {
+            return 3;
+        }
+        template <typename T>
+        [[nodiscard]] inline consteval T smbusProcCall()
+        {
+            return 4;
+        }
+        template <typename T>
+        [[nodiscard]] inline consteval T smbusBlockData()
+        {
+            return 5;
+        }
+        template <typename T>
+        [[nodiscard]] inline consteval T smbusI2CBlockBroken()
+        {
+            return 6;
+        }
+        template <typename T>
+        [[nodiscard]] inline consteval T smbusBlockProcCall()
+        {
+            return 7;
+        }
+        template <typename T>
+        [[nodiscard]] inline consteval T smbusI2CBlockData()
+        {
+            return 8;
+        }
+        template <typename T>
+        [[nodiscard]] inline consteval T smbusBlockMax()
+        {
+            return 32;
+        }
+        template <typename T>
+        [[nodiscard]] inline consteval T smbusI2CBlockMax()
+        {
+            return 32;
+        }
+        template <const Pi::layout::type layout>
+        [[nodiscard]] consteval const name_t deviceName()
+        {
+            if constexpr (layout == Pi::layout::DEFAULT)
+            {
+                return "/dev/i2c-0";
+            }
+            else
+            {
+                return "/dev/i2c-1";
+            }
+        }
+    }
+
+    union i2c_smbus_data
+    {
+        uint8_t byte;
+        uint16_t word;
+        uint8_t block[i2c::smbusBlockMax<std::size_t>() + 2];
+    };
+
+    struct i2c_smbus_ioctl_data
+    {
+        const uint8_t read_write;
+        const uint8_t command;
+        const uint32_t size;
+        union i2c_smbus_data *data;
+    };
+
     template <const pin_t devID, const Pi::model::type Model, const Pi::layout::type Layout, const wiringPiModes::type wiringPiMode>
     class I2C
     {
@@ -177,5 +289,8 @@ namespace WiringPi
         }
     };
 }
+
+#include "I2C/ADS1115.H"
+#include "I2C/BMP180.H"
 
 #endif

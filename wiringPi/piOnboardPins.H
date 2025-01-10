@@ -102,6 +102,12 @@ namespace WiringPi
             return "Onboard pins";
         }
 
+        // Dummy function that returns access to "data"
+        [[nodiscard]] inline constexpr unsigned int data([[maybe_unused]] const std::size_t i) const
+        {
+            return 0;
+        }
+
     private:
         // This is potentially constexpr, but not yet
         gpioTable pinMode_;

@@ -21,8 +21,6 @@ namespace WiringPi
     public:
         [[nodiscard]] inline constexpr wiringPiNode() {};
 
-        // ~wiringPiNode() {};
-
         // Read the value of a given pin, returns either HIGH or LOW
         [[nodiscard]] virtual inline gpio_t digitalRead([[maybe_unused]] const volatile gpio_t *gpioPtr) const
         {
@@ -31,6 +29,16 @@ namespace WiringPi
 
         // Set an output bit
         virtual inline void digitalWrite([[maybe_unused]] volatile gpio_t *gpioPtr, [[maybe_unused]] const gpio_t value) const
+        {
+            return;
+        }
+
+        [[nodiscard]] virtual inline gpio_t analogRead() const
+        {
+            return 0;
+        }
+
+        virtual inline void analogWrite() const
         {
             return;
         }
@@ -59,7 +67,14 @@ namespace WiringPi
             return "wiringPiNode";
         }
 
+        // Return access to data
+        [[nodiscard]] virtual inline constexpr unsigned int data(const std::size_t i) const
+        {
+            return data_[i];
+        }
+
     private:
+        static constexpr const std::array<unsigned int, 4> data_{0, 0, 0, 0};
     };
 }
 

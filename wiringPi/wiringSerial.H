@@ -116,7 +116,7 @@ namespace WiringPi
             struct termios options;
             speed_t myBaud = 0;
             int status = -1;
-            int fd = -1;
+            int _fd = -1;
 
             switch (baud_)
             {
@@ -215,16 +215,16 @@ namespace WiringPi
                 return -2;
             }
 
-            if ((fd = open(std::string(deviceName_).c_str(), O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK)) == -1)
+            if ((_fd = open(std::string(deviceName_).c_str(), O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK)) == -1)
             {
                 return -1;
             }
 
-            fcntl(fd, F_SETFL, O_RDWR);
+            fcntl(_fd, F_SETFL, O_RDWR);
 
             // Get and modify current options:
 
-            tcgetattr(fd, &options);
+            tcgetattr(_fd, &options);
 
             cfmakeraw(&options);
             cfsetispeed(&options, myBaud);
@@ -241,18 +241,18 @@ namespace WiringPi
             options.c_cc[VMIN] = 0;
             options.c_cc[VTIME] = 100; // Ten seconds (100 deciseconds)
 
-            tcsetattr(fd, TCSANOW, &options);
+            tcsetattr(_fd, TCSANOW, &options);
 
-            ioctl(fd, TIOCMGET, &status);
+            ioctl(_fd, TIOCMGET, &status);
 
             status |= TIOCM_DTR;
             status |= TIOCM_RTS;
 
-            ioctl(fd, TIOCMSET, &status);
+            ioctl(_fd, TIOCMSET, &status);
 
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-            return fd;
+            return _fd;
         }
     };
 }
